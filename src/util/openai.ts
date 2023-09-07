@@ -49,7 +49,6 @@ export function parseCodeFromMarkdown(code: string) {
 }
 
 export async function generateList(description: string): Promise<string[]> {
-  // console.log(`Sending message: ${description}`);
   const openai = new OpenAI();
   const response = await openai.chat.completions.create({
     model: 'gpt-3.5-turbo',
