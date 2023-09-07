@@ -9,5 +9,5 @@ export * from './src/component';
 export * from './src/server';
 export * from './src/service';
 export * from './src/serviceLoader';
-export * from './src/template';
+export * from './src/util/template';
 export * from './src/type';
