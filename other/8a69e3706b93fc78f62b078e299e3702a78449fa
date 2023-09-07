@@ -1,0 +1,26 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Logger = void 0;
+class Logger {
+    constructor(name) {
+        this.name = name;
+    }
+    prefix() {
+        const timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
+        const namePrefix = this.name ? ` [${this.name}]` : '';
+        return `${timestamp}${namePrefix}`;
+    }
+    log(message) {
+        console.log(`${this.prefix()} ${message}`);
+    }
+    debug(message) {
+        console.debug(`${this.prefix()} ${message}`);
+    }
+    info(message) {
+        console.info(`${this.prefix()} ${message}`);
+    }
+    error(message) {
+        console.error(`${this.prefix()} ${message}`);
+    }
+}
+exports.Logger = Logger;

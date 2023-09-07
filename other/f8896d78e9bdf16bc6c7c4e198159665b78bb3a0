@@ -1,0 +1,125 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Template = void 0;
+const path_1 = __importDefault(require("path"));
+const fs_extra_1 = __importDefault(require("fs-extra"));
+const ChildProcess = __importStar(require("child_process"));
+const CodeGeneratorConfig_1 = require("./CodeGeneratorConfig");
+const openai_1 = require("./openai");
+const logger_1 = require("./logger");
+class Template {
+    constructor() {
+        this.logger = new logger_1.Logger(this.constructor.name);
+    }
+    generateCode(description) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.logger.info(`Generating code for description: ${description}`);
+            const code = yield (0, openai_1.generateCode)(description);
+            this.logger.info(`Generated code:\n${code.slice(0, 150)}${code.length > 150 ? '...' : ''}`);
+            return code;
+        });
+    }
+    writeFiles(files) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            const directory = CodeGeneratorConfig_1.CodeGeneratorConfig.get().srcPath;
+            for (let file of files) {
+                const relativeFilePath = this.relativeFilePath(file.name, file.extension, (_a = file.relativePath) === null || _a === void 0 ? void 0 : _a.toLocaleLowerCase());
+                if (file.relativePath && file.relativePath.includes('..'))
+                    throw new Error(`Failed to write file: ${relativeFilePath}, file path cannot contain '..'`);
+                const filePath = this.filePath(directory, relativeFilePath);
+                yield fs_extra_1.default.ensureFile(filePath);
+                this.logger.info(`Writing file: ${filePath}`);
+                yield fs_extra_1.default.writeFile(filePath, file.content);
+                this.logger.info(`Wrote file: ${filePath}`);
+            }
+        });
+    }
+    relativeFilePath(fileName, fileExtension, fileRelativePath) {
+        if (!fileExtension.startsWith('.'))
+            fileExtension = '.' + fileExtension;
+        if (!fileRelativePath)
+            return fileName + fileExtension;
+        let resolvedPath = fileRelativePath;
+        if (resolvedPath.startsWith(path_1.default.sep))
+            resolvedPath = resolvedPath.slice(1);
+        if (!resolvedPath.endsWith(path_1.default.sep))
+            resolvedPath += path_1.default.sep;
+        return resolvedPath + fileName + fileExtension;
+    }
+    filePath(directory, relativeFilePath) {
+        if (directory.endsWith(path_1.default.sep))
+            return directory + relativeFilePath;
+        return directory + path_1.default.sep + relativeFilePath;
+    }
+    installPackage(name, version, exactVersion = true, development = false) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const args = [
+                'i',
+                `${development ? `-D` : exactVersion ? '--save-exact' : `-S`}`,
+                `${name}${version ? `@${version}` : ''}`
+            ];
+            const cmd = 'npm ' + args.join(' ');
+            this.logger.info(`Running command: ${cmd}`);
+            yield this.cmd('npm', args);
+            this.logger.info(`Ran command: ${cmd}`);
+        });
+    }
+    cmd(command, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let p = ChildProcess.spawn(command, options, {
+                cwd: process.cwd()
+            });
+            return new Promise((resolve) => {
+                p.stdout.on('data', (x) => {
+                    process.stdout.write(x.toString());
+                });
+                p.stderr.on('data', (x) => {
+                    process.stderr.write(x.toString());
+                });
+                p.on('error', (error) => {
+                    process.stderr.write(error.toString());
+                });
+                p.on('exit', (code) => {
+                    resolve(code);
+                });
+            });
+        });
+    }
+}
+exports.Template = Template;
