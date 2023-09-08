@@ -29,6 +29,6 @@ export class Table extends Template {
       relativePath: this.constructor.name,
       content: code  
     }]);
-    await this.installPackage('@google-cloud/bigquery', '7.2.0');
+    await this.installPackage([{ name: '@google-cloud/bigquery', version: '7.2.0' }]);
   }
 }

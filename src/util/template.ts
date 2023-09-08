@@ -63,16 +63,21 @@ export abstract class Template {
     return directory + path.sep + relativeFilePath;
   }
 
-  protected async installPackage(name: string, version?: string, exactVersion = true, development = false) {
-    const args = [
-      'i',
-      `${development ? `-D` : exactVersion ? '--save-exact' : `-S`}`,
-      `${name}${version ? `@${version}` : ''}`
-    ];
-    const cmd = 'npm ' + args.join(' ');
-    this.logger.info(`Running command: ${cmd}`);
-    await this.cmd('npm', args);
-    this.logger.info(`Ran command: ${cmd}`);
+  protected async installPackage(packages: { name: string, version?: string, exactVersion?: boolean, development?: boolean }[]) {
+    for (let backage of packages) {
+      const { name, version, exactVersion, development } = backage;
+      const resolvedExactVersion = typeof exactVersion === 'undefined' ? true : exactVersion;
+      const resolvedDevelopment = typeof development === 'undefined' ? false : development;
+      const args = [
+        'i',
+        `${resolvedDevelopment ? `-D` : resolvedExactVersion ? '--save-exact' : `-S`}`,
+        `${name}${version ? `@${version}` : ''}`
+      ];
+      const cmd = 'npm ' + args.join(' ');
+      this.logger.info(`Running command: ${cmd}`);
+      await this.cmd('npm', args);
+      this.logger.info(`Ran command: ${cmd}`);
+    }
   }
 
   private async cmd(command: string, options?: string[]) {
