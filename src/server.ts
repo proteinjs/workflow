@@ -17,7 +17,7 @@ export class Server extends Template {
     additionalInstructions?: string,
   }): Promise<void> {
     if (Server.GENERATED) {
-      console.log(`Preventing duplicate generation of ${this.constructor.name}`);
+      this.logger.info(`Preventing duplicate generation of ${this.constructor.name}`);
       return;
     }
 

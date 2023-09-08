@@ -13,7 +13,7 @@ type File = {
 }
 
 export abstract class Template {
-  private logger = new Logger(this.constructor.name);
+  protected logger = new Logger(this.constructor.name);
 
   abstract generate(args: any): Promise<void>;
 
