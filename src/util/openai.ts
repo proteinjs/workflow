@@ -22,6 +22,10 @@ export async function generateCode(description: string) {
   return parseCodeFromMarkdown(code);
 }
 
+export async function updateCode(code: string, description: string) {
+  return await generateCode(`Update this code:\n\n${code}\n\n${description}`);
+}
+
 export function parseCodeFromMarkdown(code: string) {
   if (!code.match(/```([\s\S]+?)```/g))
     return code;

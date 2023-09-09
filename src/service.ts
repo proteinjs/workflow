@@ -1,20 +1,35 @@
 import { Template } from "./util/template";
 import { Paragraph } from "./util/paragraph";
 import { Sentence } from "./util/sentence";
-import { ServiceLoader } from "./serviceLoader";
+import { ServiceLoader, ServiceLoaderArgs } from "./serviceLoader";
+
+export type ServiceArgs = {
+  name: string,
+  functionBody: string,
+  path?: string,
+  additionalInstructions?: string,
+  serviceLoaderArgs?: ServiceLoaderArgs,
+}
 
 export class Service extends Template {
-  async generate(args: {
-    name: string,
-    functionBody: string,
-    path?: string,
-    additionalInstructions?: string,
-    serviceLoaderArgs?: Parameters<ServiceLoader['generate']>[0],
-  }): Promise<void> {
-    const { name, functionBody, path, serviceLoaderArgs, additionalInstructions } = args;
-    await new ServiceLoader().generate({
+  private args: ServiceArgs;
+
+  constructor(args: ServiceArgs) {
+    super();
+    this.args = Object.assign(args, { name: args.name.charAt(0).toUpperCase() + args.name.slice(1) });
+  }
+
+  files() {
+    return {
+      service: this.filePath(`${this.args.name}.ts`)
+    };
+  }
+
+  async generate(): Promise<void> {
+    const { name, functionBody, path, serviceLoaderArgs, additionalInstructions } = this.args;
+    await new ServiceLoader({
       ...serviceLoaderArgs 
-    });
+    }).generate();
     
     const paragraph = new Paragraph();
     paragraph.add(new Sentence().add(`Create a Service implementation named ${name}`));
@@ -27,8 +42,7 @@ export class Service extends Template {
     const description = paragraph.toString();
     const code = await this.generateCode(description);
     await this.writeFiles([{ 
-      name: this.constructor.name,
-      extension: 'ts',
+      relativePath: this.files().service,
       content: code  
     }]);
   }

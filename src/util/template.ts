@@ -2,18 +2,18 @@ import path from 'path';
 import fs from 'fs-extra';
 import * as ChildProcess from 'child_process';
 import { CodeGeneratorConfig } from './CodeGeneratorConfig';
-import { generateCode } from "./openai";
+import { generateCode, updateCode } from "./openai";
 import { Logger } from './logger';
 
 type File = {
-  name: string,
-  extension: string,
-  relativePath?: string,
+  relativePath: string,
   content: string,
 }
 
 export abstract class Template {
   protected logger = new Logger(this.constructor.name);
+
+  abstract files(): any;
 
   abstract generate(args: any): Promise<void>;
 
@@ -24,14 +24,24 @@ export abstract class Template {
     return code;
   }
 
-  protected async writeFiles(files: File[]) {
-    const directory = CodeGeneratorConfig.get().srcPath;
-    for (let file of files) {
-      const relativeFilePath = this.relativeFilePath(file.name, file.extension, file.relativePath?.toLocaleLowerCase());
-      if (file.relativePath && file.relativePath.includes('..'))
-        throw new Error(`Failed to write file: ${relativeFilePath}, file path cannot contain '..'`);
+  protected async updateCode(relativePath: string, description: string) {
+    const filePath = this.filePath(relativePath);
+    if (!await fs.exists(filePath))
+      throw new Error(`File does not exist at path: ${filePath}`);
+    
+    const code = (await fs.readFile(filePath)).toString();
+    if (!code)
+      throw new Error(`File is empty: ${filePath}`);
+  
+    this.logger.info(`Updating code: ${filePath}, with description: ${description}`);
+    const updatedCode = await updateCode(code, description);
+    this.logger.info(`Updated code:\n${code.slice(0, 150)}${code.length > 150 ? '...' : ''}`);
+    return updatedCode;
+  }
 
-      const filePath = this.filePath(directory, relativeFilePath);
+  protected async writeFiles(files: File[]) {
+    for (let file of files) {
+      const filePath = this.filePath(file.relativePath);
       await fs.ensureFile(filePath);
       this.logger.info(`Writing file: ${filePath}`);
       await fs.writeFile(filePath, file.content);
@@ -39,28 +49,12 @@ export abstract class Template {
     }
   }
 
-  private relativeFilePath(fileName: string, fileExtension: string, fileRelativePath?: string) {
-    if (!fileExtension.startsWith('.'))
-      fileExtension = '.' + fileExtension;
-    
-    if (!fileRelativePath)
-      return fileName+fileExtension;
-    
-    let resolvedPath = fileRelativePath;
-    if (resolvedPath.startsWith(path.sep))
-      resolvedPath = resolvedPath.slice(1);
-    
-    if (!resolvedPath.endsWith(path.sep))
-      resolvedPath += path.sep;
+  protected filePath(relativePath: string) {
+    const directory = CodeGeneratorConfig.get().srcPath;
+    if (relativePath.includes('..'))
+        throw new Error(`Failed to access file: ${relativePath}, file path cannot contain '..'`);
 
-    return resolvedPath + fileName + fileExtension;
-  }
-
-  private filePath(directory: string, relativeFilePath: string) {
-    if (directory.endsWith(path.sep))
-      return directory + relativeFilePath;
-
-    return directory + path.sep + relativeFilePath;
+      return path.join(directory, this.constructor.name.toLocaleLowerCase(), relativePath);
   }
 
   protected async installPackage(packages: { name: string, version?: string, exactVersion?: boolean, development?: boolean }[]) {
