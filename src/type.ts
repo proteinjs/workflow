@@ -31,7 +31,7 @@ export class Type extends Template {
     const description = sentence.toString();
     const code = await this.generateCode(description);
     await this.writeFiles([{
-      relativePath: this.files().type,
+      path: this.files().type,
       content: code  
     }]);
   }

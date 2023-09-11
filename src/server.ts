@@ -4,19 +4,21 @@ import { Sentence } from "./util/sentence";
 import { CodeGeneratorConfig } from "./util/CodeGeneratorConfig";
 
 export type ServerArgs = {
-  runtime?: string,
-  framework?: string,
   port?: string,
   additionalInstructions?: string,
 }
 
 export class Server extends Template {
   private static GENERATED = false;
+  readonly runtime = CodeGeneratorConfig.get().runtime;
+  readonly framework = 'express';
   private args?: ServerArgs;
 
   constructor(args?: ServerArgs) {
     super();
-    this.args = args;
+    this.args = Object.assign({
+      port: '3000',
+    }, args);
   }
 
   files() {
@@ -34,14 +36,11 @@ export class Server extends Template {
     const paragraph = new Paragraph();
     const createSentence = new Sentence();
     paragraph.add(createSentence);
-    const runtime = this.args?.runtime ? this.args.runtime : CodeGeneratorConfig.get().runtime;
-    createSentence.add(`Create a server written in ${CodeGeneratorConfig.get().language?.name}, in ${runtime}`);
-    if (this.args?.framework)
-      createSentence.add(`using ${this.args.framework}`);
-
-    const port = this.args?.port ? this.args.port : '3000';
-    paragraph.add(new Sentence().add(`Serve traffic on port ${port}`));
+    createSentence.add(`Create a server written in ${CodeGeneratorConfig.get().language?.name}, in ${this.runtime}, using ${this.framework}`);
+    paragraph.add(new Sentence().add(`Serve traffic on port ${this.args?.port}`));
     paragraph.add(new Sentence().add(`Also create and export a function named stop that stops the server`));
+    paragraph.add(new Sentence().add(`Do not define an example route`));
+    paragraph.add(new Sentence().add(`Use the express json plugin`));
 
     if (this.args?.additionalInstructions)
       paragraph.add(new Sentence().add(this.args.additionalInstructions));
@@ -49,12 +48,12 @@ export class Server extends Template {
     const description = paragraph.toString();
     const code = await this.generateCode(description);
     await this.writeFiles([{ 
-      relativePath: this.files().server,
+      path: this.files().server,
       content: code  
     }]);
     await this.installPackage([
       { name: 'express', version: '4.18.2' },
-      { name: '@types/express', development: true },
+      { name: '@types/express', version: '4.17.17', development: true },
     ]);
     Server.GENERATED = true;
   }

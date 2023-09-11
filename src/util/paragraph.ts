@@ -5,6 +5,7 @@ export class Paragraph {
 
   add(sentence: Sentence) {
     this.sentences.push(sentence);
+    return this;
   }
 
   toString(): string {

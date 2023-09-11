@@ -40,7 +40,7 @@ export class Table extends Template {
     const description = paragraph.toString();
     const code = await this.generateCode(description);
     await this.writeFiles([{
-      relativePath: this.files().table,
+      path: this.files().table,
       content: code  
     }]);
     await this.installPackage([{ name: '@google-cloud/bigquery', version: '7.2.0' }]);

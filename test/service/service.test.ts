@@ -1,14 +1,24 @@
 import axios from 'axios';
-import { Server } from '../../src/server';
 import { CodeGeneratorConfig } from '../../src/util/CodeGeneratorConfig';
+import { Service } from '../../src/service';
 
-// test('Server should respond to basic request', async () => {
-//   CodeGeneratorConfig.set({ srcPath: `${process.cwd()}/test/server/generated` });
-//   await new Server({ additionalInstructions: `Register a GET route with the server on path hello that responds with the string world.` }).generate();
-//   const server = require('../../dist/test/server/generated/Server.js');
-//   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-//   await delay(5000);
-//   const response = await axios.get('http://localhost:3000/hello');
-//   await server.stop();
-//   expect(response.data).toBe('world');
-// }, 60000);
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+test('Service should respond to basic request', async () => {
+  CodeGeneratorConfig.set({ srcPath: `${process.cwd()}/test/service/generated` });
+  await new Service({ 
+    name: 'hello',
+    functionBody: 'Split the input string on \' \' and return the split array',
+    parameters: { message: 'string' },
+    returnType: 'string[]'
+   }).generate();
+  await delay(2000);
+  const server = require('../../dist/test/service/generated/server/Server.js');
+  await delay(5000);
+  try {
+    const response = await axios.post('http://localhost:3000/hello', { message: 'hello world' });
+    expect(JSON.stringify(response.data)).toBe(JSON.stringify(['hello', 'world']));
+  } finally {
+    await server.stop();
+  }
+}, 60000);

@@ -4,9 +4,11 @@ import * as ChildProcess from 'child_process';
 import { CodeGeneratorConfig } from './CodeGeneratorConfig';
 import { generateCode, updateCode } from "./openai";
 import { Logger } from './logger';
+import { Paragraph } from './paragraph';
+import { Sentence } from './sentence';
 
 type File = {
-  relativePath: string,
+  path: string,
   content: string,
 }
 
@@ -14,6 +16,7 @@ export abstract class Template {
   protected logger = new Logger(this.constructor.name);
 
   abstract files(): any;
+  apiDescriptions(): any { return {}; }
 
   abstract generate(args: any): Promise<void>;
 
@@ -24,28 +27,37 @@ export abstract class Template {
     return code;
   }
 
-  protected async updateCode(relativePath: string, description: string) {
-    const filePath = this.filePath(relativePath);
+  protected async updateCode(codeToUpdateFilePath: string, dependencyCodeFilePaths: string[], description: string) {
+    const codeToUpdate = await this.readFile(codeToUpdateFilePath);
+    let dependencyDescription = `Assume the following exists:\n`;
+    for (let dependencyCodeFilePath of dependencyCodeFilePaths) {
+      const dependencCode = await this.readFile(dependencyCodeFilePath);
+      dependencyDescription += dependencCode + '\n\n';
+    }
+
+    this.logger.info(`Updating code: ${codeToUpdateFilePath}, with description: ${description}`);
+    const updatedCode = await updateCode(codeToUpdate, dependencyDescription + description);
+    this.logger.info(`Updated code:\n${codeToUpdate.slice(0, 150)}${codeToUpdate.length > 150 ? '...' : ''}`);
+    return updatedCode;
+  }
+
+  protected async readFile(filePath: string) {
     if (!await fs.exists(filePath))
       throw new Error(`File does not exist at path: ${filePath}`);
     
-    const code = (await fs.readFile(filePath)).toString();
-    if (!code)
+    const fileContent = (await fs.readFile(filePath)).toString();
+    if (!fileContent)
       throw new Error(`File is empty: ${filePath}`);
-  
-    this.logger.info(`Updating code: ${filePath}, with description: ${description}`);
-    const updatedCode = await updateCode(code, description);
-    this.logger.info(`Updated code:\n${code.slice(0, 150)}${code.length > 150 ? '...' : ''}`);
-    return updatedCode;
+
+    return fileContent;
   }
 
   protected async writeFiles(files: File[]) {
     for (let file of files) {
-      const filePath = this.filePath(file.relativePath);
-      await fs.ensureFile(filePath);
-      this.logger.info(`Writing file: ${filePath}`);
-      await fs.writeFile(filePath, file.content);
-      this.logger.info(`Wrote file: ${filePath}`);
+      await fs.ensureFile(file.path);
+      this.logger.info(`Writing file: ${file.path}`);
+      await fs.writeFile(file.path, file.content);
+      this.logger.info(`Wrote file: ${file.path}`);
     }
   }
 
@@ -55,6 +67,10 @@ export abstract class Template {
         throw new Error(`Failed to access file: ${relativePath}, file path cannot contain '..'`);
 
       return path.join(directory, this.constructor.name.toLocaleLowerCase(), relativePath);
+  }
+
+  protected relativePath(fromRelativePath: string, toRelativePath: string) {
+    return path.join(path.relative(path.parse(fromRelativePath).dir, path.parse(toRelativePath).dir), path.parse(toRelativePath).name);
   }
 
   protected async installPackage(packages: { name: string, version?: string, exactVersion?: boolean, development?: boolean }[]) {
