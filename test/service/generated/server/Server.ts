@@ -1,17 +1,16 @@
-import express, { Express, Request, Response } from 'express';
+import express, { Express } from 'express';
+import { Server } from 'http';
 import { loadServices } from '../serviceloader/ServiceLoader';
 
 const app: Express = express();
-const port: number = 3000;
-
 app.use(express.json());
 
 loadServices(app);
 
-const server = app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+const server: Server = app.listen(3000, () => {
+  console.log('Server is running on port 3000');
 });
 
-export const stop = (): void => {
+export function stop(): void {
   server.close();
-};
+}

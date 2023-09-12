@@ -20,14 +20,14 @@ export abstract class Template {
 
   abstract generate(args: any): Promise<void>;
 
-  protected async generateCode(description: string) {
+  protected async generateCode(description: string, model?: string) {
     this.logger.info(`Generating code for description: ${description}`);
-    const code = await generateCode(description);
+    const code = await generateCode(description, model);
     this.logger.info(`Generated code:\n${code.slice(0, 150)}${code.length > 150 ? '...' : ''}`);
     return code;
   }
 
-  protected async updateCode(codeToUpdateFilePath: string, dependencyCodeFilePaths: string[], description: string) {
+  protected async updateCode(codeToUpdateFilePath: string, dependencyCodeFilePaths: string[], description: string, model?: string) {
     const codeToUpdate = await this.readFile(codeToUpdateFilePath);
     let dependencyDescription = `Assume the following exists:\n`;
     for (let dependencyCodeFilePath of dependencyCodeFilePaths) {
@@ -36,7 +36,7 @@ export abstract class Template {
     }
 
     this.logger.info(`Updating code: ${codeToUpdateFilePath}, with description: ${description}`);
-    const updatedCode = await updateCode(codeToUpdate, dependencyDescription + description);
+    const updatedCode = await updateCode(codeToUpdate, dependencyDescription + description, model);
     this.logger.info(`Updated code:\n${codeToUpdate.slice(0, 150)}${codeToUpdate.length > 150 ? '...' : ''}`);
     return updatedCode;
   }

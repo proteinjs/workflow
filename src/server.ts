@@ -38,7 +38,7 @@ export class Server extends Template {
     paragraph.add(createSentence);
     createSentence.add(`Create a server written in ${CodeGeneratorConfig.get().language?.name}, in ${this.runtime}, using ${this.framework}`);
     paragraph.add(new Sentence().add(`Serve traffic on port ${this.args?.port}`));
-    paragraph.add(new Sentence().add(`Also create and export a function named stop that stops the server`));
+    paragraph.add(new Sentence().add(`Create and export a function named stop that stops the server returned by app.listen`));
     paragraph.add(new Sentence().add(`Do not define an example route`));
     paragraph.add(new Sentence().add(`Use the express json plugin`));
 

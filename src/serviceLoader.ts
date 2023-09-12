@@ -51,15 +51,16 @@ export class ServiceLoader extends Template {
       content: serviceCode  
     }]);
 
-    let serviceLoaderDescription = new Sentence().add(`Assume ${this.apiDescriptions().service} already exists`).toString();
-    serviceLoaderDescription += new Sentence().add(`Import the Service interface from ${this.relativePath(this.files().serviceLoader, this.files().service)}`).toString();
-    serviceLoaderDescription += new Sentence().add(`Initialize a constant named services that is an array of Services`).toString();
-    serviceLoaderDescription += new Sentence().add(`Create and export a function named loadServices that iterates through all Services and registers them as routes with the ${server.framework} server so that when a request comes in matching a service's path, its call function is invoked with the request data, and the output of the function is written as a response to the request`).toString();
-    serviceLoaderDescription += new Sentence().add(`Let the catch block error param be of type any`).toString();
+    const serviceLoaderDescription = new Paragraph();
+    serviceLoaderDescription.add(new Sentence().add(`Assume ${this.apiDescriptions().service} already exists`));
+    serviceLoaderDescription.add(new Sentence().add(`Import the Service interface from ${this.relativePath(this.files().serviceLoader, this.files().service)}`));
+    serviceLoaderDescription.add(new Sentence().add(`Initialize a constant named services that is an array of Services`));
+    serviceLoaderDescription.add(new Sentence().add(`Create and export a function named loadServices that iterates through all Services and registers them as routes with the ${server.framework} server so that when a request comes in matching a service's path, its call function is invoked with the request data, and the output of the function is written as a response to the request`));
+    serviceLoaderDescription.add(new Sentence().add(`Let the catch block error param be of type any`));
     if (additionalInstructions)
-      serviceLoaderDescription += new Sentence().add(additionalInstructions).toString();
+      serviceLoaderDescription.add(new Sentence().add(additionalInstructions));
 
-    const serviceLoaderCode = await this.generateCode(serviceLoaderDescription);
+    const serviceLoaderCode = await this.generateCode(serviceLoaderDescription.toString());
     await this.writeFiles([{ 
       path: this.files().serviceLoader,
       content: serviceLoaderCode  
@@ -69,7 +70,7 @@ export class ServiceLoader extends Template {
       .add(new Sentence().add(`Import loadServices from ${this.relativePath(server.files().server, this.files().serviceLoader)}`))
       .add(new Sentence().add(`Register loadServices to be called on startup before app.listen and pass in the app to register the routes`))
     .toString();
-    const serverUpdateCode = await this.updateCode(server.files().server, [this.files().serviceLoader], serverUpdateDescription);
+    const serverUpdateCode = await this.updateCode(server.files().server, [this.files().serviceLoader], serverUpdateDescription, 'gpt-4');
     await this.writeFiles([{ 
       path: server.files().server,
       content: serverUpdateCode  
