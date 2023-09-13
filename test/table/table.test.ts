@@ -1,43 +1,56 @@
+import { BigQuery } from '@google-cloud/bigquery';
 import { Db } from '../../src/db';
 import { Table } from '../../src/table';
 import { CodeGeneratorConfig } from '../../src/util/CodeGeneratorConfig';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-test('Create db', async () => {
+test('Create dataset and table', async () => {
   CodeGeneratorConfig.set({ srcPath: `${process.cwd()}/test/table/generated` });
-  await new Db({
-    dataset: 'test',
-    projectId: 'test-bigquery-398804',
-   }).generate();
+  const tableName = 'session';
+  const dataset = 'test';
+  const projectId = 'test-bigquery-398804';
+  await new Table({
+    name: tableName,
+    dataset,
+    projectId,
+    columns: { 
+      id: 'string',
+      created: 'string',
+      updated: 'string',
+      sessionId: 'string',
+      session: 'string',
+    },
+  }).generate();
   await delay(2000);
-  // try {
-  //   const response = await axios.post('http://localhost:3000/hello', { message: 'hello world' });
-  //   expect(JSON.stringify(response.data)).toBe(JSON.stringify(['hello', 'world']));
-  // } finally {
-  //   await server.stop();
-  // }
+  const setupDb = require('../../dist/test/table/generated/db/setupDb.js')['setupDb'];
+  await setupDb(dataset, projectId);
+  const bqDataset = new BigQuery({projectId}).dataset(dataset);
+  try {
+    expect(await bqDataset.exists()).toBeTruthy(); 
+    const table = bqDataset.table(tableName);
+    expect(await table.exists()).toBeTruthy();
+    const query = `
+      SELECT column_name, data_type
+      FROM \`${dataset}.INFORMATION_SCHEMA.COLUMNS\`
+      WHERE table_name = '${tableName}'
+    `;
+    const [columns] = await bqDataset.query({query});
+    expect(JSON.stringify(columns)).toBe(JSON.stringify([
+      { column_name: 'id', data_type: 'STRING' },
+      { column_name: 'created', data_type: 'STRING' },
+      { column_name: 'updated', data_type: 'STRING' },
+      { column_name: 'sessionId', data_type: 'STRING' },
+      { column_name: 'session', data_type: 'STRING' }
+    ]));
+    await table.delete();
+    expect((await table.exists())[0]).toBeFalsy(); 
+    await bqDataset.delete();
+    expect((await bqDataset.exists())[0]).toBeFalsy();
+  } finally {
+    try {
+      if (await bqDataset.exists())
+        await bqDataset.delete();
+    } catch (error) {}
+  }
 }, 60000);
-
-// test('Create table with schema', async () => {
-//   CodeGeneratorConfig.set({ srcPath: `${process.cwd()}/test/table/generated` });
-//   await new Table({ 
-//     name: 'session',
-//     databaseName: 'test',
-//     projectId: 'test-bigquery-398804',
-//     columns: { 
-//       id: 'string',
-//       created: 'string',
-//       updated: 'string',
-//       sessionId: 'string',
-//       session: 'string',
-//     },
-//    }).generate();
-//   await delay(2000);
-//   // try {
-//   //   const response = await axios.post('http://localhost:3000/hello', { message: 'hello world' });
-//   //   expect(JSON.stringify(response.data)).toBe(JSON.stringify(['hello', 'world']));
-//   // } finally {
-//   //   await server.stop();
-//   // }
-// }, 60000);

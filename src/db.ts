@@ -3,8 +3,6 @@ import { Paragraph } from "./util/paragraph";
 import { Sentence } from "./util/sentence";
 
 export type DbArgs = {
-  dataset: string,
-  projectId: string,
   additionalInstructions?: string,
 }
 
@@ -18,7 +16,7 @@ export type DbArgs = {
 export class Db extends Template {
   private args: DbArgs;
 
-  constructor(args: DbArgs) {
+  constructor(args: DbArgs = {}) {
     super();
     this.args = args;
   }
@@ -35,16 +33,17 @@ export class Db extends Template {
   apiDescriptions() {
     return {
       table: `an abstract class named Table with an abstract function name(): string and an abstract function columns(): any`,
+      getTables: `a function getTables(): Table[] that returns an array of tables`,
     };
   }
 
   async generate(): Promise<void> {
-    const { dataset: dataSet, projectId, additionalInstructions } = this.args;
+    const { additionalInstructions } = this.args;
     await this.createTable();
     await this.createGetTables();
     await this.createSetupDb();
     const description = new Paragraph();
-    description.add(new Sentence().add(`Assume ${this.apiDescriptions().table} exists in another file`));
+    description.add(new Sentence().add(`Assume ${this.apiDescriptions().table} exists in another file (do not create it)`));
     description.add(new Sentence().add(`Import { Table } from ${this.relativePath(this.files().setupDb, this.files().table)}`));
     description.add(new Sentence().add(`Create a class named Db that has a constructor(projectId: string, dataset:string)`));
     description.add(new Sentence().add(`Db should have a BigQuery client instantiated with projectId as an instance member variable`));
@@ -75,7 +74,7 @@ export class Db extends Template {
     const description = new Paragraph();
     description.add(new Sentence().add(`Assume ${this.apiDescriptions().table} exists`));
     description.add(new Sentence().add(`Import { Table } from ${this.relativePath(this.files().getTables, this.files().table)}`));
-    description.add(new Sentence().add(`Create a function getTables(): Table[] that returns an empty array of tables`));
+    description.add(new Sentence().add(`Create a function getTables(): Table[] that returns an array of tables`));
     const code = await this.generateCode(description.toString());
     await this.writeFiles([{
       path: this.files().getTables,
@@ -86,12 +85,12 @@ export class Db extends Template {
   private async createSetupDb() {
     const description = new Paragraph();
     description.add(new Sentence().add(`Assume ${this.apiDescriptions().table} exists in another file`));
+    description.add(new Sentence().add(`Assume ${this.apiDescriptions().getTables} exists in another file`));
     description.add(new Sentence().add(`Import { Table } from ${this.relativePath(this.files().setupDb, this.files().table)}`));
     description.add(new Sentence().add(`Import { getTables } from ${this.relativePath(this.files().setupDb, this.files().getTables)}`));
-    description.add(new Sentence().add(`Create a function named setupDb that creates the dataset ${this.args.dataset} if it doesn't exist in Google Cloud BigQuery`));
-    description.add(new Sentence().add(`Instantiate BigQuery client with projectId ${this.args.projectId}`));
-    description.add(new Sentence().add(`The setupDb function should then iterate through all tables and create them and update their schema if necessary`));
-    description.add(new Sentence().add(`Implement all helper functions using the BigQuery client`));
+    description.add(new Sentence().add(`Create a function named setupDb(dataset: string, projectId: string) that creates the dataset if it doesn't exist (use dataset.exists() to check) in Google Cloud BigQuery`));
+    description.add(new Sentence().add(`Instantiate BigQuery client with projectId`));
+    description.add(new Sentence().add(`The setupDb function should then iterate through all tables and create them if they don't exist (use table.exists() to check) and update their schema`));
     const code = await this.generateCode(description.toString(), 'gpt-4');
     await this.writeFiles([{
       path: this.files().setupDb,
@@ -101,9 +100,5 @@ export class Db extends Template {
 
   private createInsert(description: Paragraph) {
     description.add(new Sentence().add(`Create method insert(table: Table, rows: any[]) that inserts rows into the table`));
-  }
-
-  private createDeleteDataset(description: Paragraph) {
-    description.add(new Sentence().add(`Create method deleteDataset() that deletes the dataset`));
   }
 }

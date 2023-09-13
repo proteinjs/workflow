@@ -1,61 +1,25 @@
-import { BigQuery, Dataset, Table } from '@google-cloud/bigquery';
-import { Table as MyTable } from './Table';
+import { BigQuery, Dataset, Table as BqTable } from '@google-cloud/bigquery';
+import { Table } from './Table';
 import { getTables } from './getTables';
 
-export class BigQueryClient {
-  private client: BigQuery;
+export async function setupDb(datasetId: string, projectId: string): Promise<void> {
+  const bigquery = new BigQuery({ projectId });
+  let dataset = bigquery.dataset(datasetId);
 
-  constructor(projectId: string) {
-    this.client = new BigQuery({ projectId });
-  }
-
-  async createDataset(datasetId: string): Promise<Dataset> {
-    const [dataset] = await this.client.createDataset(datasetId);
-    return dataset;
-  }
-
-  async getDataset(datasetId: string): Promise<Dataset> {
-    const [dataset] = await this.client.dataset(datasetId).get();
-    return dataset;
-  }
-
-  async createTable(dataset: Dataset, table: MyTable): Promise<Table> {
-    const [bqTable] = await dataset.createTable(table.name(), table.columns());
-    return bqTable;
-  }
-
-  async getTable(dataset: Dataset, tableName: string): Promise<Table> {
-    const [table] = await dataset.table(tableName).get();
-    return table;
-  }
-
-  async updateTableSchema(table: Table, schema: any): Promise<Table> {
-    const [updatedTable] = await table.setMetadata({ schema });
-    return updatedTable;
-  }
-}
-
-export async function setupDb() {
-  const bigQueryClient = new BigQueryClient('test-bigquery-398804');
-  let dataset: Dataset;
-
-  try {
-    dataset = await bigQueryClient.getDataset('test');
-  } catch (error) {
-    dataset = await bigQueryClient.createDataset('test');
+  const [datasetExists] = await dataset.exists();
+  if (!datasetExists) {
+    [dataset] = await bigquery.createDataset(datasetId);
   }
 
   const tables = getTables();
-
   for (const table of tables) {
-    let bqTable: Table;
+    let bqTable: BqTable = dataset.table(table.name());
+    const [tableExists] = await bqTable.exists();
 
-    try {
-      bqTable = await bigQueryClient.getTable(dataset, table.name());
-    } catch (error) {
-      bqTable = await bigQueryClient.createTable(dataset, table);
+    if (!tableExists) {
+      [bqTable] = await dataset.createTable(table.name(), { schema: table.columns() });
+    } else {
+      await bqTable.setMetadata({ schema: table.columns() });
     }
-
-    await bigQueryClient.updateTableSchema(bqTable, table.columns());
   }
 }

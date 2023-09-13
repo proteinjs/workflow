@@ -1,10 +1,11 @@
 import { Template } from "./util/template";
 import { Paragraph } from "./util/paragraph";
 import { Sentence } from "./util/sentence";
+import { Db } from './db';
 
 export type TableArgs = {
   name: string,
-  databaseName: string,
+  dataset: string,
   projectId: string,
   columns?: {[name: string]: string},
   additionalInstructions?: string,
@@ -32,27 +33,36 @@ export class Table extends Template {
   }
 
   async generate(): Promise<void> {
-    const { name, databaseName, projectId, columns, additionalInstructions } = this.args;
-    const paragraph = new Paragraph();
-    const createSentence = new Sentence();
-    paragraph.add(createSentence);
-    createSentence.add(`Create CURD operations for a table named ${name.toLocaleLowerCase()} in dataset ${databaseName}`);
-    createSentence.add(`hosted with Google Cloud BigQuery`);
-    if (columns)
-      createSentence.add(`with columns: ${JSON.stringify(columns)}`);
+    const { name, dataset, projectId, columns, additionalInstructions } = this.args;
     
-    createSentence.add(`in project ${projectId}`);
-    paragraph.add(new Sentence().add(`For the read function, pass in the query as part of the options object to the query api`));
-    paragraph.add(new Sentence().add(`Create a function to create the dataset and table if they do not exist`));
-    if (additionalInstructions)
-      paragraph.add(new Sentence().add(additionalInstructions));
+    const db = new Db();
+    await db.generate();
+    
+    const description = new Paragraph();
+    description.add(new Sentence().add(`Assume ${db.apiDescriptions().table} exists in another file`));
+    description.add(new Sentence().add(`Import { Table } from ${this.relativePath(this.files().table, db.files().table)}`));
+    description.add(new Sentence().add(`Create a table named ${name}`));
+    description.add(new Sentence().add(`name() should return ${name.toLocaleLowerCase()}`));
+    if (columns)
+      description.add(new Sentence().add(`Specify the table columns as an array of {name: string, type: string} from this data: ${JSON.stringify(columns)}`));
 
-    const description = paragraph.toString();
-    const code = await this.generateCode(description, 'gpt-4');
+    if (additionalInstructions)
+      description.add(new Sentence().add(additionalInstructions));
+
+    const code = await this.generateCode(description.toString());
     await this.writeFiles([{
       path: this.files().table,
       content: code  
     }]);
-    await this.installPackage([{ name: '@google-cloud/bigquery', version: '7.2.0' }]);
+
+    const registerTableWithGetTablesDescription = new Paragraph()
+      .add(new Sentence().add(`Import ${name} from ${this.relativePath(db.files().getTables, this.files().table)}`))
+      .add(new Sentence().add(`Add ${name} to the tables array`))
+    .toString();
+    const serviceLoaderUpdateCode = await this.updateCode(db.files().getTables, [this.files().table], registerTableWithGetTablesDescription);
+    await this.writeFiles([{ 
+      path: db.files().getTables,
+      content: serviceLoaderUpdateCode  
+    }]);
   }
 }
