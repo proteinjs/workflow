@@ -2,10 +2,8 @@ import path from 'path';
 import fs from 'fs-extra';
 import * as ChildProcess from 'child_process';
 import { CodeGeneratorConfig } from './CodeGeneratorConfig';
-import { generateCode, updateCode } from "./openai";
+import openai from './openai';
 import { Logger } from './logger';
-import { Paragraph } from './paragraph';
-import { Sentence } from './sentence';
 
 type File = {
   path: string,
@@ -22,7 +20,7 @@ export abstract class Template {
 
   protected async generateCode(description: string, model?: string) {
     this.logger.info(`Generating code for description: ${description}`);
-    const code = await generateCode(description, model);
+    const code = await openai.generateCode(description, model);
     this.logger.info(`Generated code:\n${code.slice(0, 150)}${code.length > 150 ? '...' : ''}`);
     return code;
   }
@@ -36,7 +34,7 @@ export abstract class Template {
     }
 
     this.logger.info(`Updating code: ${codeToUpdateFilePath}, with description: ${description}`);
-    const updatedCode = await updateCode(codeToUpdate, dependencyDescription + description, model);
+    const updatedCode = await openai.updateCode(codeToUpdate, dependencyDescription + description, model);
     this.logger.info(`Updated code:\n${codeToUpdate.slice(0, 150)}${codeToUpdate.length > 150 ? '...' : ''}`);
     return updatedCode;
   }
