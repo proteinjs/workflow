@@ -1,7 +1,6 @@
 import path from 'path';
 import fs from 'fs-extra';
 import * as ChildProcess from 'child_process';
-import { CodeGeneratorConfig } from './CodeGeneratorConfig';
 import openai from './openai';
 import { Logger } from './logger';
 
@@ -10,8 +9,17 @@ type File = {
   content: string,
 }
 
+export type TemplateArgs = {
+  srcPath: string,
+}
+
 export abstract class Template {
   protected logger = new Logger(this.constructor.name);
+  protected templateArgs: TemplateArgs;
+
+  constructor(templateArgs: TemplateArgs) {
+    this.templateArgs = templateArgs;
+  }
 
   abstract files(): any;
   apiDescriptions(): any { return {}; }
@@ -60,7 +68,7 @@ export abstract class Template {
   }
 
   protected filePath(relativePath: string) {
-    const directory = CodeGeneratorConfig.get().srcPath;
+    const directory = this.templateArgs.srcPath;
     if (relativePath.includes('..'))
         throw new Error(`Failed to access file: ${relativePath}, file path cannot contain '..'`);
 

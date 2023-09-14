@@ -1,5 +1,4 @@
 // util
-export * from './src/util/CodeGeneratorConfig';
 export * from './src/util/paragraph';
 export * from './src/util/sentence';
 export * from './src/util/template';

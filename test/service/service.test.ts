@@ -1,12 +1,11 @@
 import axios from 'axios';
-import { CodeGeneratorConfig } from '../../src/util/CodeGeneratorConfig';
 import { Service } from '../../src/service';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 test('Service should respond to basic request', async () => {
-  CodeGeneratorConfig.set({ srcPath: `${process.cwd()}/test/service/generated` });
   await new Service({ 
+    srcPath: `${process.cwd()}/test/service/generated`,
     name: 'hello',
     functionBody: 'Split the input string on \' \' and return the split array',
     parameters: { message: 'string' },

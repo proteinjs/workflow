@@ -1,12 +1,10 @@
-import { Template } from "./util/template";
-import { Paragraph } from "./util/paragraph";
-import { Sentence } from "./util/sentence";
+import { Template, TemplateArgs } from './util/template';
+import { Paragraph } from './util/paragraph';
+import { Sentence } from './util/sentence';
 import { Db } from './db';
 
 export type TableArgs = {
   name: string,
-  dataset: string,
-  projectId: string,
   columns?: {[name: string]: string},
   additionalInstructions?: string,
 }
@@ -21,8 +19,8 @@ export type TableArgs = {
 export class Table extends Template {
   private args: TableArgs;
 
-  constructor(args: TableArgs) {
-    super();
+  constructor(args: TableArgs & TemplateArgs) {
+    super(args);
     this.args = Object.assign(args, { name: args.name.charAt(0).toUpperCase() + args.name.slice(1) });
   }
 
@@ -33,9 +31,9 @@ export class Table extends Template {
   }
 
   async generate(): Promise<void> {
-    const { name, dataset, projectId, columns, additionalInstructions } = this.args;
+    const { name, columns, additionalInstructions } = this.args;
     
-    const db = new Db();
+    const db = new Db(this.templateArgs);
     await db.generate();
     
     const description = new Paragraph();

@@ -1,6 +1,6 @@
-import { Template } from "./util/template";
-import { Paragraph } from "./util/paragraph";
-import { Sentence } from "./util/sentence";
+import { Template, TemplateArgs } from './util/template';
+import { Paragraph } from './util/paragraph';
+import { Sentence } from './util/sentence';
 
 export type DbArgs = {
   additionalInstructions?: string,
@@ -16,8 +16,8 @@ export type DbArgs = {
 export class Db extends Template {
   private args: DbArgs;
 
-  constructor(args: DbArgs = {}) {
-    super();
+  constructor(args: DbArgs & TemplateArgs) {
+    super(args);
     this.args = args;
   }
 

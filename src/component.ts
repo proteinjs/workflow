@@ -1,11 +1,11 @@
-import { Template } from "./util/template";
-import { Paragraph } from "./util/paragraph";
-import { Sentence } from "./util/sentence";
-import { Type, TypeArgs } from "./type";
-import { Table, TableArgs } from "./table";
-import { Server, ServerArgs } from "./server";
-import { ServiceLoaderArgs } from "./serviceLoader";
-import { Service, ServiceArgs } from "./service";
+import { Template, TemplateArgs } from './util/template';
+import { Paragraph } from './util/paragraph';
+import { Sentence } from './util/sentence';
+import { Type, TypeArgs } from './type';
+import { Table, TableArgs } from './table';
+import { Server, ServerArgs } from './server';
+import { ServiceLoaderArgs } from './serviceLoader';
+import { Service, ServiceArgs } from './service';
 
 export type ComponentArgs = { 
   typeArgs: TypeArgs,
@@ -18,8 +18,8 @@ export type ComponentArgs = {
 export class Component extends Template {
   private args: ComponentArgs;
 
-  constructor(args: ComponentArgs) {
-    super();
+  constructor(args: ComponentArgs & TemplateArgs) {
+    super(args);
     this.args = args;
   }
 
@@ -31,20 +31,22 @@ export class Component extends Template {
 
   async generate(): Promise<void> {
     const { typeArgs, tableArgs, serverArgs, serviceLoaderArgs, serviceArgs } = this.args;
-    await new Type(typeArgs).generate();
+    await new Type({...typeArgs, ...this.templateArgs}).generate();
     
     if (!tableArgs || tableArgs.createTable) {
       const ta = tableArgs ? tableArgs : {} as any;
       await new Table({ 
         name: ta.name || typeArgs.name,
         columns: typeArgs.properties,
-        ...ta 
+        ...ta,
+        ...this.templateArgs
       }).generate();
     }
 
     if (!serverArgs || serverArgs.createServer) {
       await new Server({
-        ...serverArgs 
+        ...serverArgs,
+        ...this.templateArgs
       }).generate();
     }
 
@@ -57,7 +59,7 @@ export class Component extends Template {
         paragraph.add(new Sentence().add(`The service call function should expect the type of the request data to be of type { operation: 'create'|'read'|'update'|'delete', table: string, object: ${typeArgs.name} }`));
         paragraph.add(new Sentence().add(`The service call function should, depending on the operation, call the corresponding table crud function for the table specified, and pass in object`));
         paragraph.add(new Sentence().add(`The service call function should return the same type as the table crud function return type`));
-        await new Service({ name: typeArgs.name, functionBody: paragraph.toString() }).generate();
+        await new Service({ name: typeArgs.name, functionBody: paragraph.toString(), ...this.templateArgs }).generate();
       }
     }
   }

@@ -1,5 +1,4 @@
 import { OpenAI } from 'openai';
-import { CodeGeneratorConfig } from './CodeGeneratorConfig';
 import { Logger } from './logger';
 import { ChatCompletionMessageParam } from 'openai/resources/chat';
 
@@ -38,7 +37,7 @@ export async function generateResponse(message: string, model?: string, history?
 export async function generateCode(description: string, model?: string, history?: ChatCompletionMessageParam[], includeSystemMessages: boolean = true, omitUsageData = false) {
   const systemMessages: ChatCompletionMessageParam[] = [
     { role: 'system', content: 'Return only the code and exclude example usage, markdown, explanations, comments and notes.' },
-    { role: 'system', content: `Write code in ${CodeGeneratorConfig.get().language?.name}.` },
+    { role: 'system', content: `Write code in typescript.` },
     { role: 'system', content: `Declare explicit types for all function parameters.` },
     { role: 'system', content: 'Export all functions and objects generated.' },
     { role: 'system', content: 'Exclude unused imports.' },
