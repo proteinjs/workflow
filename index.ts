@@ -6,6 +6,7 @@ import openai from './src/util/openai';
 export { openai };
 export * from './src/util/logger';
 export * from './src/util/conversation';
+export * from './src/util/cmd';
 
 // components
 export * from './src/component';

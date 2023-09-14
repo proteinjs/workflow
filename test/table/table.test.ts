@@ -3,7 +3,8 @@ import { Table } from '../../src/table';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// 1. session 2. test 3. test-bigquery-398804 4. { "id": "string", "sessionId": "string", "session": "string" }
+// 1. session 2. { "id": "string", "sessionId": "string", "session": "string" }
+// src/example
 test('Create dataset and table', async () => {
   const tableName = 'session';
   const dataset = 'test';

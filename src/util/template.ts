@@ -1,8 +1,8 @@
 import path from 'path';
 import fs from 'fs-extra';
-import * as ChildProcess from 'child_process';
 import openai from './openai';
 import { Logger } from './logger';
+import { cmd } from './cmd';
 
 type File = {
   path: string,
@@ -89,30 +89,10 @@ export abstract class Template {
         `${resolvedDevelopment ? `-D` : resolvedExactVersion ? '--save-exact' : `-S`}`,
         `${name}${version ? `@${version}` : ''}`
       ];
-      const cmd = 'npm ' + args.join(' ');
-      this.logger.info(`Running command: ${cmd}`);
-      await this.cmd('npm', args);
-      this.logger.info(`Ran command: ${cmd}`);
+      const command = 'npm ' + args.join(' ');
+      this.logger.info(`Running command: ${command}`);
+      await cmd('npm', args);
+      this.logger.info(`Ran command: ${command}`);
     }
-  }
-
-  private async cmd(command: string, options?: string[]) {
-    let p = ChildProcess.spawn(command, options, {
-      cwd: process.cwd()
-    });
-    return new Promise((resolve) => {
-      p.stdout.on('data', (x: any) => {
-        process.stdout.write(x.toString());
-      });
-      p.stderr.on('data', (x) => {
-        process.stderr.write(x.toString());
-      });
-      p.on('error', (error) => {
-        process.stderr.write(error.toString());
-      });
-      p.on('exit', (code) => {
-        resolve(code);
-      });
-    });
   }
 }
