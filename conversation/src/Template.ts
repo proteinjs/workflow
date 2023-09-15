@@ -71,7 +71,7 @@ export abstract class Template {
     if (relativePath.includes('..'))
         throw new Error(`Failed to access file: ${relativePath}, file path cannot contain '..'`);
 
-      return path.join(directory, this.constructor.name.toLocaleLowerCase(), relativePath);
+      return path.join(directory, this.constructor.name, relativePath);
   }
 
   protected relativePath(fromRelativePath: string, toRelativePath: string) {

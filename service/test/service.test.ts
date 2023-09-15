@@ -1,18 +1,18 @@
 import axios from 'axios';
-import { Service } from '../src/Service';
+import { ServiceTemplate } from '../src/ServiceTemplate';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 test('Service should respond to basic request', async () => {
-  await new Service({ 
-    srcPath: `${process.cwd()}/test/service/generated`,
+  await new ServiceTemplate({ 
+    srcPath: `${process.cwd()}/test/generated`,
     name: 'hello',
     functionBody: 'Split the input string on \' \' and return the split array',
     parameters: { message: 'string' },
     returnType: 'string[]'
    }).generate();
   await delay(2000);
-  const server = require('../../dist/test/service/generated/server/Server.js');
+  const server = require('../dist/test/generated/servertemplate/Server.js')['Server'];
   await delay(5000);
   try {
     const response = await axios.post('http://localhost:3000/hello', { message: 'hello world' });

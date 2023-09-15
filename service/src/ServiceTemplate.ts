@@ -1,5 +1,5 @@
 import { Template, TemplateArgs, Paragraph, Sentence } from '@brentbahry/conversation';
-import { ServiceLoader, ServiceLoaderArgs } from './ServiceLoader';
+import { ServiceLoaderTemplate, ServiceLoaderArgs } from './ServiceLoaderTemplate';
 
 export type ServiceArgs = {
   name: string,
@@ -11,7 +11,7 @@ export type ServiceArgs = {
   serviceLoaderArgs?: ServiceLoaderArgs,
 }
 
-export class Service extends Template {
+export class ServiceTemplate extends Template {
   private args: ServiceArgs;
 
   constructor(args: ServiceArgs & TemplateArgs) {
@@ -27,7 +27,7 @@ export class Service extends Template {
 
   async generate(): Promise<void> {
     const { name, functionBody, parameters, returnType, serviceLoaderArgs, additionalInstructions } = this.args;
-    const serviceLoader = new ServiceLoader({
+    const serviceLoader = new ServiceLoaderTemplate({
       ...serviceLoaderArgs, ...this.templateArgs
     });
     await serviceLoader.generate();

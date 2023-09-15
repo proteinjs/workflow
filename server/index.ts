@@ -1,2 +1,2 @@
 export * from './src/ServerTemplate';
-export * from './src/generated/servertemplate/Server';
+export * from './src/generated/ServerTemplate/Server';

@@ -1,16 +1,14 @@
 import express, { Express } from 'express';
-import { Server as HttpServer } from 'http';
 
-type RouteLoader = (server: Express) => void;
-
-class Server {
+export class Server {
   private static instance: Server;
-  private server?: HttpServer;
+  private app: Express;
+  private server: any;
   private port: number = 3000;
-  private routeLoaders: RouteLoader[] = [];
-  private app: Express = express();
+  private routeLoaders: Array<(server: Express) => void> = [];
 
   private constructor() {
+    this.app = express();
     this.app.use(express.json());
   }
 
@@ -24,26 +22,22 @@ class Server {
   public start(): void {
     this.routeLoaders.forEach(loader => loader(this.app));
     this.server = this.app.listen(this.port, () => {
-      console.log(`Server started on port ${this.port}`);
+      console.log(`Server is running on port ${this.port}`);
     });
   }
 
   public stop(): void {
-    if (this.server) {
-      this.server.close();
-    }
+    this.server.close();
   }
 
   public setPort(port: number): void {
     this.port = port;
   }
 
-  public addRouteLoader(loader: RouteLoader): void {
+  public addRouteLoader(loader: (server: Express) => void): void {
     this.routeLoaders.push(loader);
   }
 }
-
-export { Server };
 
 const server = Server.getInstance();
 

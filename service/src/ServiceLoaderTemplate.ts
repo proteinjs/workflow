@@ -10,7 +10,7 @@ export type ServiceLoaderArgs = {
 // TODO if serverArgs are not provided, import from @brentbahry/server
 // TODO provide declarations instead of english to describe server api
 //      get declarations from either the imported source or generated source
-export class ServiceLoader extends Template {
+export class ServiceLoaderTemplate extends Template {
   private static GENERATED = false;
   private args: ServiceLoaderArgs;
 
@@ -34,7 +34,7 @@ export class ServiceLoader extends Template {
 
   async generate(): Promise<void> {
     const { additionalInstructions, serverArgs } = this.args;
-    if (ServiceLoader.GENERATED) {
+    if (ServiceLoaderTemplate.GENERATED) {
       this.logger.info(`Preventing duplicate generation of ${this.constructor.name}`);
       return;
     }
@@ -80,6 +80,6 @@ export class ServiceLoader extends Template {
       path: server.files().server,
       content: serverUpdateCode  
     }]);
-    ServiceLoader.GENERATED = true;
+    ServiceLoaderTemplate.GENERATED = true;
   }
 }

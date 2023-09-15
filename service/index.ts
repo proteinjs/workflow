@@ -1,2 +1,2 @@
-export * from './src/Service';
-export * from './src/ServiceLoader';
+export * from './src/ServiceTemplate';
+export * from './src/ServiceLoaderTemplate';
