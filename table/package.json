@@ -1,0 +1,23 @@
+{
+  "name": "@brentbahry/table",
+  "version": "0.1",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "watch": "tsc -w -p .",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.6.4",
+    "@types/jest": "^29.5.4",
+    "@types/node": "20.5.9",
+    "jest": "^29.6.4",
+    "ts-jest": "^29.1.1",
+    "typescript": "5.2.2"
+  },
+  "dependencies": {
+    "@brentbahry/conversation": "../conversation",
+    "@brentbahry/db": "../db",
+    "@google-cloud/bigquery": "7.2.0"
+  }
+}
