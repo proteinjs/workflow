@@ -1,12 +1,15 @@
 import { Template, TemplateArgs, Paragraph, Sentence } from '@brentbahry/conversation';
-import { Server, ServerArgs } from '@brentbahry/server';
+import { ServerTemplate, ServerTemplateArgs } from '@brentbahry/server';
 
 export type ServiceLoaderArgs = {
   additionalInstructions?: string,
-  serverArgs?: ServerArgs,
+  serverArgs?: ServerTemplateArgs,
 }
 
 // service interface and service loader
+// TODO if serverArgs are not provided, import from @brentbahry/server
+// TODO provide declarations instead of english to describe server api
+//      get declarations from either the imported source or generated source
 export class ServiceLoader extends Template {
   private static GENERATED = false;
   private args: ServiceLoaderArgs;
@@ -36,10 +39,14 @@ export class ServiceLoader extends Template {
       return;
     }
 
-    const server = new Server({
-      ...serverArgs, ...this.templateArgs 
-    });
-    await server.generate();
+    if (serverArgs?.additionalInstructions) {
+      await new ServerTemplate({
+        ...serverArgs, ...this.templateArgs 
+      }).generate();
+    } else {
+
+    }
+    
 
     
     const serviceDescription = new Sentence().add(`Create ${this.apiDescriptions().service}`).toString();
@@ -53,7 +60,7 @@ export class ServiceLoader extends Template {
     serviceLoaderDescription.add(new Sentence().add(`Assume ${this.apiDescriptions().service} already exists`));
     serviceLoaderDescription.add(new Sentence().add(`Import the Service interface from ${this.relativePath(this.files().serviceLoader, this.files().service)}`));
     serviceLoaderDescription.add(new Sentence().add(`Initialize a constant named services that is an array of Services`));
-    serviceLoaderDescription.add(new Sentence().add(`Create and export a function named loadServices that iterates through all Services and registers them as routes with the ${Server.FRAMEWORK} server so that when a request comes in matching a service's path, its call function is invoked with the request data, and the output of the function is written as a response to the request`));
+    serviceLoaderDescription.add(new Sentence().add(`Create and export a function named loadServices that iterates through all Services and registers them as routes with the ${ServerTemplate.FRAMEWORK} server so that when a request comes in matching a service's path, its call function is invoked with the request data, and the output of the function is written as a response to the request`));
     serviceLoaderDescription.add(new Sentence().add(`Let the catch block error param be of type any`));
     if (additionalInstructions)
       serviceLoaderDescription.add(new Sentence().add(additionalInstructions));
