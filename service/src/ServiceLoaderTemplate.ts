@@ -1,84 +1,79 @@
-import { Template, TemplateArgs, Paragraph, Sentence } from '@brentbahry/conversation';
-import { ServerTemplate, ServerTemplateArgs } from '@brentbahry/server';
+import { Dependency, Package, Template, TemplateArgs } from '@brentbahry/conversation';
+import { ServerTemplate } from '@brentbahry/server';
+import { Server } from '@brentbahry/server/src/generated/Server';
+import { Service } from './Service';
 
-export type ServiceLoaderArgs = {
-  additionalInstructions?: string,
-  serverArgs?: ServerTemplateArgs,
+export type ServiceLoaderTemplateArgs = {
+  additionalInstructions?: string[],
+  additionalPackages?: Package[],
+  additionalDependencies?: Dependency[],
+  replaceDependencies?: boolean,
 }
 
-// service interface and service loader
-// TODO if serverArgs are not provided, import from @brentbahry/server
-// TODO provide declarations instead of english to describe server api
-//      get declarations from either the imported source or generated source
+type FilePaths = {
+  ServiceLoader: string,
+}
+
 export class ServiceLoaderTemplate extends Template {
   private static GENERATED = false;
-  private args: ServiceLoaderArgs;
+  private args: ServiceLoaderTemplateArgs;
+  private filePaths?: FilePaths;
 
-  constructor(args: ServiceLoaderArgs & TemplateArgs) {
+  constructor(args: ServiceLoaderTemplateArgs & TemplateArgs) {
     super(args);
-    this.args = args;
+    this.args = Object.assign({ replaceDependencies: false }, args);
   }
 
-  files() {
-    return {
-      service: this.filePath(`Service.ts`),
-      serviceLoader: this.filePath(`${this.constructor.name}.ts`)
-    };
-  }
+  getFilePaths(): FilePaths {
+    if (!this.filePaths) {
+      this.filePaths = {
+        ServiceLoader: this.filePath(`ServiceLoader.ts`)
+      };
+    }
 
-  apiDescriptions() {
-    return {
-      service: `an interface named Service that has the following properties: path: string, call: async function(args: any): Promise<any>`,
-    };
+    return this.filePaths;
   }
 
   async generate(): Promise<void> {
-    const { additionalInstructions, serverArgs } = this.args;
+    const { additionalInstructions } = this.args;
     if (ServiceLoaderTemplate.GENERATED) {
-      this.logger.info(`Preventing duplicate generation of ${this.constructor.name}`);
+      this.logger.info(`Preventing duplicate generation of ServiceLoader`);
       return;
     }
 
-    if (serverArgs?.additionalInstructions) {
-      await new ServerTemplate({
-        ...serverArgs, ...this.templateArgs 
-      }).generate();
-    } else {
+    const packages: Package[] = [
+      { name: 'express', version: '4.18.2' },
+      { name: '@types/express', version: '4.17.17', development: true },
+      { name: '@brentbahry/server', version: '../server', exactVersion: false },
+    ];
+    if (this.args.additionalPackages)
+      packages.push(...this.args.additionalPackages);
 
-    }
-    
+    await this.installPackages(packages);
 
-    
-    const serviceDescription = new Sentence().add(`Create ${this.apiDescriptions().service}`).toString();
-    const serviceCode = await this.generateCode(serviceDescription);
-    await this.writeFiles([{ 
-      path: this.files().service,
-      content: serviceCode  
-    }]);
+    const dependencies: Dependency[] = this.args.replaceDependencies ? [] : [
+      { moduleNames: ['Service'], importPathFromGeneratedFile: '../Service', filePath: require.resolve('./Service.ts') },
+      { moduleNames: ['Server', 'RouteLoader'], importPathFromGeneratedFile: '@brentbahry/server', filePath: require.resolve('@brentbahry/server/src/generated/Server.ts') },
+    ];
+    if (this.args.additionalDependencies)
+      dependencies.push(...this.args.additionalDependencies);
 
-    const serviceLoaderDescription = new Paragraph();
-    serviceLoaderDescription.add(new Sentence().add(`Assume ${this.apiDescriptions().service} already exists`));
-    serviceLoaderDescription.add(new Sentence().add(`Import the Service interface from ${this.relativePath(this.files().serviceLoader, this.files().service)}`));
-    serviceLoaderDescription.add(new Sentence().add(`Initialize a constant named services that is an array of Services`));
-    serviceLoaderDescription.add(new Sentence().add(`Create and export a function named loadServices that iterates through all Services and registers them as routes with the ${ServerTemplate.FRAMEWORK} server so that when a request comes in matching a service's path, its call function is invoked with the request data, and the output of the function is written as a response to the request`));
-    serviceLoaderDescription.add(new Sentence().add(`Let the catch block error param be of type any`));
+    this.addDependencies(dependencies);
+
+    const serviceLoaderDescription = [
+      `Create a singleton class ServiceLoader implements RouteLoader`,
+      `Create a static method named loadService(service: Service) that adds services to a member array`,
+      `Create a method named loadServices(server: Express) that iterates through all Services and registers them as routes with the server so that when a request comes in matching a service's path, its call function is invoked with the request data, and the output of the function is written as a response to the request`,
+      `Register the ServiceLoader as a RoutLoader with the Server`,
+      `Let the catch block error param be of type any`,
+    ];
     if (additionalInstructions)
-      serviceLoaderDescription.add(new Sentence().add(additionalInstructions));
+      serviceLoaderDescription.push(...additionalInstructions);
 
-    const serviceLoaderCode = await this.generateCode(serviceLoaderDescription.toString());
+    const serviceLoaderCode = await this.generateCode(serviceLoaderDescription, 'gpt-4');
     await this.writeFiles([{ 
-      path: this.files().serviceLoader,
+      path: this.getFilePaths().ServiceLoader,
       content: serviceLoaderCode  
-    }]);
-
-    const serverUpdateDescription = new Paragraph()
-      .add(new Sentence().add(`Import loadServices from ${this.relativePath(server.files().server, this.files().serviceLoader)}`))
-      .add(new Sentence().add(`Register loadServices to be called on startup before app.listen and pass in the app to register the routes`))
-    .toString();
-    const serverUpdateCode = await this.updateCode(server.files().server, [this.files().serviceLoader], serverUpdateDescription, 'gpt-4');
-    await this.writeFiles([{ 
-      path: server.files().server,
-      content: serverUpdateCode  
     }]);
     ServiceLoaderTemplate.GENERATED = true;
   }

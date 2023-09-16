@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@brentbahry/conversation": "../conversation",
-    "@brentbahry/server": "../server"
+    "@brentbahry/server": "../server",
+    "@brentbahry/service": "file:"
   }
 }

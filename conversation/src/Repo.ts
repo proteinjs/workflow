@@ -25,11 +25,14 @@ export class RepoFactory {
     //  if regular imports, save them to an array
     // generate typescript declaration for file and save in a variable
 
-    this.generateDeclarations(this.repo.rootTsFilePaths);
+    this.repo.declarations = RepoFactory.generateDeclarations(this.repo.rootTsFilePaths);
     return this.repo;
   }
 
-  private generateDeclarations(tsFilePaths: string[]) {
+  static generateDeclarations(tsFilePaths: string[]) {
+    // declarations for this file and its local dependencies
+    const declarations: {[filePath: string]: string /** declaration */ } = {};
+
     // Create a Program from a root file name.
     const program = ts.createProgram(tsFilePaths, {
         target: ts.ScriptTarget.ES5,
@@ -40,7 +43,7 @@ export class RepoFactory {
     // Create a custom emit writer that writes to our variable.
     const customWriteFile: ts.WriteFileCallback = (fileName, data) => {
         if (fileName.endsWith('.d.ts')) {
-            this.repo.declarations[fileName] = data;
+            declarations[fileName] = data;
         }
     };
 
@@ -59,5 +62,7 @@ export class RepoFactory {
             }
         });
     }
+
+    return declarations;
   }
 }

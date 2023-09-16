@@ -22,10 +22,10 @@ export class CodegenConversation {
     this.loadSystemMessages();
     this.conversation.addAssistantMessagesToHistory([CodegenConversation.INITIAL_QUESTION]);
     const initialUserInput = this.respondToUser(CodegenConversation.INITIAL_QUESTION);
-    let response = await this.conversation.generateResponse(initialUserInput, CodegenConversation.MODEL);
+    let response = await this.conversation.generateResponse([initialUserInput], CodegenConversation.MODEL);
     while (true) {
       const userInput = this.respondToUser(response);
-      response = await this.conversation.generateResponse(userInput, CodegenConversation.MODEL);
+      response = await this.conversation.generateResponse([userInput], CodegenConversation.MODEL);
       if (response.includes(CodegenConversation.CODE_RESPONSE))
         await this.generateCode(response);
     }
@@ -54,7 +54,7 @@ export class CodegenConversation {
   private async generateCode(message: string) {
     const code = openai.parseCodeFromMarkdown(message);
     const srcPathToken = 'TOKEN';
-    const responseSrcPath = await this.conversation.generateResponse(`Return the srcPath the user provided surrounded by the token ${srcPathToken}`, CodegenConversation.MODEL);
+    const responseSrcPath = await this.conversation.generateResponse([`Return the srcPath the user provided surrounded by the token ${srcPathToken}`], CodegenConversation.MODEL);
     const srcPath = responseSrcPath.replace(/["'`]/g, '').match(/TOKEN(.*?)TOKEN/)?.[1];
     if (!srcPath)
       throw new Error(`Failed to parse responseSrcPath: ${responseSrcPath}`);

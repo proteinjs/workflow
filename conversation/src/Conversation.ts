@@ -23,17 +23,17 @@ export class Conversation {
     messages.forEach(message => this.history.push({ role: 'user', content: message }));
   }
 
-  async generateResponse(message: string, model?: string) {
-    const response = await openai.generateResponse(message, model, this.history, this.omitUsageData);
-    this.history.push({ role: 'user', content: message });
+  async generateResponse(messages: string[], model?: string) {
+    const response = await openai.generateResponse(messages, model, this.history, this.omitUsageData);
+    messages.forEach(message => this.history.push({ role: 'user', content: message }));
     this.history.push({ role: 'assistant', content: response });
     return response;
   }
 
-  async generateCode(description: string, model?: string) {
+  async generateCode(description: string[], model?: string) {
     const code = await openai.generateCode(description, model, this.history, !this.generatedCode, this.omitUsageData);
     this.generatedCode = true;
-    this.history.push({ role: 'user', content: description });
+    description.forEach(message => this.history.push({ role: 'user', content: message }));
     this.history.push({ role: 'assistant', content: code });
     return code;
   }
@@ -46,10 +46,10 @@ export class Conversation {
     return updatedCode;
   }
 
-  async generateList(description: string, model?: string) {
+  async generateList(description: string[], model?: string) {
     const list = await openai.generateList(description, model, this.history, !this.generatedList, this.omitUsageData);
     this.generatedList = true;
-    this.history.push({ role: 'user', content: description });
+    description.forEach(message => this.history.push({ role: 'user', content: message }));
     this.history.push({ role: 'assistant', content: list.join('\n') });
     return list;
   }

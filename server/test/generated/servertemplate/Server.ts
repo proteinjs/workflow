@@ -1,15 +1,18 @@
 import express, { Express } from 'express';
 
+export type RouteLoader = (server: Express) => void;
+
 export class Server {
   private static instance: Server;
-  private app: Express;
-  private server: any;
-  private port: number = 3000;
-  private routeLoaders: Array<(server: Express) => void> = [];
+  private server: Express;
+  private serverInstance: any;
+  private port: number;
+  private routeLoaders: RouteLoader[] = [];
 
   private constructor() {
-    this.app = express();
-    this.app.use(express.json());
+    this.server = express();
+    this.server.use(express.json());
+    this.port = 3000;
   }
 
   public static getInstance(): Server {
@@ -19,32 +22,28 @@ export class Server {
     return Server.instance;
   }
 
-  public start(): void {
-    this.routeLoaders.forEach(loader => loader(this.app));
-    this.server = this.app.listen(this.port, () => {
-      console.log(`Server is running on port ${this.port}`);
-    });
-  }
-
-  public stop(): void {
-    this.server.close();
-  }
-
   public setPort(port: number): void {
     this.port = port;
   }
 
-  public addRouteLoader(loader: (server: Express) => void): void {
-    this.routeLoaders.push(loader);
+  public addRouteLoader(routeLoader: RouteLoader): void {
+    this.routeLoaders.push(routeLoader);
+  }
+
+  public start(): void {
+    this.routeLoaders.forEach((loader) => loader(this.server));
+    this.serverInstance = this.server.listen(this.port);
+  }
+
+  public stop(): void {
+    this.serverInstance.close();
   }
 }
 
 const server = Server.getInstance();
-
-server.addRouteLoader((app: Express) => {
-  app.get('/hello', (req, res) => {
+server.addRouteLoader((server: Express) => {
+  server.get('/hello', (req, res) => {
     res.send('world');
   });
 });
-
 server.start();
