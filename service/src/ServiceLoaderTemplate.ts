@@ -6,6 +6,7 @@ import { Service } from './Service';
 export type ServiceLoaderTemplateArgs = {
   additionalInstructions?: string[],
   additionalPackages?: Package[],
+  replacePackages?: boolean,
   additionalDependencies?: Dependency[],
   replaceDependencies?: boolean,
 }
@@ -21,7 +22,7 @@ export class ServiceLoaderTemplate extends Template {
 
   constructor(args: ServiceLoaderTemplateArgs & TemplateArgs) {
     super(args);
-    this.args = Object.assign({ replaceDependencies: false }, args);
+    this.args = args;
   }
 
   getFilePaths(): FilePaths {
@@ -41,7 +42,7 @@ export class ServiceLoaderTemplate extends Template {
       return;
     }
 
-    const packages: Package[] = [
+    const packages: Package[] = this.args.replacePackages ? [] : [
       { name: 'express', version: '4.18.2' },
       { name: '@types/express', version: '4.17.17', development: true },
       { name: '@brentbahry/server', version: '../server', exactVersion: false },

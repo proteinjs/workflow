@@ -3,6 +3,7 @@ import { Template, TemplateArgs, Paragraph, Sentence, Dependency, Package } from
 export type ServerTemplateArgs = {
   additionalInstructions?: string,
   additionalPackages?: Package[],
+  replacePackages?: boolean,
   additionalDependencies?: Dependency[],
   replaceDependencies?: boolean,
 }
@@ -30,7 +31,7 @@ export class ServerTemplate extends Template {
       return;
     }
 
-    const packages: Package[] = [
+    const packages: Package[] = this.args.replacePackages ? [] : [
       { name: 'express', version: '4.18.2' },
       { name: '@types/express', version: '4.17.17', development: true },
     ];

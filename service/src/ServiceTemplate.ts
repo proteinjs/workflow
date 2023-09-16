@@ -8,6 +8,7 @@ export type ServiceTemplateArgs = {
   path?: string,
   additionalInstructions?: string[],
   additionalPackages?: Package[],
+  replacePackages?: boolean,
   additionalDependencies?: Dependency[],
   replaceDependencies?: boolean,
 }
@@ -17,9 +18,9 @@ export class ServiceTemplate extends Template {
 
   constructor(args: ServiceTemplateArgs & TemplateArgs) {
     super(args);
-    this.args = Object.assign({ replaceDependencies: false }, Object.assign(args, { 
+    this.args = Object.assign(args, { 
       name: args.name.charAt(0).toUpperCase() + args.name.slice(1)
-    }));
+    });
   }
 
   getFilePaths() {
@@ -30,7 +31,7 @@ export class ServiceTemplate extends Template {
 
   async generate(): Promise<void> {
     const { name, functionBody, parameters, returnType, additionalInstructions } = this.args;
-    const packages: Package[] = [
+    const packages: Package[] = this.args.replacePackages ? [] : [
       { name: '@brentbahry/service', version: '../service', exactVersion: false },
     ];
     if (this.args.additionalPackages)

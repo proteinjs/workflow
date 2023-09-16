@@ -18,8 +18,9 @@ test('Service should respond to basic request', async () => {
       'Add a call to Server.start() at the end',
     ],
     additionalPackages: [
-      { name: '@brentbahry/server', version: '../server' },
+      { name: '@brentbahry/server', version: '../server', exactVersion: false },
     ],
+    replacePackages: true,
     additionalDependencies: [
       { moduleNames: ['Service'], importPathFromGeneratedFile: '../../src/Service', filePath: require.resolve('../src/Service.ts') },
       { moduleNames: ['ServiceLoader'], importPathFromGeneratedFile: '../../src/generated/ServiceLoader', filePath: require.resolve('../src/generated/ServiceLoader.ts') },
@@ -34,7 +35,8 @@ test('Service should respond to basic request', async () => {
     const response = await axios.post('http://localhost:3000/hello', { message: 'hello world' });
     expect(JSON.stringify(response.data)).toBe(JSON.stringify(['hello', 'world']));
   } finally {
-    await server.stop();
+    if (server)
+      await server.stop();
   }
 }, 60000);
 
