@@ -1,51 +1,34 @@
-import { Template, TemplateArgs, Paragraph, Sentence, Dependency, Package } from '@brentbahry/conversation';
+import { CodeTemplate, TemplateArgs, Code, Conversation, SourceFile } from '@brentbahry/conversation';
 
 export type ServerTemplateArgs = {
-  additionalInstructions?: string,
-  additionalPackages?: Package[],
-  replacePackages?: boolean,
-  additionalDependencies?: Dependency[],
-  replaceDependencies?: boolean,
+  additionalInstructions?: string[],
 }
 
-export class ServerTemplate extends Template {
-  private static GENERATED = false;
+export class ServerTemplate extends CodeTemplate {
   static readonly RUNTIME = 'node';
   static readonly FRAMEWORK = 'express';
   private args: ServerTemplateArgs;
 
   constructor(args: ServerTemplateArgs & TemplateArgs) {
     super(args);
-    this.args = Object.assign({ replaceDependencies: false }, args);
+    this.args = args;
   }
 
-  getFilePaths() {
-    return {
-      Server: this.filePath(`Server.ts`)
-    };
-  }
-
-  async generate(): Promise<void> {
-    if (ServerTemplate.GENERATED) {
-      this.logger.info(`Preventing duplicate generation of Server`);
-      return;
-    }
-
-    const packages: Package[] = this.args.replacePackages ? [] : [
+  dependencyPackages() {
+    return [
       { name: 'express', version: '4.18.2' },
       { name: '@types/express', version: '4.17.17', development: true },
     ];
-    if (this.args.additionalPackages)
-      packages.push(...this.args.additionalPackages);
+  }
 
-    await this.installPackages(packages);
+  sourceFiles() {
+    return [
+      this.serviceLoader(),
+    ];
+  }
 
-    const dependencies: Dependency[] = this.args.replaceDependencies ? [] : [];
-    if (this.args.additionalDependencies)
-      dependencies.push(...this.args.additionalDependencies);
-
-    this.addDependencies(dependencies);
-
+  private serviceLoader(): SourceFile {
+    const conversation = new Conversation({ conversationName: this.constructor.name });
     const description = [
       `Create and export a Server class written in typescript, in ${ServerTemplate.RUNTIME}, using ${ServerTemplate.FRAMEWORK}`,
       `The server should be a singleton class with a static start method that initializes the server`,
@@ -58,15 +41,15 @@ export class ServerTemplate extends Template {
       `Do not define an example route`,
       `Use the express json plugin`,
     ];
-
     if (this.args.additionalInstructions)
-      description.push(this.args.additionalInstructions);
+      description.push(...this.args.additionalInstructions);
 
-    const code = await this.generateCode(description, 'gpt-4');
-    await this.writeFiles([{ 
-      path: this.getFilePaths().Server,
-      content: code  
-    }]);
-    ServerTemplate.GENERATED = true;
+    return {
+      relativePath: 'Server.ts',
+      code: new Code({
+        conversation,
+        description,
+      }),
+    };
   }
 }

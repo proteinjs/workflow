@@ -1,7 +1,10 @@
+export type LogLevel = 'debug'|'info'|'error';
+
 export class Logger {
   private name?: string;
+  private logLevel: LogLevel = 'info';
 
-  constructor(name?: string) {
+  constructor(name?: string, logLevel?: LogLevel) {
     this.name = name;
   }
 
@@ -16,10 +19,16 @@ export class Logger {
   }
 
   debug(message: string) {
+    if (this.logLevel == 'info' || this.logLevel == 'error')
+      return;
+
     console.debug(`${this.prefix()} ${message}`);
   }
 
   info(message: string) {
+    if (this.logLevel == 'error')
+      return;
+
     console.info(`${this.prefix()} ${message}`);
   }
 

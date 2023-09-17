@@ -1,6 +1,6 @@
+import { Express, Request, Response } from 'express';
 import { Service } from '../Service';
 import { Server, RouteLoader } from '@brentbahry/server';
-import { Express, Request, Response } from 'express';
 
 export class ServiceLoader implements RouteLoader {
     private static instance: ServiceLoader;
@@ -8,18 +8,18 @@ export class ServiceLoader implements RouteLoader {
 
     private constructor() {}
 
-    static getInstance(): ServiceLoader {
+    public static getInstance(): ServiceLoader {
         if (!ServiceLoader.instance) {
             ServiceLoader.instance = new ServiceLoader();
         }
         return ServiceLoader.instance;
     }
 
-    static loadService(service: Service): void {
+    public static loadService(service: Service): void {
         ServiceLoader.getInstance().services.push(service);
     }
 
-    loadRoutes(server: Express): void {
+    public loadRoutes(server: Express): void {
         this.services.forEach(service => {
             server.all(service.path, async (req: Request, res: Response) => {
                 try {

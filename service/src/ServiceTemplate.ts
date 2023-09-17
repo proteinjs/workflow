@@ -1,4 +1,4 @@
-import { Dependency, Package, Template, TemplateArgs } from '@brentbahry/conversation';
+import { Code, CodeTemplate, Conversation, Import, SourceFile, TemplateArgs } from '@brentbahry/conversation';
 
 export type ServiceTemplateArgs = {
   name: string,
@@ -7,13 +7,11 @@ export type ServiceTemplateArgs = {
   returnType?: any,
   path?: string,
   additionalInstructions?: string[],
-  additionalPackages?: Package[],
-  replacePackages?: boolean,
-  additionalDependencies?: Dependency[],
-  replaceDependencies?: boolean,
+  additionalImports?: Import[],
+  replaceImports?: boolean,
 }
 
-export class ServiceTemplate extends Template {
+export class ServiceTemplate extends CodeTemplate {
   private args: ServiceTemplateArgs;
 
   constructor(args: ServiceTemplateArgs & TemplateArgs) {
@@ -23,51 +21,52 @@ export class ServiceTemplate extends Template {
     });
   }
 
-  getFilePaths() {
-    return {
-      service: this.filePath(`${this.args.name}.ts`)
-    };
-  }
-
-  async generate(): Promise<void> {
-    const { name, functionBody, parameters, returnType, additionalInstructions } = this.args;
-    const packages: Package[] = this.args.replacePackages ? [] : [
+  dependencyPackages() {
+    return [
       { name: '@brentbahry/service', version: '../service', exactVersion: false },
     ];
-    if (this.args.additionalPackages)
-      packages.push(...this.args.additionalPackages);
+  }
 
-    await this.installPackages(packages);
-
-    const dependencies: Dependency[] = this.args.replaceDependencies ? [] : [
-      { moduleNames: ['Service'], importPathFromGeneratedFile: '@brentbahry/service', filePath: require.resolve('@brentbahry/service/src/generated/Service.ts') },
-      { moduleNames: ['ServiceLoader'], importPathFromGeneratedFile: '@brentbahry/service', filePath: require.resolve('@brentbahry/service/src/generated/ServiceLoader.ts') },
+  sourceFiles() {
+    return [
+      this.service(),
     ];
-    if (this.args.additionalDependencies)
-      dependencies.push(...this.args.additionalDependencies);
+  }
 
-    this.addDependencies(dependencies);
-
+  private service(): SourceFile {
+    const conversation = new Conversation({ conversationName: this.constructor.name });
     const description = [
-      `Create a Service implementation named ${name}`,
-      `Load the service into the ServiceLoader`,
+      `Create a Service implementation named ${this.args.name}`,
+      `Load the service into the ServiceLoader via ServiceLoader.loadService`,
+      `Do not generate a call to Server.addRouteLoader`,
+      `Do not generate a call to Server.setPort`,
     ];
     const resolvedPath = this.args.path ? this.args.path : 'the name of the service in lowercase';
     description.push(`Set the path property of this service to /${resolvedPath}`);
-    if (parameters)
-      description.push(`The call function should have the following parameters: ${JSON.stringify(parameters)}`);
+    if (this.args.parameters)
+      description.push(`The call function should have the following parameters: ${JSON.stringify(this.args.parameters)}`);
     
-    if (returnType)
-      description.push(`The call function should have a return type of: ${JSON.stringify(returnType)}`);
+    if (this.args.returnType)
+      description.push(`The call function should have a return type of: ${JSON.stringify(this.args.returnType)}`);
     
-    description.push(`The call function should have the following implementation: ${functionBody}`);
-    if (additionalInstructions)
-      description.push(...additionalInstructions);
+    description.push(`The call function should have the following implementation: ${this.args.functionBody}`);
+    if (this.args.additionalInstructions)
+      description.push(...this.args.additionalInstructions);
 
-    const code = await this.generateCode(description);
-    await this.writeFiles([{ 
-      path: this.getFilePaths().service,
-      content: code  
-    }]);
+    const imports: Import[] = this.args.replaceImports ? [] : [
+      { moduleNames: ['Service'], importPathFromGeneratedFile: '@brentbahry/service', sourceFilePath: require.resolve('@brentbahry/service/src/generated/Service.ts') },
+      { moduleNames: ['ServiceLoader'], importPathFromGeneratedFile: '@brentbahry/service', sourceFilePath: require.resolve('@brentbahry/service/src/generated/ServiceLoader.ts') },
+    ];
+    if (this.args.additionalImports)
+      imports.push(...this.args.additionalImports);
+
+    return {
+      relativePath: `${this.args.name}.ts`,
+      code: new Code({
+        conversation,
+        imports,
+        description,
+      }),
+    };
   }
 }
