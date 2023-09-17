@@ -23,7 +23,7 @@ export class RepoFactory {
   public static async createRepo(dir: string): Promise<Repo> {
     let repo: Repo = { packages: {} };
 
-    async function traverse(dir: string, packageName?: string, parentHasPackageJson: boolean = false) {
+    async function traverse(dir: string, packageName?: string) {
       const childrenNames = await fs.readdir(dir, { withFileTypes: true });
       let hasPackageJson = childrenNames.some(dirent => dirent.name === 'package.json');
       if (hasPackageJson) {
@@ -36,29 +36,23 @@ export class RepoFactory {
         packageName = packageJSON.name;
       }
       
-      if (hasPackageJson || parentHasPackageJson) {
-        for (const dirent of childrenNames) {
-          if (!dirent.isDirectory())
-            continue;
+      for (const dirent of childrenNames) {
+        if (!dirent.isDirectory())
+          continue;
 
-          // Exclude directories 'node_modules' and 'dist' right at the beginning
-          if (dirent.name.includes('node_modules') || dirent.name.includes('dist')) {
-            continue;
-          }
-
-          if (packageName) {
-            try {
-              const directoryMap = await RepoFactory.generateDirectoryMap(dirent.name);
-              repo.packages[packageName].directoryMaps.push(directoryMap);
-            } catch (error) {
-              // Silently fail if there's an error reading the package.json
-            }
-          }
-
-          // Continue with the traversal if it's a directory
-          const childPath = path.join(dir, dirent.name);
-          await traverse(childPath, packageName, hasPackageJson);
+        // Exclude directories 'node_modules' and 'dist' right at the beginning
+        if (dirent.name.includes('node_modules') || dirent.name.includes('dist')) {
+          continue;
         }
+
+        const childPath = path.join(dir, dirent.name);
+        if (packageName) {
+          const directoryMap = await RepoFactory.generateDirectoryMap(childPath);
+          repo.packages[packageName].directoryMaps.push(directoryMap);
+        }
+
+        // Continue with the traversal if it's a directory
+        await traverse(childPath, packageName);
       }
     }
 
@@ -82,6 +76,7 @@ export class RepoFactory {
     } else if (dir.endsWith('.ts') || dir.endsWith('.tsx')) {
       const declarations = this.generateDeclarations([dir]);
       const declarationFilePath = path.join(path.dirname(dir), path.basename(dir, path.extname(dir))) + '.d.ts';
+      // console.log(`dir: ${dir}\ndeclarationFilePath: ${declarationFilePath}`);
       if (declarations[declarationFilePath]) {
         map.declaration = declarations[declarationFilePath];
       }

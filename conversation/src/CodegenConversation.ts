@@ -37,12 +37,12 @@ export class CodegenConversation {
       `If they want to create a function/class/object using an API we are familiar with, we will ask the user for the required information to fill in all mandatory parameters and ask them if they want to provide optional parameter values`,
       `Once we have gotten the values for all parameters, respond with '${CodegenConversation.CODE_RESPONSE}' followed by the code to instantiate/call the function/class/object with the user's responses for parameter values`,
       `If the code we generate returns a promise, make sure we await it`,
-      `The following is code we should be able use for generation, if the user wants to create something that matches this code, use these apis:\n${JSON.stringify(this.repo.declarations)}`,
-      `If using one of the included apis, import them from the 'conversation' package`,
+      `The following is code we should be able use for generation, if the user wants to create something that matches this code, use these apis:\n${JSON.stringify(this.repo)}`,
+      `To interpret repo, know that any DirectoryMap that is of type file has a declaration property that describes that file, use these desclarations when generating call to these apis`,
+      `If using one of the included apis, import them from their corresponding package`,
       `If you're generating a call to a class that extends Template, require that the user provide Template's constructor parameters as well and combine them into the parameters passed into the base class you're instantiating`,
       `Make sure you ask for a srcPath and pass that in to the Template base class constructor arg`,
       `Surround generated code (not including imports) with a self-executing, anonymous async function like this (async function() =>{})()`,
-      // `Combine whatever srcPath the user provides with ${process.cwd()}`
     ];
     this.conversation.addSystemMessagesToHistory(systemMessages);
   }
@@ -58,7 +58,7 @@ export class CodegenConversation {
     const srcPath = responseSrcPath.replace(/["'`]/g, '').match(/TOKEN(.*?)TOKEN/)?.[1];
     if (!srcPath)
       throw new Error(`Failed to parse responseSrcPath: ${responseSrcPath}`);
-    const codePath = path.join(srcPath, 'template.ts');
+    const codePath = path.join(process.cwd(), srcPath, 'template.ts');
     await fs.ensureFile(codePath);
     await fs.writeFile(codePath, code);
     console.log(`Wrote file: ${codePath}`);
