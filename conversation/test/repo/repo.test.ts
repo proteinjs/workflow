@@ -24,3 +24,7 @@ import { Conversation } from '../../src/Conversation';
 // test(`Generate code from templates guided by user input`, async () => {
 
 // }, 60000);
+
+test(`Create repo`, async () => {
+  console.log(JSON.stringify(await RepoFactory.createRepo(`${process.cwd()}`), null, 4));
+}, 60000)

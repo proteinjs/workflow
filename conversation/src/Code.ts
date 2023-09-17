@@ -40,7 +40,7 @@ export class Code {
   }
 
   private declarationMessage(tsFilePaths: string[]) {
-    const declarationMap = RepoFactory.generateDeclarations(tsFilePaths);
+    const declarationMap = RepoFactory.generateDeclarations(tsFilePaths, true);
     const declarations = Object.values(declarationMap).join('\n');
     return `Assume the following code exists in other files:\n${declarations}`;
   }
