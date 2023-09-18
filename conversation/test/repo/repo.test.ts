@@ -1,6 +1,8 @@
 import { RepoFactory } from '../../src/Repo';
 // import { Table } from 'conversation/src/table';
 import { Conversation } from '../../src/Conversation';
+import { Fs } from '@brentbahry/util';
+
 
 // test(`Return repo of the source files and the code they depend on`, async () => {
 //   const tableTemplatePath = require.resolve('conversation/src/table.ts');
@@ -26,5 +28,6 @@ import { Conversation } from '../../src/Conversation';
 // }, 60000);
 
 test(`Create repo`, async () => {
-  console.log(JSON.stringify(await RepoFactory.createRepo(`${process.cwd()}`), null, 4));
+  console.log(JSON.stringify((await RepoFactory.createRepo(`${process.cwd()}`)).params, null, 4));
+  // console.log(JSON.stringify(await Fs.getFilesInDirectory(`${process.cwd()}`, ['node_modules', 'dist']), null, 4));
 }, 60000)

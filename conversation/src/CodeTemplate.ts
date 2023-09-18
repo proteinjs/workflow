@@ -24,7 +24,7 @@ export abstract class CodeTemplate {
       const filePath = Fs.baseContainedJoin(this.templateArgs.srcPath, sourceFile.relativePath);
       this.logger.info(`Generating source file: ${filePath}`);
       const code = await sourceFile.code.generate();
-      await Fs.writeFiles([ { path: filePath, content: code } ]);
+      await Fs.writeFiles({ files: [{ path: filePath, content: code }]});
       this.logger.info(`Generated source file: ${filePath}`);
     }
   }

@@ -1,9 +1,10 @@
 import { ChatCompletionMessageParam } from 'openai/resources/chat';
-import openai from './openai';
+import { OpenAi, Function } from './OpenAi';
 import { Logger, LogLevel, Fs } from '@brentbahry/util';
 
 export class Conversation {
   private history: ChatCompletionMessageParam[] = [];
+  private functions: Function[] = [];
   private generatedCode = false;
   private generatedList = false;
   private logger: Logger;
@@ -12,6 +13,10 @@ export class Conversation {
   constructor(logging: { conversationName: string, omitUsageData?: boolean, logLevel?: LogLevel }) {
     this.logging = logging;
     this.logger = new Logger(logging.conversationName, logging.logLevel);
+  }
+
+  addFunctions(functions: Function[]) {
+    this.functions.push(...functions);
   }
 
   addSystemMessagesToHistory(messages: string[]) {
@@ -27,7 +32,7 @@ export class Conversation {
   }
 
   async generateResponse(messages: string[], model?: string) {
-    const response = await openai.generateResponse(messages, model, this.history, this.logging.omitUsageData);
+    const response = await OpenAi.generateResponse(messages, model, this.history, this.functions, this.logging.omitUsageData);
     messages.forEach(message => this.history.push({ role: 'user', content: message }));
     this.history.push({ role: 'assistant', content: response });
     return response;
@@ -35,7 +40,7 @@ export class Conversation {
 
   async generateCode(description: string[], model?: string) {
     this.logger.info(`Generating code for description:\n${description.join('\n')}`);
-    const code = await openai.generateCode(description, model, this.history, !this.generatedCode, this.logging.omitUsageData);
+    const code = await OpenAi.generateCode(description, model, this.history, this.functions, !this.generatedCode, this.logging.omitUsageData);
     this.logger.info(`Generated code:\n${code.slice(0, 150)}${code.length > 150 ? '...' : ''}`);
     this.generatedCode = true;
     description.forEach(message => this.history.push({ role: 'user', content: message }));
@@ -57,16 +62,16 @@ export class Conversation {
 
   async updateCode(code: string, description: string, model?: string) {
     this.logger.info(`Updating code:\n${code.slice(0, 150)}${code.length > 150 ? '...' : ''}\nFrom description: ${description}`);
-    const updatedCode = await openai.updateCode(code, description, model, this.history, !this.generatedCode, this.logging.omitUsageData);
+    const updatedCode = await OpenAi.updateCode(code, description, model, this.history, this.functions, !this.generatedCode, this.logging.omitUsageData);
     this.logger.info(`Updated code:\n${updatedCode.slice(0, 150)}${updatedCode.length > 150 ? '...' : ''}`);
     this.generatedCode = true;
-    this.history.push({ role: 'user', content: openai.updateCodeDescription(code, description) });
+    this.history.push({ role: 'user', content: OpenAi.updateCodeDescription(code, description) });
     this.history.push({ role: 'assistant', content: updatedCode });
     return updatedCode;
   }
 
   async generateList(description: string[], model?: string) {
-    const list = await openai.generateList(description, model, this.history, !this.generatedList, this.logging.omitUsageData);
+    const list = await OpenAi.generateList(description, model, this.history, this.functions, !this.generatedList, this.logging.omitUsageData);
     this.generatedList = true;
     description.forEach(message => this.history.push({ role: 'user', content: message }));
     this.history.push({ role: 'assistant', content: list.join('\n') });

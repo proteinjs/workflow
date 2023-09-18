@@ -1,5 +1,5 @@
 import { Conversation } from './Conversation';
-import { RepoFactory } from './Repo';
+import { Repo } from './Repo';
 
 export type SourceFile = {
   relativePath: string,
@@ -40,7 +40,7 @@ export class Code {
   }
 
   private declarationMessage(tsFilePaths: string[]) {
-    const declarationMap = RepoFactory.generateDeclarations(tsFilePaths, true);
+    const declarationMap = Repo.generateDeclarations({ tsFilePaths, includeDependencyDeclarations: true });
     const declarations = Object.values(declarationMap).join('\n');
     return `Assume the following code exists in other files:\n${declarations}`;
   }

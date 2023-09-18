@@ -7,8 +7,23 @@ export type File = {
   content: string,
 }
 
+export interface FileDescriptor {
+    name: string;
+    nameWithoutExtension: string;
+    path: string;
+    projectRelativePath: string;
+}
+
 export class Fs {
   private static LOGGER = new Logger('Fs');
+
+  static async readFiles(params: { filePaths: string[] }) {
+    const fileMap: {[filePath: string]: string} = {};
+    for (let filePath of params.filePaths) {
+      fileMap[filePath] = await this.readFile(filePath);
+    }
+    return fileMap;
+  }
 
   static async readFile(filePath: string) {
     if (!await fsExtra.exists(filePath))
@@ -18,13 +33,13 @@ export class Fs {
     if (!fileContent)
       throw new Error(`File is empty: ${filePath}`);
 
+    Fs.LOGGER.info(`Read file: ${filePath}`);
     return fileContent;
   }
 
-  static async writeFiles(files: File[]) {
-    for (let file of files) {
+  static async writeFiles(params: { files: File[] }) {
+    for (let file of params.files) {
       await fsExtra.ensureFile(file.path);
-      Fs.LOGGER.info(`Writing file: ${file.path}`);
       await fsExtra.writeFile(file.path, file.content);
       Fs.LOGGER.info(`Wrote file: ${file.path}`);
     }
@@ -45,5 +60,33 @@ export class Fs {
       ),
       path.parse(toRelativePath).name
     );
+  }
+
+  static async getFilesInDirectory(dir: string, excludedDirs?: string[], rootDir?: string,): Promise<FileDescriptor[]> {
+    let results: FileDescriptor[] = [];
+    if (!rootDir)
+      rootDir = dir;
+
+    const dirents = await fsExtra.readdir(dir, { withFileTypes: true });
+
+    for (const dirent of dirents) {
+        const fullPath = path.resolve(dir, dirent.name);
+
+        if (dirent.isDirectory()) {
+            if (excludedDirs && !excludedDirs.includes(dirent.name)) {
+                results = results.concat(await this.getFilesInDirectory(fullPath, excludedDirs, rootDir));
+            }
+        } else {
+            const fileDescriptor: FileDescriptor = {
+                name: dirent.name,
+                nameWithoutExtension: path.parse(dirent.name).name,
+                path: fullPath,
+                projectRelativePath: path.relative(rootDir, fullPath)
+            };
+            results.push(fileDescriptor);
+        }
+    }
+
+    return results;
   }
 }
