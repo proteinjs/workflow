@@ -1,10 +1,13 @@
 import { ChatCompletionMessageParam } from 'openai/resources/chat';
 import { OpenAi, Function } from './OpenAi';
 import { Logger, LogLevel, Fs } from '@brentbahry/util';
+import { MessageModerator } from './MessageModerator';
+import { ConversationFileSystemModerator } from './ConversationFileSystemModerator';
 
 export class Conversation {
   private history: ChatCompletionMessageParam[] = [];
   private functions: Function[] = [];
+  private messageModerators: MessageModerator[] = [new ConversationFileSystemModerator()];
   private generatedCode = false;
   private generatedList = false;
   private logger: Logger;
@@ -25,6 +28,15 @@ export class Conversation {
     }
   }
 
+  addMessageModerators(messageModerators: MessageModerator[]) {
+    this.messageModerators.push(...messageModerators);
+  }
+
+  private moderateHistory() {
+    for (let messageModerator of this.messageModerators)
+      this.history = messageModerator.observe(this.history);
+  }
+
   addSystemMessagesToHistory(messages: string[]) {
     messages.forEach(message => this.history.push({ role: 'system', content: message }));
   }
@@ -38,6 +50,7 @@ export class Conversation {
   }
 
   async generateResponse(messages: string[], model?: string) {
+    this.moderateHistory();
     const response = await OpenAi.generateResponse(messages, model, this.history, this.functions, this.logging.omitUsageData);
     messages.forEach(message => this.history.push({ role: 'user', content: message }));
     this.history.push({ role: 'assistant', content: response });
@@ -45,6 +58,7 @@ export class Conversation {
   }
 
   async generateCode(description: string[], model?: string) {
+    this.moderateHistory();
     this.logger.info(`Generating code for description:\n${description.join('\n')}`);
     const code = await OpenAi.generateCode(description, model, this.history, this.functions, !this.generatedCode, this.logging.omitUsageData);
     this.logger.info(`Generated code:\n${code.slice(0, 150)}${code.length > 150 ? '...' : ''}`);
@@ -67,6 +81,7 @@ export class Conversation {
   }
 
   async updateCode(code: string, description: string, model?: string) {
+    this.moderateHistory();
     this.logger.info(`Updating code:\n${code.slice(0, 150)}${code.length > 150 ? '...' : ''}\nFrom description: ${description}`);
     const updatedCode = await OpenAi.updateCode(code, description, model, this.history, this.functions, !this.generatedCode, this.logging.omitUsageData);
     this.logger.info(`Updated code:\n${updatedCode.slice(0, 150)}${updatedCode.length > 150 ? '...' : ''}`);
@@ -77,6 +92,7 @@ export class Conversation {
   }
 
   async generateList(description: string[], model?: string) {
+    this.moderateHistory();
     const list = await OpenAi.generateList(description, model, this.history, this.functions, !this.generatedList, this.logging.omitUsageData);
     this.generatedList = true;
     description.forEach(message => this.history.push({ role: 'user', content: message }));

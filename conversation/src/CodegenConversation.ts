@@ -11,7 +11,7 @@ export class CodegenConversation {
   private static CODE_RESPONSE = 'Code with user input:';
   private static BOT_NAME = 'Alina';
   private static MODEL = 'gpt-4';
-  private conversation = new Conversation({ conversationName: this.constructor.name, omitUsageData: true, logLevel: 'info' });
+  private conversation = new Conversation({ conversationName: this.constructor.name, omitUsageData: false, logLevel: 'info' });
   private repo: Repo;
 
   constructor(repo: Repo) {

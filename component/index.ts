@@ -18,3 +18,5 @@ import { Fs } from '@brentbahry/util';
   // const file = "/Users/brentbahry/repos/components/conversation/src/Code.ts";
   // console.log(await Fs.readFiles({ filePaths: [file] }));
 })()
+
+// 166 tokens to store the Sentence file content

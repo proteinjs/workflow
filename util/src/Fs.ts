@@ -7,6 +7,10 @@ export type File = {
   content: string,
 }
 
+export type FileContentMap = {
+  [filePath: string]: string
+}
+
 export interface FileDescriptor {
     name: string;
     nameWithoutExtension: string;
@@ -18,7 +22,7 @@ export class Fs {
   private static LOGGER = new Logger('Fs');
 
   static async readFiles(params: { filePaths: string[] }) {
-    const fileMap: {[filePath: string]: string} = {};
+    const fileMap: FileContentMap = {};
     for (let filePath of params.filePaths) {
       const fp = `${filePath}`;
       fileMap[fp] = await Fs.readFile(fp);
