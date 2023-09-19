@@ -5,6 +5,7 @@ import { Logger } from '@brentbahry/util';
 export interface Function {
   definition: ChatCompletionCreateParams.Function;
   call(obj: any): Promise<any>;
+  instructions?: string[];
 }
 
 export interface FunctionReturnMessage {
@@ -39,7 +40,10 @@ export class OpenAi {
     if (responseMessage.function_call) {
       const functionReturnMessage = await this.callFunction(logger, functions, responseMessage.function_call);
       if (functionReturnMessage) {
-        messageParamsWithHistory.push(...[responseMessage, functionReturnMessage]);
+        messageParamsWithHistory.push(responseMessage);
+        if (functionReturnMessage.content)
+          messageParamsWithHistory.push(functionReturnMessage);
+
         return await this.generateResponse([], model, messageParamsWithHistory, functions, omitUsageData);
       }
     }
@@ -60,14 +64,23 @@ export class OpenAi {
     }      
 
     if (functions && functionCall) {
-      const f = functions.find(f => f.definition.name === functionCall.name)
+      if (functionCall.name.startsWith('functions.'))
+        functionCall.name = functionCall.name.slice('functions.'.length - 1);
+      const f = functions.find(f => f.definition.name === functionCall.name);
       if (!f) {
         logger.warn(`Assistant attempted to call nonexistent function: ${functionCall.name}`);
         return;
       }
 
-      const returnObject = JSON.stringify(await f.call(JSON.parse(functionCall.arguments)));
-      logger.info(`Assistant called function: ${f.definition.name}(${functionCall.arguments}) => ${returnObject}`);
+      let returnObject = null;
+      try {
+        logger.info(`Assistant calling function: ${f.definition.name}(${functionCall.arguments})`);
+        returnObject = JSON.stringify(await f.call(JSON.parse(functionCall.arguments)));
+        logger.info(`Assistant called function: ${f.definition.name}(${functionCall.arguments}) => ${returnObject}`);
+      } catch (error: any) {
+        logger.error(error.message);
+      }
+
       return {
         role: 'function', 
         name: f.definition.name, 

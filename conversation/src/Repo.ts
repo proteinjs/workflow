@@ -20,6 +20,7 @@ export type RepoParams = {
   packages: Record<string, PackageInfo>,
   slimPackages: Record<string, SlimPackageInfo>,
   tsFiles: { [tsFilePath: string]: TsFile },
+  keywordFilesIndex: { [keyword: string]: string[] /** file paths */ },
 }
 
 export class Repo {
@@ -40,6 +41,16 @@ export class Repo {
 
   tsFiles() {
     return this.params.tsFiles;
+  }
+
+  keywordFilesIndex() {
+    return this.params.keywordFilesIndex;
+  }
+
+  searchFiles(params: { keyword: string }) {
+    this.logger.info(`Searching for file, keyword: ${params.keyword}`);
+    const filePaths = this.keywordFilesIndex()[params.keyword];
+    return filePaths || [];
   }
 
   getDeclarations(params: { tsFilePaths: string[] }) {
@@ -74,12 +85,12 @@ export class Repo {
     // Generate the declaration content.
     if (params.includeDependencyDeclarations) {
       const result = program.emit(undefined, customWriteFile, undefined, true);
-      this.logCompilerErrors(result);
+      Repo.logCompilerErrors(result);
     } else {
       for (let tsFilePath of params.tsFilePaths) {
         const sourceFile = program.getSourceFile(tsFilePath);
         const result = program.emit(sourceFile, customWriteFile, undefined, true);
-        this.logCompilerErrors(result);
+        Repo.logCompilerErrors(result);
       }
     }
 
@@ -103,8 +114,11 @@ export class Repo {
 }
 
 export class RepoFactory {
+  private static LOGGER = new Logger('RepoFactory');
+
   public static async createRepo(dir: string): Promise<Repo> {
-    let repoParams: RepoParams = { packages: {}, slimPackages: {}, tsFiles: {} };
+    this.LOGGER.info(`Creating repo for dir: ${dir}`);
+    let repoParams: RepoParams = { packages: {}, slimPackages: {}, tsFiles: {}, keywordFilesIndex: {} };
 
     async function traverse(dir: string) {
       const childrenNames = await fs.readdir(dir, { withFileTypes: true });
@@ -114,9 +128,9 @@ export class RepoFactory {
         const packageJSON = JSON.parse(packageContent);
         repoParams.packages[packageJSON.name] = { 
           packageJSON: packageJSON,
-          tsFiles: {},
-          fileDescriptors: [],
           dirPath: dir,
+          fileDescriptors: [],
+          tsFiles: {},
         };
       }
       
@@ -136,16 +150,18 @@ export class RepoFactory {
     }
 
     await traverse(dir);
-    await this.loadFiles(repoParams);
+    await RepoFactory.loadFiles(repoParams);
     Object.keys(repoParams.packages).forEach(packageName => {
       const { packageJSON, tsFiles, ...slimPackage } = repoParams.packages[packageName];
       repoParams.slimPackages[packageName] = slimPackage;
-    })
+    });
+    this.LOGGER.info(`Created repo for dir: ${dir}`);
     return new Repo(repoParams);
   }
 
   private static async loadFiles(repoParams: RepoParams) {
     for (let packageName of Object.keys(repoParams.packages)) {
+      this.LOGGER.info(`Loading files for package: ${packageName}`);
       const dirPath = repoParams.packages[packageName].dirPath;
       if (dirPath) {
         repoParams.packages[packageName].fileDescriptors.push(...await Fs.getFilesInDirectory(dirPath, ['node_modules', 'dist']));
@@ -154,6 +170,10 @@ export class RepoFactory {
           const tsFile = Object.assign({ declaration: typescriptDeclaration }, fileDescriptor);
           repoParams.packages[packageName].tsFiles[fileDescriptor.path] = tsFile;
           repoParams.tsFiles[fileDescriptor.path] = tsFile;
+          if (!repoParams.keywordFilesIndex[fileDescriptor.nameWithoutExtension])
+            repoParams.keywordFilesIndex[fileDescriptor.nameWithoutExtension] = [];
+
+          repoParams.keywordFilesIndex[fileDescriptor.nameWithoutExtension].push(fileDescriptor.path);
         }
       }
     }

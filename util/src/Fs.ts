@@ -20,13 +20,14 @@ export class Fs {
   static async readFiles(params: { filePaths: string[] }) {
     const fileMap: {[filePath: string]: string} = {};
     for (let filePath of params.filePaths) {
-      fileMap[filePath] = await this.readFile(filePath);
+      const fp = `${filePath}`;
+      fileMap[fp] = await Fs.readFile(fp);
     }
     return fileMap;
   }
 
   static async readFile(filePath: string) {
-    if (!await fsExtra.exists(filePath))
+    if (!(await fsExtra.exists(filePath)))
       throw new Error(`File does not exist at path: ${filePath}`);
     
     const fileContent = (await fsExtra.readFile(filePath)).toString();
@@ -74,7 +75,7 @@ export class Fs {
 
         if (dirent.isDirectory()) {
             if (excludedDirs && !excludedDirs.includes(dirent.name)) {
-                results = results.concat(await this.getFilesInDirectory(fullPath, excludedDirs, rootDir));
+                results = results.concat(await Fs.getFilesInDirectory(fullPath, excludedDirs, rootDir));
             }
         } else {
             const fileDescriptor: FileDescriptor = {

@@ -11,7 +11,7 @@ export class CodegenConversation {
   private static CODE_RESPONSE = 'Code with user input:';
   private static BOT_NAME = 'Alina';
   private static MODEL = 'gpt-4';
-  private conversation = new Conversation({ conversationName: this.constructor.name, omitUsageData: true, logLevel: 'error' });
+  private conversation = new Conversation({ conversationName: this.constructor.name, omitUsageData: true, logLevel: 'info' });
   private repo: Repo;
 
   constructor(repo: Repo) {
@@ -38,11 +38,12 @@ export class CodegenConversation {
       `If they want to create a function/class/object using an API we are familiar with, we will ask the user for the required information to fill in all mandatory parameters and ask them if they want to provide optional parameter values`,
       `Once we have gotten the values for all parameters, respond with '${CodegenConversation.CODE_RESPONSE}' followed by the code to instantiate/call the function/class/object with the user's responses for parameter values`,
       `If the code we generate returns a promise, make sure we await it`,
-      `You have access to the code within this repo: ${JSON.stringify(this.repo.slimPackages())}`,
+      `You have access to code in a private repo, you can read and write code to and from the file system`,
+      // `To find code corresponding to a user request, start by calling the searchFiles function`,
       `If the user wants to generate code, identify files that may contain libraries to use from this repo, and access either their content or their typescript declarations via the available functions, whichever is needed for code generation`,
-      `Favor calling getDeclarations over readFiles if full file content is not needed`,
-      // `The following is code we should be able use for generation, if the user wants to create something that matches this code, use these apis:\n${JSON.stringify(this.repo)}`,
-      // `To interpret repo, know that any DirectoryMap that is of type file has a declaration property that describes that file, use these desclarations when generating call to these apis`,
+      // `Favor calling getDeclarations over readFiles if full file content is not needed`,
+      // `If the user provides a file path and it does not have a file extension, use searchFiles to find valid file path options`,
+      // `Only call functions that take in filePaths with valid file paths, if you don't know the valid file path try and search for it by keyword with the searchFiles function`,
       `If using one of the repo apis, import the api from its corresponding package when generating code that uses that api`,
       `If you're generating a call to a class that extends Template, require that the user provide Template's constructor parameters as well and combine them into the parameters passed into the base class you're instantiating`,
       `Make sure you ask for a srcPath and pass that in to the Template base class constructor arg`,
@@ -61,14 +62,17 @@ export class CodegenConversation {
             type: 'object',
             properties: {
               filePaths: {
-                type: 'string[]',
-                description: 'Paths to the files'
+                type: 'array',
+                description: 'Paths to the files',
+                items: {
+                  type: 'string',
+                },
               },
             },
             required: ['filePaths']
           },
         },
-        call: Fs.readFiles
+        call: Fs.readFiles,
       },
       {
         definition: {
@@ -78,14 +82,30 @@ export class CodegenConversation {
             type: 'object',
             properties: {
               files: {
-                type: '{ path: string, content: string }[]',
-                description: 'Files to write'
+                type: 'array',
+                description: 'Files to write',
+                items: {
+                  type: 'object',
+                  properties: {
+                    path: {
+                      type: 'string',
+                      description: 'the file path',
+                    },
+                    content: {
+                      type: 'string',
+                      description: 'the content to write to the file',
+                    },
+                  },
+                },
               },
             },
             required: ['files']
           },
         },
-        call: Fs.writeFiles
+        call: Fs.writeFiles,
+        instructions: [
+          `If the user has asked to update a file, do not write to the file if it does not already exist`
+        ],
       },
       {
         definition: {
@@ -95,8 +115,11 @@ export class CodegenConversation {
             type: 'object',
             properties: {
               tsFilePaths: {
-                type: 'string[]',
-                description: 'Paths to the files'
+                type: 'array',
+                description: 'Paths to the files',
+                items: {
+                  type: 'string',
+                },
               },
               includeDependencyDeclarations: {
                 type: 'boolean',
@@ -107,6 +130,31 @@ export class CodegenConversation {
           },
         },
         call: async (params: { tsFilePaths: string[] }) => this.repo.getDeclarations(params),
+        instructions: [
+          `Favor calling getDeclarations over readFiles if full file content is not needed`,
+        ],
+      },
+      {
+        definition: {
+          name: 'searchFiles',
+          description: 'Get file paths to files that contain keyword',
+          parameters: {
+            type: 'object',
+            properties: {
+              keyword: {
+                type: 'string',
+                description: 'Search files for this keyword'
+              },
+            },
+            required: ['keyword']
+          },
+        },
+        call: async (params: { keyword: string }) => this.repo.searchFiles(params),
+        instructions: [
+          `If the user is trying to interact with a file, but does not provide a path, you can find file paths that match a keyword using searchFiles`,
+          `Only call functions that take in filePaths with valid file paths, if you don't know the valid file path try and search for it by keyword with the searchFiles function`,
+          `If the user references a file in a package without providing a path, use searchFiles on the keyword to find potentially relevant files, and choose the one that references the package name in its path`,
+        ],
       },
     ]);
   }

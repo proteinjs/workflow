@@ -17,6 +17,12 @@ export class Conversation {
 
   addFunctions(functions: Function[]) {
     this.functions.push(...functions);
+    for (let f of functions) {
+      if (f.instructions) {
+        const mps: ChatCompletionMessageParam[] = f.instructions.map(instruction => { return { role: 'system', content: instruction }});
+        this.history.push(...mps);
+      }
+    }
   }
 
   addSystemMessagesToHistory(messages: string[]) {
