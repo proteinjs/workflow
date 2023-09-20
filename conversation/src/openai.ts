@@ -1,66 +1,9 @@
 import { OpenAI } from 'openai';
-import { ChatCompletionCreateParams, ChatCompletionMessage, ChatCompletionMessageParam } from 'openai/resources/chat';
+import { ChatCompletionMessage, ChatCompletionMessageParam } from 'openai/resources/chat';
 import { LogLevel, Logger } from '@brentbahry/util';
 import { MessageModerator } from './MessageModerator';
-
-export interface Function {
-  definition: ChatCompletionCreateParams.Function;
-  call(obj: any): Promise<any>;
-  instructions?: string[];
-}
-
-export interface FunctionReturnMessage {
-  role: string, 
-  name: string, 
-  content: string,
-}
-
-export interface MessageHistoryParams {
-  maxMessages: number; // max number of non-system messages to retain, fifo
-}
-
-export class MessageHistory {
-  private logger = new Logger(this.constructor.name);
-  private messages: ChatCompletionMessageParam[] = [];
-  private params: MessageHistoryParams;
-
-  constructor(params?: Partial<MessageHistoryParams>) {
-    this.params = Object.assign({ maxMessages: 20 }, params);
-  }
-
-  getMessages() {
-    return this.messages;
-  }
-
-  setMessages(messages: ChatCompletionMessageParam[]): MessageHistory {
-    this.messages = messages;
-    this.prune();
-    return this;
-  }
-
-  push(messages: ChatCompletionMessageParam[]): MessageHistory {
-    this.messages.push(...messages);
-    this.prune();
-    return this;
-  }
-
-  private prune() {
-    let messageCount = 0;
-    const messagesToRemoveIndexes: number[] = [];
-    for (let i = this.messages.length - 1; i >=0; i--) {
-      const message = this.messages[i];
-      if (message.role == 'system')
-        continue;
-
-      messageCount++;
-      if (messageCount > this.params.maxMessages)
-        messagesToRemoveIndexes.push(i);
-    }
-
-    this.messages = this.messages.filter((message, i) => !messagesToRemoveIndexes.includes(i));
-    this.logger.debug(`Pruned ${messagesToRemoveIndexes.length} messages`);
-  }
-}
+import { Function } from './Function';
+import { MessageHistory } from './MessageHistory';
 
 export class OpenAi {
   static async generateResponse(messages: string[], model?: string, history?: MessageHistory, functions?: Function[], messageModerators?: MessageModerator[], logLevel: LogLevel = 'info'): Promise<string> {

@@ -1,10 +1,13 @@
 import fs from 'fs-extra';
 import path from 'path';
 import * as readline from 'readline-sync';
-import { Fs, cmd } from '@brentbahry/util';
+import { cmd } from '@brentbahry/util';
 import { Conversation } from './Conversation';
 import { OpenAi } from './OpenAi';
 import { Repo } from './Repo2';
+import { PackageUtilFunctions } from './functions/PackageUtilFunctions';
+import { FsFunctions } from './functions/FsFunctions';
+import { searchFilesFunction } from './functions/RepoFunctions';
 
 export class CodegenConversation {
   private static INITIAL_QUESTION = 'What would you like to create?';
@@ -51,127 +54,7 @@ export class CodegenConversation {
   }
 
   private loadFunctions() {
-    this.conversation.addFunctions([
-      {
-        definition: {
-          name: 'readFiles',
-          description: 'Get the content of files',
-          parameters: {
-            type: 'object',
-            properties: {
-              filePaths: {
-                type: 'array',
-                description: 'Paths to the files',
-                items: {
-                  type: 'string',
-                },
-              },
-            },
-            required: ['filePaths']
-          },
-        },
-        call: Fs.readFiles,
-      },
-      {
-        definition: {
-          name: 'writeFiles',
-          description: 'Write files to the file system',
-          parameters: {
-            type: 'object',
-            properties: {
-              files: {
-                type: 'array',
-                description: 'Files to write',
-                items: {
-                  type: 'object',
-                  properties: {
-                    path: {
-                      type: 'string',
-                      description: 'the file path',
-                    },
-                    content: {
-                      type: 'string',
-                      description: 'the content to write to the file',
-                    },
-                  },
-                },
-              },
-            },
-            required: ['files']
-          },
-        },
-        call: Fs.writeFiles,
-        instructions: [
-          `If the user has asked to update a file, do not write to the file if it does not already exist`
-        ],
-      },
-      {
-        definition: {
-          name: 'createFolder',
-          description: 'Create a folder/directory',
-          parameters: {
-            type: 'object',
-            properties: {
-              path: {
-                type: 'string',
-                description: 'Path of the new directory',
-              },
-            },
-            required: ['path']
-          },
-        },
-        call: async (params: { path: string }) => await Fs.createFolder(params.path),
-      },
-      // {
-      //   definition: {
-      //     name: 'getDeclarations',
-      //     description: 'Get the typescript declarations of files',
-      //     parameters: {
-      //       type: 'object',
-      //       properties: {
-      //         tsFilePaths: {
-      //           type: 'array',
-      //           description: 'Paths to the files',
-      //           items: {
-      //             type: 'string',
-      //           },
-      //         },
-      //         includeDependencyDeclarations: {
-      //           type: 'boolean',
-      //           description: 'if true, returns declarations for input tsFilePaths and all dependencies. defaults to false.'
-      //         },
-      //       },
-      //       required: ['tsFilePaths']
-      //     },
-      //   },
-      //   call: async (params: { tsFilePaths: string[] }) => this.repo.getDeclarations(params),
-      //   instructions: [
-      //     `Favor calling getDeclarations over readFiles if full file content is not needed`,
-      //   ],
-      // },
-      {
-        definition: {
-          name: 'searchFiles',
-          description: 'Get file paths to files that contain keyword',
-          parameters: {
-            type: 'object',
-            properties: {
-              keyword: {
-                type: 'string',
-                description: 'Search files for this keyword'
-              },
-            },
-            required: ['keyword']
-          },
-        },
-        call: async (params: { keyword: string }) => this.repo.searchFiles(params),
-        instructions: [
-          `If the user is trying to interact with a file, but does not provide a path, you can find file paths that match a keyword using searchFiles`,
-          `Only call functions that take in filePaths with valid file paths, if you don't know the valid file path try and search for it by keyword with the searchFiles function`,
-          `If the user references a file in a package without providing a path, use searchFiles on the keyword to find potentially relevant files, and choose the one that references the package name in its path`,
-        ],
-      },
-    ]);
+    this.conversation.addFunctions([...FsFunctions, ...PackageUtilFunctions, searchFilesFunction(this.repo)]);
   }
 
   private respondToUser(message: string) {
