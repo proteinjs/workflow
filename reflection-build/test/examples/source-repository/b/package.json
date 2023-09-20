@@ -1,0 +1,25 @@
+{
+    "name": "@brentbahry/reflection-build-test-b",
+    "version": "1.0.0",
+    "description": "Test package b",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/brentbahry/test.git"
+    },
+    "bugs": {
+        "url": "https://github.com/brentbahry/test/issues"
+    },
+    "homepage": "https://github.com/brentbahry/test#readme",
+    "author": "Brent Bahry",
+    "license": "ISC",
+    "scripts": {
+        "build": "node ../../../../dist/src/runBuild.js && tsc"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "@types/node": "14.0.27",
+        "typescript": "3.9.7"
+    },
+    "main": "./dist/generated/index.js",
+    "types": "./dist/generated/index.d.ts"
+}

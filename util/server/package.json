@@ -1,0 +1,25 @@
+{
+    "name": "@brentbahry/util-server",
+    "version": "1.0.0",
+    "description": "Util server libs",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/brentbahry/util.git"
+    },
+    "bugs": {
+        "url": "https://github.com/brentbahry/util/issues"
+    },
+    "homepage": "https://github.com/brentbahry/util#readme",
+    "author": "Brent Bahry",
+    "license": "ISC",
+    "scripts": {
+        "build": "tsc"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "@types/node": "14.0.13",
+        "typescript": "3.9.5"
+    }
+}

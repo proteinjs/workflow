@@ -1,0 +1,33 @@
+{
+    "name": "@brentbahry/ops-server",
+    "version": "1.0.0",
+    "description": "Cloud management",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/brentbahry/ops.git"
+    },
+    "bugs": {
+        "url": "https://github.com/brentbahry/ops/issues"
+    },
+    "homepage": "https://github.com/brentbahry/ops#readme",
+    "author": "Brent Bahry",
+    "license": "ISC",
+    "scripts": {
+        "build": "reflection-build && tsc",
+        "dev": "DEVELOPMENT=true node dist/generated/index.js"
+    },
+    "dependencies": {
+        "@brentbahry/reflection": "file:../../reflection",
+        "@proteinjs/db": "file:../../db/db",
+        "@proteinjs/server": "file:../../server/server",
+        "@proteinjs/server-api": "file:../../server/api",
+        "@proteinjs/user": "file:../../user"
+    },
+    "devDependencies": {
+        "@brentbahry/reflection-build": "file:../../reflection-build",
+        "@types/node": "14.0.13",
+        "typescript": "3.9.5"
+    },
+    "main": "./dist/generated/index.js",
+    "types": "./dist/generated/index.d.ts"
+}

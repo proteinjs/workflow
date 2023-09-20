@@ -1,0 +1,44 @@
+{
+    "name": "@brentbahry/reflection-build",
+    "version": "1.0.0",
+    "description": "Build system for reflection",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "bin": {
+        "reflection-build": "dist/src/runBuild.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/brentbahry/reflection-build.git"
+    },
+    "bugs": {
+        "url": "https://github.com/brentbahry/reflection-build/issues"
+    },
+    "homepage": "https://github.com/brentbahry/reflection-build#readme",
+    "author": "Brent Bahry",
+    "license": "ISC",
+    "scripts": {
+        "build": "tsc",
+        "test": "jest"
+    },
+    "dependencies": {
+        "@brentbahry/reflection": "file:../reflection",
+        "@brentbahry/util": "file:../util/common",
+        "@brentbahry/util-server": "file:../util/server",
+        "@dagrejs/graphlib": "2.1.4",
+        "globby": "11.0.1",
+        "jsesc": "^3.0.1",
+        "typescript": "3.9.5",
+        "typescript-parser": "../node-typescript-parser"
+    },
+    "devDependencies": {
+        "@brentbahry/reflection-build-test-a": "file:test/examples/source-repository/a",
+        "@types/globby": "9.1.0",
+        "@types/graphlib": "2.1.6",
+        "@types/jest": "^26.0.0",
+        "@types/jsesc": "^2.5.1",
+        "@types/node": "14.0.13",
+        "jest": "^26.0.1",
+        "ts-jest": "^26.1.0"
+    }
+}

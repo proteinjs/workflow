@@ -1,0 +1,32 @@
+{
+    "name": "@brentbahry/reflection",
+    "version": "1.0.0",
+    "description": "Source introspection and loader",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/brentbahry/reflection.git"
+    },
+    "bugs": {
+        "url": "https://github.com/brentbahry/reflection/issues"
+    },
+    "homepage": "https://github.com/brentbahry/reflection#readme",
+    "author": "Brent Bahry",
+    "license": "ISC",
+    "scripts": {
+        "build": "tsc"
+    },
+    "dependencies": {
+        "@brentbahry/util": "file:../util/common",
+        "@dagrejs/graphlib": "2.1.4"
+    },
+    "devDependencies": {
+        "@types/graphlib": "2.1.6",
+        "@types/jest": "^26.0.0",
+        "@types/node": "14.0.13",
+        "jest": "^26.0.1",
+        "ts-jest": "^26.1.0",
+        "typescript": "3.9.5"
+    }
+}
