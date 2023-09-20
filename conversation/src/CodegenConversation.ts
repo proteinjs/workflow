@@ -11,7 +11,7 @@ export class CodegenConversation {
   private static CODE_RESPONSE = 'Code with user input:';
   private static BOT_NAME = 'Alina';
   private static MODEL = 'gpt-4';
-  private conversation = new Conversation({ conversationName: this.constructor.name, logLevel: 'error' });
+  private conversation = new Conversation({ conversationName: this.constructor.name, logLevel: 'info' });
   private repo: Repo;
 
   constructor(repo: Repo) {
@@ -35,6 +35,8 @@ export class CodegenConversation {
   private loadSystemMessages() {
     const systemMessages = [
       `We are going to have a conversation with the user to generate code`,
+      `Assume the current working directory is: ${this.repo.params.dir} unless specified by the user`,
+      `Pre-pend the current working directory as the base path to filePaths when performing file operations, unless specified otherwise by the user`,
       `If they want to create a function/class/object using an API we are familiar with, we will ask the user for the required information to fill in all mandatory parameters and ask them if they want to provide optional parameter values`,
       `Once we have gotten the values for all parameters, respond with '${CodegenConversation.CODE_RESPONSE}' followed by the code to instantiate/call the function/class/object with the user's responses for parameter values`,
       `If the code we generate returns a promise, make sure we await it`,
@@ -102,6 +104,23 @@ export class CodegenConversation {
         instructions: [
           `If the user has asked to update a file, do not write to the file if it does not already exist`
         ],
+      },
+      {
+        definition: {
+          name: 'createFolder',
+          description: 'Create a folder/directory',
+          parameters: {
+            type: 'object',
+            properties: {
+              path: {
+                type: 'string',
+                description: 'Path of the new directory',
+              },
+            },
+            required: ['path']
+          },
+        },
+        call: async (params: { path: string }) => await Fs.createFolder(params.path),
       },
       // {
       //   definition: {

@@ -89,7 +89,8 @@ export class OpenAi {
     if (responseMessage.function_call) {
       messageParamsWithHistory.push([responseMessage]);
       const functionReturnMessage = await this.callFunction(logger, responseMessage.function_call, functions);
-      messageParamsWithHistory.push([functionReturnMessage])
+      if (functionReturnMessage)
+        messageParamsWithHistory.push([functionReturnMessage])
       return await this.generateResponse([], model, messageParamsWithHistory, functions, messageModerators, logLevel);
     }
 
@@ -110,7 +111,7 @@ export class OpenAi {
     return history;
   }
 
-  private static async callFunction(logger: Logger, functionCall: ChatCompletionMessage.FunctionCall, functions?: Function[]): Promise<ChatCompletionMessageParam> {
+  private static async callFunction(logger: Logger, functionCall: ChatCompletionMessage.FunctionCall, functions?: Function[]): Promise<ChatCompletionMessageParam|undefined> {
     if (!functions) {
       const warning = `Assistant attempted to call a function when no functions were provided`;
       logger.warn(warning);
@@ -135,6 +136,9 @@ export class OpenAi {
     } catch (error: any) {
       logger.error(error.message);
     }
+
+    if (!returnObject)
+      return;
 
     return {
       role: 'function', 

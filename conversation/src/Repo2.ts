@@ -5,6 +5,7 @@ import ts from 'typescript';
 import { createKeywordFilesIndex } from './createKeywordFilesIndex';
 
 export type RepoParams = {
+  dir: string,
   keywordFilesIndex: { [keyword: string]: string[] /** file paths */ },
 }
 
@@ -32,7 +33,7 @@ export class RepoFactory {
 
   public static async createRepo(dir: string): Promise<Repo> {
     this.LOGGER.info(`Creating repo for dir: ${dir}`);
-    let repoParams: RepoParams = { keywordFilesIndex: {} };
+    let repoParams: RepoParams = { keywordFilesIndex: {}, dir };
     repoParams.keywordFilesIndex = await createKeywordFilesIndex(dir, ['**/node-typescript-parser/**']);
     this.LOGGER.info(`Created repo for dir: ${dir}`);
     return new Repo(repoParams);

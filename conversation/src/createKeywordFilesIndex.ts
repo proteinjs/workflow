@@ -1,6 +1,5 @@
-import globby from 'globby';
 import path from 'path';
-import { Logger } from '@brentbahry/util';
+import { Fs, Logger } from '@brentbahry/util';
 
 /**
  * Create keyword-files index for the given base directory.
@@ -16,9 +15,7 @@ export async function createKeywordFilesIndex(baseDir: string, globIgnorePattern
     }
 
     // Get all file paths, recursively, excluding node_modules and dist directories
-    const filePaths = await globby(baseDir + '**/*', {
-        ignore: ['**/node_modules/**', '**/dist/**', ...globIgnorePatterns]
-    });
+    const filePaths = await Fs.getFilePaths(baseDir, ['**/node_modules/**', '**/dist/**']);
 
     const keywordFilesIndex: { [keyword: string]: string[] } = {};
 

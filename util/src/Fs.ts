@@ -1,6 +1,8 @@
 import path from 'path';
 import fsExtra from 'fs-extra';
+import fs from 'fs/promises';
 import { Logger } from './Logger';
+import globby from 'globby';
 
 export type File = {
   path: string,
@@ -20,6 +22,10 @@ export interface FileDescriptor {
 
 export class Fs {
   private static LOGGER = new Logger('Fs');
+
+  static async createFolder(path: string) {
+    await fs.mkdir(path);
+  }
 
   static async readFiles(params: { filePaths: string[] }) {
     const fileMap: FileContentMap = {};
@@ -67,6 +73,16 @@ export class Fs {
     );
   }
 
+  // @param dir to recursively search for files
+  // @param globIgnorePatterns ie. ['**/node_modules/**', '**/dist/**'] to ignore these directories
+  // @return string[] of file paths
+  static async getFilePaths(dir: string, globIgnorePatterns: string[] = []) {
+    return await globby(dir + '**/*', {
+      ignore: [...globIgnorePatterns]
+    });
+  }
+
+  // deprecated, performance sucks. use getFilePaths
   static async getFilesInDirectory(dir: string, excludedDirs?: string[], rootDir?: string,): Promise<FileDescriptor[]> {
     let results: FileDescriptor[] = [];
     if (!rootDir)
