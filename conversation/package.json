@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "watch": "tsc -w -p .",
+    "start": "node ./dist/index.js",
     "test": "jest"
   },
   "devDependencies": {
@@ -19,6 +20,7 @@
   "dependencies": {
     "@brentbahry/util": "../util",
     "fs-extra": "11.1.1",
+    "globby": "11.0.1",
     "openai": "4.4.0",
     "readline-sync": "1.4.10",
     "typescript": "5.2.2"

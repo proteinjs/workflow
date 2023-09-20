@@ -4,7 +4,7 @@ import * as readline from 'readline-sync';
 import { Fs, cmd } from '@brentbahry/util';
 import { Conversation } from './Conversation';
 import { OpenAi } from './OpenAi';
-import { Repo } from './Repo';
+import { Repo } from './Repo2';
 
 export class CodegenConversation {
   private static INITIAL_QUESTION = 'What would you like to create?';
@@ -39,11 +39,7 @@ export class CodegenConversation {
       `Once we have gotten the values for all parameters, respond with '${CodegenConversation.CODE_RESPONSE}' followed by the code to instantiate/call the function/class/object with the user's responses for parameter values`,
       `If the code we generate returns a promise, make sure we await it`,
       `You have access to code in a private repo, you can read and write code to and from the file system`,
-      // `To find code corresponding to a user request, start by calling the searchFiles function`,
       `If the user wants to generate code, identify files that may contain libraries to use from this repo, and access either their content or their typescript declarations via the available functions, whichever is needed for code generation`,
-      // `Favor calling getDeclarations over readFiles if full file content is not needed`,
-      // `If the user provides a file path and it does not have a file extension, use searchFiles to find valid file path options`,
-      // `Only call functions that take in filePaths with valid file paths, if you don't know the valid file path try and search for it by keyword with the searchFiles function`,
       `If using one of the repo apis, import the api from its corresponding package when generating code that uses that api`,
       `If you're generating a call to a class that extends Template, require that the user provide Template's constructor parameters as well and combine them into the parameters passed into the base class you're instantiating`,
       `Make sure you ask for a srcPath and pass that in to the Template base class constructor arg`,
@@ -107,33 +103,33 @@ export class CodegenConversation {
           `If the user has asked to update a file, do not write to the file if it does not already exist`
         ],
       },
-      {
-        definition: {
-          name: 'getDeclarations',
-          description: 'Get the typescript declarations of files',
-          parameters: {
-            type: 'object',
-            properties: {
-              tsFilePaths: {
-                type: 'array',
-                description: 'Paths to the files',
-                items: {
-                  type: 'string',
-                },
-              },
-              includeDependencyDeclarations: {
-                type: 'boolean',
-                description: 'if true, returns declarations for input tsFilePaths and all dependencies. defaults to false.'
-              },
-            },
-            required: ['tsFilePaths']
-          },
-        },
-        call: async (params: { tsFilePaths: string[] }) => this.repo.getDeclarations(params),
-        instructions: [
-          `Favor calling getDeclarations over readFiles if full file content is not needed`,
-        ],
-      },
+      // {
+      //   definition: {
+      //     name: 'getDeclarations',
+      //     description: 'Get the typescript declarations of files',
+      //     parameters: {
+      //       type: 'object',
+      //       properties: {
+      //         tsFilePaths: {
+      //           type: 'array',
+      //           description: 'Paths to the files',
+      //           items: {
+      //             type: 'string',
+      //           },
+      //         },
+      //         includeDependencyDeclarations: {
+      //           type: 'boolean',
+      //           description: 'if true, returns declarations for input tsFilePaths and all dependencies. defaults to false.'
+      //         },
+      //       },
+      //       required: ['tsFilePaths']
+      //     },
+      //   },
+      //   call: async (params: { tsFilePaths: string[] }) => this.repo.getDeclarations(params),
+      //   instructions: [
+      //     `Favor calling getDeclarations over readFiles if full file content is not needed`,
+      //   ],
+      // },
       {
         definition: {
           name: 'searchFiles',
