@@ -1,7 +1,4 @@
-import { FileDescriptor, Fs, Logger } from '@brentbahry/util';
-import fs from 'fs/promises';
-import path from 'path';
-import ts from 'typescript';
+import { Logger } from '@brentbahry/util';
 import { createKeywordFilesIndex } from './createKeywordFilesIndex';
 
 export type RepoParams = {

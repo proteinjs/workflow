@@ -1,5 +1,5 @@
 import { Fs } from '@brentbahry/util';
-import { Function } from '../Function';
+import { Function } from './Function';
 
 const readFilesFunction: Function = {
   definition: {

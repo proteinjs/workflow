@@ -8,6 +8,8 @@ import { Repo } from './Repo2';
 import { PackageUtilFunctions } from './functions/PackageUtilFunctions';
 import { FsFunctions } from './functions/FsFunctions';
 import { searchFilesFunction } from './functions/RepoFunctions';
+import { ConversationTemplateRepoFactory } from './conversation_templates/ConversationTemplateRepo';
+import { getConversationTemplateFunction, searchConversationTemplatesFunction } from './functions/ConversationTemplateRepoFunctions';
 
 export class CodegenConversation {
   private static INITIAL_QUESTION = 'What would you like to create?';
@@ -16,6 +18,7 @@ export class CodegenConversation {
   private static MODEL = 'gpt-4';
   private conversation = new Conversation({ conversationName: this.constructor.name, logLevel: 'info' });
   private repo: Repo;
+  private conversationTemplateRepo = new ConversationTemplateRepoFactory().create();
 
   constructor(repo: Repo) {
     this.repo = repo;
@@ -49,12 +52,19 @@ export class CodegenConversation {
       `If you're generating a call to a class that extends Template, require that the user provide Template's constructor parameters as well and combine them into the parameters passed into the base class you're instantiating`,
       `Make sure you ask for a srcPath and pass that in to the Template base class constructor arg`,
       `Surround generated code (not including imports) with a self-executing, anonymous async function like this (async function() =>{})()`,
+      ...this.conversationTemplateRepo.getSystemMessages(),
     ];
     this.conversation.addSystemMessagesToHistory(systemMessages);
   }
 
   private loadFunctions() {
-    this.conversation.addFunctions([...FsFunctions, ...PackageUtilFunctions, searchFilesFunction(this.repo)]);
+    this.conversation.addFunctions([
+      ...FsFunctions, 
+      ...PackageUtilFunctions, 
+      searchFilesFunction(this.repo), 
+      searchConversationTemplatesFunction(this.conversationTemplateRepo), 
+      getConversationTemplateFunction(this.conversationTemplateRepo),
+    ]);
   }
 
   private respondToUser(message: string) {

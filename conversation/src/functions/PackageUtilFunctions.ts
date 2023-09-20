@@ -1,5 +1,5 @@
 import { Package, PackageUtil } from '@brentbahry/util';
-import { Function } from '../Function';
+import { Function } from './Function';
 
 const installPackagesFunction: Function = {
   definition: {
