@@ -25,15 +25,20 @@ export class ConversationTemplateRepo {
     return conversationNames || [];
   }
 
-  getConversationTemplate(conversationTemplateName: string) {
-    return this.params.conversationTemplates[conversationTemplateName];
+  async getConversationTemplate(conversationTemplateName: string): Promise<Omit<ConversationTemplate, 'instructions'> & { instructions: string[] }> {
+    const conversationTemplate = this.params.conversationTemplates[conversationTemplateName];
+    if (!conversationTemplate)
+      return {} as any;
+
+    const instructions = await conversationTemplate.instructions();
+    return Object.assign(conversationTemplate, { instructions });
   }
 
   getSystemMessages() {
     const instructions = [
-      `Use the searchConversationTemplates function throughout the conversation to identify if there are relevant conversation templates to use`,
+      `Whenever the user wants to create or talk about something, use the searchConversationTemplates function to identify if there are relevant conversation templates to use`,
       `Use the getConversationTemplate function to get the conversation template`,
-      `Once you've identified a conversation template that's relevant to the conversation, ask the user if they'd like to have a conversation about that`,
+      `Once you've identified a conversation template that's relevant to the conversation, ask the user if they'd like to use that conversation template`,
       `If they want to engage in the templated conversation, ask the conversation template questions, then use the user's answers to carry out the conversation template instructions`,
     ];
     return [instructions.join('. ')];
