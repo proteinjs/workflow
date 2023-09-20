@@ -1,21 +1,22 @@
 import { ChatCompletionMessageParam } from 'openai/resources/chat';
-import { OpenAi, Function } from './OpenAi';
+import { OpenAi, Function, MessageHistory } from './OpenAi';
 import { Logger, LogLevel, Fs } from '@brentbahry/util';
 import { MessageModerator } from './MessageModerator';
 import { ConversationFileSystemModerator } from './ConversationFileSystemModerator';
 
 export class Conversation {
-  private history: ChatCompletionMessageParam[] = [];
+  private history = new MessageHistory();
   private functions: Function[] = [];
-  private messageModerators: MessageModerator[] = [new ConversationFileSystemModerator()];
+  private messageModerators: MessageModerator[] = [];
   private generatedCode = false;
   private generatedList = false;
   private logger: Logger;
-  private logging: { conversationName: string, omitUsageData?: boolean };
+  private logging: { conversationName: string, logLevel?: LogLevel };
 
-  constructor(logging: { conversationName: string, omitUsageData?: boolean, logLevel?: LogLevel }) {
+  constructor(logging: { conversationName: string, logLevel?: LogLevel }) {
     this.logging = logging;
     this.logger = new Logger(logging.conversationName, logging.logLevel);
+    this.messageModerators.push(new ConversationFileSystemModerator(logging.logLevel));
   }
 
   addFunctions(functions: Function[]) {
@@ -23,7 +24,7 @@ export class Conversation {
     for (let f of functions) {
       if (f.instructions) {
         const mps: ChatCompletionMessageParam[] = f.instructions.map(instruction => { return { role: 'system', content: instruction }});
-        this.history.push(...mps);
+        this.history.push(mps);
       }
     }
   }
@@ -32,39 +33,27 @@ export class Conversation {
     this.messageModerators.push(...messageModerators);
   }
 
-  private moderateHistory() {
-    for (let messageModerator of this.messageModerators)
-      this.history = messageModerator.observe(this.history);
-  }
-
   addSystemMessagesToHistory(messages: string[]) {
-    messages.forEach(message => this.history.push({ role: 'system', content: message }));
+   this.history.push(messages.map(message => { return { role: 'system', content: message }}));
   }
 
   addAssistantMessagesToHistory(messages: string[]) {
-    messages.forEach(message => this.history.push({ role: 'assistant', content: message }));
+    this.history.push(messages.map(message => { return { role: 'assistant', content: message }}));
   }
 
   addUserMessagesToHistory(messages: string[]) {
-    messages.forEach(message => this.history.push({ role: 'user', content: message }));
+    this.history.push(messages.map(message => { return { role: 'user', content: message }}));
   }
 
   async generateResponse(messages: string[], model?: string) {
-    this.moderateHistory();
-    const response = await OpenAi.generateResponse(messages, model, this.history, this.functions, this.logging.omitUsageData);
-    messages.forEach(message => this.history.push({ role: 'user', content: message }));
-    this.history.push({ role: 'assistant', content: response });
-    return response;
+    return await OpenAi.generateResponse(messages, model, this.history, this.functions, this.messageModerators, this.logging.logLevel);
   }
 
   async generateCode(description: string[], model?: string) {
-    this.moderateHistory();
     this.logger.info(`Generating code for description:\n${description.join('\n')}`);
-    const code = await OpenAi.generateCode(description, model, this.history, this.functions, !this.generatedCode, this.logging.omitUsageData);
+    const code = await OpenAi.generateCode(description, model, this.history, this.functions, this.messageModerators, !this.generatedCode, this.logging.logLevel);
     this.logger.info(`Generated code:\n${code.slice(0, 150)}${code.length > 150 ? '...' : ''}`);
     this.generatedCode = true;
-    description.forEach(message => this.history.push({ role: 'user', content: message }));
-    this.history.push({ role: 'assistant', content: code });
     return code;
   }
 
@@ -81,22 +70,16 @@ export class Conversation {
   }
 
   async updateCode(code: string, description: string, model?: string) {
-    this.moderateHistory();
     this.logger.info(`Updating code:\n${code.slice(0, 150)}${code.length > 150 ? '...' : ''}\nFrom description: ${description}`);
-    const updatedCode = await OpenAi.updateCode(code, description, model, this.history, this.functions, !this.generatedCode, this.logging.omitUsageData);
+    const updatedCode = await OpenAi.updateCode(code, description, model, this.history, this.functions, this.messageModerators, !this.generatedCode, this.logging.logLevel);
     this.logger.info(`Updated code:\n${updatedCode.slice(0, 150)}${updatedCode.length > 150 ? '...' : ''}`);
     this.generatedCode = true;
-    this.history.push({ role: 'user', content: OpenAi.updateCodeDescription(code, description) });
-    this.history.push({ role: 'assistant', content: updatedCode });
     return updatedCode;
   }
 
   async generateList(description: string[], model?: string) {
-    this.moderateHistory();
-    const list = await OpenAi.generateList(description, model, this.history, this.functions, !this.generatedList, this.logging.omitUsageData);
+    const list = await OpenAi.generateList(description, model, this.history, this.functions, this.messageModerators, !this.generatedList, this.logging.logLevel);
     this.generatedList = true;
-    description.forEach(message => this.history.push({ role: 'user', content: message }));
-    this.history.push({ role: 'assistant', content: list.join('\n') });
     return list;
   }
 }

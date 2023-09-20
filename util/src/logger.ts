@@ -21,11 +21,14 @@ export class Logger {
     console.log(`${this.prefix()} ${this.limitMessageLength(message)}`);
   }
 
-  debug(message: string) {
+  debug(message: string, ignoreLimitMessageLength: boolean = false) {
     if (this.logLevel == 'info' || this.logLevel == 'warn' || this.logLevel == 'error')
       return;
 
-    console.debug(`${this.prefix()} ${this.limitMessageLength(message)}`);
+    if (!ignoreLimitMessageLength)
+      message = this.limitMessageLength(message);
+    
+    console.debug(`${this.prefix()} ${message}`);
   }
 
   info(message: string) {

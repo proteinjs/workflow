@@ -1,6 +1,7 @@
 import { OpenAI } from 'openai';
 import { ChatCompletionCreateParams, ChatCompletionMessage, ChatCompletionMessageParam } from 'openai/resources/chat';
-import { Logger } from '@brentbahry/util';
+import { LogLevel, Logger } from '@brentbahry/util';
+import { MessageModerator } from './MessageModerator';
 
 export interface Function {
   definition: ChatCompletionCreateParams.Function;
@@ -14,38 +15,53 @@ export interface FunctionReturnMessage {
   content: string,
 }
 
+export class MessageHistory {
+  private messages: ChatCompletionMessageParam[] = [];
+
+  getMessages() {
+    return this. messages;
+  }
+
+  push(messages: ChatCompletionMessageParam[]): MessageHistory {
+    this.messages.push(...messages);
+    return this;
+  }
+
+  setMessages(messages: ChatCompletionMessageParam[]): MessageHistory {
+    this.messages = messages;
+    return this;
+  }
+}
+
 export class OpenAi {
-  static async generateResponse(messages: string[], model?: string, history?: ChatCompletionMessageParam[], functions?: Function[], omitUsageData = false): Promise<string> {
-    const logger = new Logger('generateResponse');
+  static async generateResponse(messages: string[], model?: string, history?: MessageHistory, functions?: Function[], messageModerators?: MessageModerator[], logLevel: LogLevel = 'info'): Promise<string> {
+    const logger = new Logger('generateResponse', logLevel);
     const openai = new OpenAI();
     const messageParams: ChatCompletionMessageParam[] = messages.map(message => { return { role: 'user', content: message }});
     if (history)
-      history.push(...messageParams);
-    const messageParamsWithHistory = history ? history : messageParams;
+      history.push(messageParams);
+    let messageParamsWithHistory = history ? history : new MessageHistory().push(messageParams);
+    if (messageModerators)
+      messageParamsWithHistory = OpenAi.moderateHistory(messageParamsWithHistory, messageModerators);
+    logger.debug(`Sending messages: ${JSON.stringify(messageParamsWithHistory.getMessages(), null, 2)}`, true);
     const response = await openai.chat.completions.create({
       model: model ? model : 'gpt-3.5-turbo',
       temperature: 0,
-      messages: messageParamsWithHistory,
+      messages: messageParamsWithHistory.getMessages(),
       functions: functions?.map(f => f.definition),
     });
 
-    if (!omitUsageData) {
-      if (response.usage)
-        logger.info(JSON.stringify(response.usage));
-      else
-        logger.info(JSON.stringify(`Usage data missing`));
-    }
+    if (response.usage)
+      logger.info(JSON.stringify(response.usage));
+    else
+      logger.info(JSON.stringify(`Usage data missing`));
 
     const responseMessage = response.choices[0].message;
     if (responseMessage.function_call) {
-      const functionReturnMessage = await this.callFunction(logger, functions, responseMessage.function_call);
-      if (functionReturnMessage) {
-        messageParamsWithHistory.push(responseMessage);
-        if (functionReturnMessage.content)
-          messageParamsWithHistory.push(functionReturnMessage);
-
-        return await this.generateResponse([], model, messageParamsWithHistory, functions, omitUsageData);
-      }
+      messageParamsWithHistory.push([responseMessage]);
+      const functionReturnMessage = await this.callFunction(logger, responseMessage.function_call, functions);
+      messageParamsWithHistory.push([functionReturnMessage])
+      return await this.generateResponse([], model, messageParamsWithHistory, functions, messageModerators, logLevel);
     }
 
     const responseText = responseMessage.content;
@@ -54,42 +70,51 @@ export class OpenAi {
       throw new Error(`Response was empty for messages: ${messages.join('\n')}`);
     }
 
+    messageParamsWithHistory.push([responseMessage]);
     return responseText;
   }
 
-  private static async callFunction(logger: Logger, functions?: Function[], functionCall?: ChatCompletionMessage.FunctionCall): Promise<ChatCompletionMessageParam|undefined> {
-    if (!functions) {
-      logger.warn(`Assistant attempted to call a function when no functions were provided`);
-      return;
-    }      
+  private static moderateHistory(history: MessageHistory, messageModerators: MessageModerator[]) {
+    for (let messageModerator of messageModerators)
+      history.setMessages(messageModerator.observe(history.getMessages()));
 
-    if (functions && functionCall) {
-      if (functionCall.name.startsWith('functions.'))
-        functionCall.name = functionCall.name.slice('functions.'.length - 1);
-      const f = functions.find(f => f.definition.name === functionCall.name);
-      if (!f) {
-        logger.warn(`Assistant attempted to call nonexistent function: ${functionCall.name}`);
-        return;
-      }
-
-      let returnObject = null;
-      try {
-        logger.info(`Assistant calling function: ${f.definition.name}(${functionCall.arguments})`);
-        returnObject = JSON.stringify(await f.call(JSON.parse(functionCall.arguments)));
-        logger.info(`Assistant called function: ${f.definition.name}(${functionCall.arguments}) => ${returnObject}`);
-      } catch (error: any) {
-        logger.error(error.message);
-      }
-
-      return {
-        role: 'function', 
-        name: f.definition.name, 
-        content: returnObject,
-      };
-    }
+    return history;
   }
 
-  static async generateCode(messages: string[], model?: string, history?: ChatCompletionMessageParam[], functions?: Function[], includeSystemMessages: boolean = true, omitUsageData = false) {
+  private static async callFunction(logger: Logger, functionCall: ChatCompletionMessage.FunctionCall, functions?: Function[]): Promise<ChatCompletionMessageParam> {
+    if (!functions) {
+      const warning = `Assistant attempted to call a function when no functions were provided`;
+      logger.warn(warning);
+      const message: ChatCompletionMessageParam = { role: 'system', content: warning }
+      return message;
+    }
+
+    functionCall.name = functionCall.name.split('.').pop() as string;
+    const f = functions.find(f => f.definition.name === functionCall.name);
+    if (!f) {
+      const warning = `Assistant attempted to call nonexistent function: ${functionCall.name}`;
+      logger.warn(warning);
+      const message: ChatCompletionMessageParam = { role: 'system', content: warning }
+      return message;
+    }
+
+    let returnObject = null;
+    try {
+      logger.info(`Assistant calling function: ${f.definition.name}(${functionCall.arguments})`);
+      returnObject = JSON.stringify(await f.call(JSON.parse(functionCall.arguments)));
+      logger.info(`Assistant called function: ${f.definition.name}(${functionCall.arguments}) => ${returnObject}`);
+    } catch (error: any) {
+      logger.error(error.message);
+    }
+
+    return {
+      role: 'function', 
+      name: f.definition.name, 
+      content: returnObject,
+    };
+  }
+
+  static async generateCode(messages: string[], model?: string, history?: MessageHistory, functions?: Function[], messageModerators?: MessageModerator[], includeSystemMessages: boolean = true, logLevel: LogLevel = 'info') {
     const systemMessages: ChatCompletionMessageParam[] = [
       { role: 'system', content: 'Return only the code and exclude example usage, markdown, explanations, comments and notes.' },
       { role: 'system', content: `Write code in typescript.` },
@@ -99,21 +124,21 @@ export class OpenAi {
     ];
     const resolvedHistory = history ? 
       includeSystemMessages ?
-        history.concat(systemMessages)
+        history.push(systemMessages)
         :
         history
       :
       includeSystemMessages ?
-        systemMessages
+        new MessageHistory().push(systemMessages)
         :
         undefined
     ;
-    const code = await this.generateResponse(messages, model, resolvedHistory, functions, omitUsageData);
+    const code = await this.generateResponse(messages, model, resolvedHistory, functions, messageModerators, logLevel);
     return this.parseCodeFromMarkdown(code);
   }
 
-  static async updateCode(code: string, description: string, model?: string, history?: ChatCompletionMessageParam[], functions?: Function[], includeSystemMessages: boolean = true, omitUsageData = false) {
-    return await this.generateCode([this.updateCodeDescription(code, description)], model, history, functions, includeSystemMessages, omitUsageData);
+  static async updateCode(code: string, description: string, model?: string, history?: MessageHistory, functions?: Function[], messageModerators?: MessageModerator[], includeSystemMessages: boolean = true, logLevel: LogLevel = 'info') {
+    return await this.generateCode([this.updateCodeDescription(code, description)], model, history, functions, messageModerators, includeSystemMessages, logLevel);
   }
 
   static updateCodeDescription(code: string, description: string) {
@@ -146,23 +171,23 @@ export class OpenAi {
     return filteredLines.join('\n');
   }
 
-  static async generateList(messages: string[], model?: string, history?: ChatCompletionMessageParam[], functions?: Function[], includeSystemMessages: boolean = true, omitUsageData = false): Promise<string[]> {
+  static async generateList(messages: string[], model?: string, history?: MessageHistory, functions?: Function[], messageModerators?: MessageModerator[], includeSystemMessages: boolean = true, logLevel: LogLevel = 'info'): Promise<string[]> {
     const systemMessages: ChatCompletionMessageParam[] = [
       { role: 'system', content: 'Return only the list and exclude example usage, markdown and all explanations, comments and notes.' },
       { role: 'system', content: 'Separate each item in the list by a ;' },
     ];
     const resolvedHistory = history ? 
       includeSystemMessages ?
-        history.concat(systemMessages)
+        history.push(systemMessages)
         :
         history
       :
       includeSystemMessages ?
-        systemMessages
+        new MessageHistory().push(systemMessages)
         :
         undefined
     ;
-    const list = await this.generateResponse(messages, model, resolvedHistory, functions, omitUsageData);
+    const list = await this.generateResponse(messages, model, resolvedHistory, functions, messageModerators, logLevel);
     return list.split(';').map(item => item.trim());
   }
 }
