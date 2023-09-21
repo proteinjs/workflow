@@ -24,6 +24,7 @@ export const createPackageConversationTemplate: ConversationTemplate = {
     const tsConfig = await Fs.readFile(path.join(__dirname, `./tsconfig.json`));
     return [
       `Create a new npm package with the provided name, version (if one wasn't provided, default to 0.1), and any default dependencies provided`,
+      `Create the package in the cwd, don't create a new subfolder for the package`,
       `Add these scripts: "start": "node ./dist/index.js", "test": "jest"`,
       `Add these dev dependencies: jest`,
       `If it's a typescript project, add these dev dependencies: @types/jest, ts-jest`,
