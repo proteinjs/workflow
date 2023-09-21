@@ -1,6 +1,7 @@
 import { Fs } from '@brentbahry/util';
 import { ConversationTemplate } from '../ConversationTemplate';
 import path from 'path';
+import tConfig from './tsconfig.json';
 
 export const createPackageConversationTemplate: ConversationTemplate = {
   name: 'Create Package',

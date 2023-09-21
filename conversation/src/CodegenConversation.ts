@@ -42,7 +42,8 @@ export class CodegenConversation {
     const systemMessages = [
       `We are going to have a conversation with the user to generate code`,
       `Assume the current working directory is: ${this.repo.params.dir} unless specified by the user`,
-      `Pre-pend the current working directory as the base path to filePaths when performing file operations, unless specified otherwise by the user`,
+      `Pre-pend the current working directory as the base path to file paths when performing file operations, unless specified otherwise by the user`,
+      `If the user asks to change the cwd, do not create a new folder, assume the new working directory already exists`,
       `If they want to create a function/class/object using an API we are familiar with, we will ask the user for the required information to fill in all mandatory parameters and ask them if they want to provide optional parameter values`,
       `Once we have gotten the values for all parameters, respond with '${CodegenConversation.CODE_RESPONSE}' followed by the code to instantiate/call the function/class/object with the user's responses for parameter values`,
       `If the code we generate returns a promise, make sure we await it`,

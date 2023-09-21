@@ -52,7 +52,8 @@ const writeFilesFunction: Function = {
   },
   call: Fs.writeFiles,
   instructions: [
-    `If the user has asked to update a file, do not write to the file if it does not already exist`
+    `If the user has asked to update a file, do not write to the file if it does not already exist`,
+    `Before writing to a file, confirm the full file path with the user`,
   ],
 }
 
@@ -72,6 +73,9 @@ const createFolderFunction: Function = {
     },
   },
   call: async (params: { path: string }) => await Fs.createFolder(params.path),
+  instructions: [
+    `Before creating a folder, confirm the full folder path with the user`,
+  ],
 }
 
 export const FsFunctions: Function[] = [
