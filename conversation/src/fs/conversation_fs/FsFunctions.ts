@@ -78,8 +78,27 @@ const createFolderFunction: Function = {
   ],
 }
 
+export const fileOrDirectoryExistsFunction: Function = {
+  definition: {
+    name: 'fileOrDirectoryExists',
+    description: 'Check if a file or directory exists',
+    parameters: {
+      type: 'object',
+      properties: {
+        path: {
+          type: 'string',
+          description: 'Path of the file or directory',
+        },
+      },
+      required: ['path']
+    },
+  },
+  call: async (params: { path: string }) => await Fs.exists(params.path),
+}
+
 export const fsFunctions: Function[] = [
   readFilesFunction,
   writeFilesFunction,
   createFolderFunction,
+  fileOrDirectoryExistsFunction,
 ]

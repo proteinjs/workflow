@@ -23,6 +23,10 @@ export interface FileDescriptor {
 export class Fs {
   private static LOGGER = new Logger('Fs');
 
+  static async exists(path: string) {
+    return await fsExtra.exists(path);
+  }
+
   static async createFolder(path: string) {
     await fs.mkdir(path);
   }
@@ -78,6 +82,20 @@ export class Fs {
   // @return string[] of file paths
   static async getFilePaths(dir: string, globIgnorePatterns: string[] = []) {
     return await globby(dir + '**/*', {
+      ignore: [...globIgnorePatterns]
+    });
+  }
+
+
+  // @param dirPrefix recursively search for files in this dir
+  // @param glob file matching pattern ie. **/package.json
+  // @param globIgnorePatterns ie. ['**/node_modules/**', '**/dist/**'] to ignore these directories
+  // @return string[] of file paths
+  static async getFilePathsMatchingGlob(dirPrefix: string, glob: string, globIgnorePatterns: string[] = []) {
+    if (dirPrefix[dirPrefix.length - 1] != path.sep)
+      dirPrefix += path.sep;
+
+    return await globby(dirPrefix + glob, {
       ignore: [...globIgnorePatterns]
     });
   }

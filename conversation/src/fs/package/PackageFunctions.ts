@@ -1,5 +1,6 @@
 import { Package, PackageUtil } from '@brentbahry/util';
 import { Function } from '../../Function';
+import { PackageModule } from './PackageModule';
 
 const installPackagesFunction: Function = {
   definition: {
@@ -46,6 +47,7 @@ const installPackagesFunction: Function = {
   instructions: [
     `If the user wants to install a package, use the installPackages function`,
     `If generating code and adding an import statement to a module that is not local to the package we're generating code in, read the package.json dependencies for the package you're generating code in; if the dependency is missing, install it with the installPackages function`,
+    `If installing a local package, use the relative path (from the current package to the package we're installing) as the version`,
   ],
 }
 
@@ -72,6 +74,27 @@ const runPackageScriptFunction: Function = {
   instructions: [
     `If the user wants to run a npm script (such as start, test, or watch), use the runPackageScript function`,
   ],
+}
+
+export const searchPackagesFunctionName = 'searchPackages';
+export function searchPackagesFunction(packageModule: PackageModule) {
+  return {
+    definition: {
+      name: searchPackagesFunctionName,
+      description: 'Get package.json file paths for package names that include the keyword',
+      parameters: {
+        type: 'object',
+        properties: {
+          keyword: {
+            type: 'string',
+            description: 'Keyword to match package name',
+          }
+        },
+        required: ['keyword']
+      },
+    },
+    call: async (params: { keyword: string }) => await packageModule.searchPackages(params.keyword),
+  }
 }
 
 export const packageFunctions: Function[] = [
