@@ -25,10 +25,10 @@ export class Conversation {
     this.params = params;
     this.logger = new Logger(params.name, params.logLevel);
     if (params.modules)
-      this.load(params.modules);
+      this.addModules(params.modules);
   }
 
-  private load(modules: ConversationModule[]) {
+  private addModules(modules: ConversationModule[]) {
     for (let module of modules) {
       this.addSystemMessagesToHistory(module.getSystemMessages());
       this.addFunctions(module.getFunctions());
@@ -36,7 +36,7 @@ export class Conversation {
     }
   }
 
-  addFunctions(functions: Function[]) {
+  private addFunctions(functions: Function[]) {
     this.functions.push(...functions);
     for (let f of functions) {
       if (f.instructions) {
@@ -46,7 +46,7 @@ export class Conversation {
     }
   }
 
-  addMessageModerators(messageModerators: MessageModerator[]) {
+  private addMessageModerators(messageModerators: MessageModerator[]) {
     this.messageModerators.push(...messageModerators);
   }
 
