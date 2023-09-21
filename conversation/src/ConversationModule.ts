@@ -6,3 +6,7 @@ export interface ConversationModule {
   getFunctions(): Function[];
   getMessageModerators(): MessageModerator[];
 }
+
+export interface ConversationModuleFactory {
+  createModule(repoPath: string): Promise<ConversationModule>;
+}

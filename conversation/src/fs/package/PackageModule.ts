@@ -1,4 +1,4 @@
-import { ConversationModule } from '../../ConversationModule';
+import { ConversationModule, ConversationModuleFactory } from '../../ConversationModule';
 import { Function } from '../../Function';
 import { packageFunctions } from './PackageFunctions';
 
@@ -13,5 +13,11 @@ export class PackageModule implements ConversationModule {
 
   getMessageModerators() {
     return [];
+  }
+}
+
+export class PackageModuleFactory implements ConversationModuleFactory {
+  async createModule(repoPath: string): Promise<PackageModule> {
+    return new PackageModule();
   }
 }

@@ -1,7 +1,7 @@
 import { Logger } from '@brentbahry/util';
 import { ConversationTemplate } from './ConversationTemplate';
 import { createPackageConversationTemplate } from './createPackage/CreatePackageConversationTemplate';
-import { ConversationModule } from '../ConversationModule';
+import { ConversationModule, ConversationModuleFactory } from '../ConversationModule';
 import { getConversationTemplateFunction, searchConversationTemplatesFunction } from './ConversationTemplateFunctions';
 
 const conversationTemplates: ConversationTemplate[] = [
@@ -58,8 +58,8 @@ export class ConversationTemplateModule implements ConversationModule {
   }
 }
 
-export class ConversationTemplateModuleFactory {
-  static createModule() {
+export class ConversationTemplateModuleFactory implements ConversationModuleFactory {
+  async createModule(repoPath: string) {
     const params: ConversationTemplateModuleParams = { conversationTemplates: {}, conversationTemplateKeywordIndex: {} };
     for (let conversationTemplate of conversationTemplates) {
       params.conversationTemplates[conversationTemplate.name] = conversationTemplate;

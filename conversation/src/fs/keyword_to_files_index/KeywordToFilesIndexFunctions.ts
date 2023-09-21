@@ -1,4 +1,4 @@
-import { KeywordToFilesIndexModule } from './KeywordToFilesModule'
+import { KeywordToFilesIndexModule } from './KeywordToFilesIndexModule'
 
 export const searchFilesFunction = (module: KeywordToFilesIndexModule) => {
   return {

@@ -4,11 +4,11 @@ import * as readline from 'readline-sync';
 import { cmd } from '@brentbahry/util';
 import { Conversation } from './Conversation';
 import { OpenAi } from './OpenAi';
-import { KeywordToFilesIndexModuleFactory } from './fs/keyword_to_files_index/KeywordToFilesModule';
+import { KeywordToFilesIndexModuleFactory } from './fs/keyword_to_files_index/KeywordToFilesIndexModule';
 import { ConversationTemplateModuleFactory } from './template/ConversationTemplateModule';
-import { ConversationFsModule } from './fs/conversation_fs/ConversationFsModule';
-import { PackageModule } from './fs/package/PackageModule';
-import { ConversationModule } from './ConversationModule';
+import { ConversationFsModuleFactory } from './fs/conversation_fs/ConversationFsModule';
+import { PackageModuleFactory } from './fs/package/PackageModule';
+import { ConversationModule, ConversationModuleFactory } from './ConversationModule';
 
 export class CodegenConversation {
   private static INITIAL_QUESTION = 'What would you like to create?';
@@ -45,19 +45,22 @@ export class CodegenConversation {
   }
 
   private async getModules(): Promise<ConversationModule[]> {
-    return [
-      new ConversationFsModule(),
-      await KeywordToFilesIndexModuleFactory.createModule(this.repoPath),
-      new PackageModule(),
-      ConversationTemplateModuleFactory.createModule(),
+    const moduleFactories: ConversationModuleFactory[] = [
+      new ConversationFsModuleFactory(),
+      new KeywordToFilesIndexModuleFactory(),
+      new PackageModuleFactory(),
+      new ConversationTemplateModuleFactory(),
     ];
+    const modules: ConversationModule[] = [];
+    for (let moduleFactory of moduleFactories)
+      modules.push(await moduleFactory.createModule(this.repoPath));
+
+    return modules;
   }
 
   private getSystemMessages() {
     return [
       `We are going to have a conversation with the user to generate code`,
-      `Assume the current working directory is: ${this.repoPath} unless specified by the user`,
-      `Pre-pend the current working directory as the base path to file paths when performing file operations, unless specified otherwise by the user`,
       `If the user asks to change the cwd, do not create a new folder, assume the new working directory already exists`,
       `If they want to create a function/class/object using an API we are familiar with, we will ask the user for the required information to fill in all mandatory parameters and ask them if they want to provide optional parameter values`,
       `Once we have gotten the values for all parameters, respond with '${CodegenConversation.CODE_RESPONSE}' followed by the code to instantiate/call the function/class/object with the user's responses for parameter values`,

@@ -1,8 +1,8 @@
 import { Fs, Logger } from '@brentbahry/util';
-import { ConversationModule } from '../../ConversationModule';
+import { ConversationModule, ConversationModuleFactory } from '../../ConversationModule';
 import { Function } from '../../Function';
 import path from 'path';
-import { searchFilesFunction } from './KeywordToFilesFunctions';
+import { searchFilesFunction } from './KeywordToFilesIndexFunctions';
 
 export type KeywordToFilesIndexModuleParams = {
   dir: string,
@@ -38,14 +38,14 @@ export class KeywordToFilesIndexModule implements ConversationModule {
   }
 }
 
-export class KeywordToFilesIndexModuleFactory {
-  private static LOGGER = new Logger('KeywordToFilesIndexModuleFactory');
+export class KeywordToFilesIndexModuleFactory implements ConversationModuleFactory {
+  private logger = new Logger(this.constructor.name);
 
-  static async createModule(dir: string): Promise<KeywordToFilesIndexModule> {
-    this.LOGGER.info(`Creating module for dir: ${dir}`);
-    let repoParams: KeywordToFilesIndexModuleParams = { keywordFilesIndex: {}, dir };
-    repoParams.keywordFilesIndex = await this.createKeywordFilesIndex(dir, ['**/node-typescript-parser/**']);
-    this.LOGGER.info(`Created module for dir: ${dir}`);
+  async createModule(repoPath: string): Promise<KeywordToFilesIndexModule> {
+    this.logger.info(`Creating module for repo: ${repoPath}`);
+    let repoParams: KeywordToFilesIndexModuleParams = { keywordFilesIndex: {}, dir: repoPath };
+    repoParams.keywordFilesIndex = await this.createKeywordFilesIndex(repoPath, ['**/node-typescript-parser/**']);
+    this.logger.info(`Created module for repo: ${repoPath}`);
     return new KeywordToFilesIndexModule(repoParams);
   }
 
@@ -55,8 +55,7 @@ export class KeywordToFilesIndexModuleFactory {
    * @param baseDir - The directory to start the file search from.
    * @returns An index with keywords mapped to file paths.
    */
-  private static async createKeywordFilesIndex(baseDir: string, globIgnorePatterns: string[] = []): Promise<{ [keyword: string]: string[] }> {
-    const logger = new Logger('createKeywordFilesIndex');
+  private async createKeywordFilesIndex(baseDir: string, globIgnorePatterns: string[] = []): Promise<{ [keyword: string]: string[] }> {
     // Ensure the base directory has a trailing slash
     if (!baseDir.endsWith(path.sep)) {
         baseDir += path.sep;
@@ -75,7 +74,7 @@ export class KeywordToFilesIndexModuleFactory {
             keywordFilesIndex[fileName] = [];
         }
         
-        logger.debug(`fileName: ${fileName}, filePath: ${filePath}`);
+        this.logger.debug(`fileName: ${fileName}, filePath: ${filePath}`);
         keywordFilesIndex[fileName].push(filePath);
     }
 
