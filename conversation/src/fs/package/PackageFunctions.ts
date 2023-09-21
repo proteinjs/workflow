@@ -87,7 +87,7 @@ export function searchPackagesFunction(packageModule: PackageModule) {
         properties: {
           keyword: {
             type: 'string',
-            description: 'Keyword to match package name',
+            description: 'Keyword to match package names',
           }
         },
         required: ['keyword']
@@ -97,7 +97,50 @@ export function searchPackagesFunction(packageModule: PackageModule) {
   }
 }
 
+export const searchLibrariesFunctionName = 'searchLibraries';
+export function searchLibrariesFunction(packageModule: PackageModule) {
+  return {
+    definition: {
+      name: searchLibrariesFunctionName,
+      description: 'Return libraries that match the keyword',
+      parameters: {
+        type: 'object',
+        properties: {
+          keyword: {
+            type: 'string',
+            description: 'Keyword to match file names',
+          }
+        },
+        required: ['keyword']
+      },
+    },
+    call: async (params: { keyword: string }) => await packageModule.searchLibraries(params.keyword),
+  }
+}
+
+export const generateTypescriptDeclarationsFunction = {
+  definition: {
+    name: 'generateTypescriptDesclarations',
+    description: 'Return the typescript declarations for the files',
+    parameters: {
+      type: 'object',
+      properties: {
+        tsFilePaths: {
+          type: 'array',
+          description: 'File paths to generate declarations for',
+          items: {
+            type: 'string',
+          }
+        }
+      },
+      required: ['tsFilePaths']
+    },
+  },
+  call: async (params: { tsFilePaths: string[] }) => PackageUtil.generateTypescriptDeclarations(params),
+}
+
 export const packageFunctions: Function[] = [
   installPackagesFunction,
   runPackageScriptFunction,
+  generateTypescriptDeclarationsFunction,
 ]

@@ -1,5 +1,5 @@
 import { fileOrDirectoryExistsFunction } from '../../fs/conversation_fs/FsFunctions';
-import { searchPackagesFunctionName } from '../../fs/package/PackageFunctions';
+import { generateTypescriptDeclarationsFunction, searchLibrariesFunctionName, searchPackagesFunctionName } from '../../fs/package/PackageFunctions';
 import { ConversationTemplate } from '../ConversationTemplate';
 
 export const createCodeConversationTemplate: ConversationTemplate = {
@@ -26,11 +26,11 @@ export const createCodeConversationTemplate: ConversationTemplate = {
       `2.b. Confirm the package-relative file path with the user. Only after the users confirms the path, create the file if it doesn't exist`,
       `2.b.1. Use the ${fileOrDirectoryExistsFunction.definition.name} function to confirm if a file exists`,
       `3. Once working in a file, ask the user what they'd like to create`,
-      `3.a. If the user references a library, use the searchSource function to identify local libraries that can be imported`,  // implement searchSource,
-      `3.a.1. Confirm the library name and package name with the user, if they provide a different library or package name, repeat step 3.a.`,
-      `3.a.2. Call the importLibrary function to get the import statement and typescript declaration of the library`,  // implement importLibrary
-      `3.a.3. Add the import statement to the top of the file`,
-      `3.b Generate the code the user asked to create, leveraging the imported library apis where appropriate`,
+      `3.a. If the user references a library, use the ${searchLibrariesFunctionName} function to identify local libraries that can be imported`,
+      `3.a.1. Confirm the library file name and package name with the user, if they provide a different library or package name, repeat step 3.a.`,
+      `3.a.2. Call the ${generateTypescriptDeclarationsFunction.definition.name} function to get the typescript declaration of the library file`,
+      `3.a.3. Use the typescript declaration and the package name to add the import statements to the top of the file`,
+      `3.b Generate the code the user asked to create, leveraging the imported library where appropriate`,
       `4. Repeat 3. unless the user asks to switch packages or files`,
     ];
   }

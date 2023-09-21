@@ -1,7 +1,6 @@
-import { FileDescriptor, Fs, Logger } from '@brentbahry/util';
+import { FileDescriptor, Fs, Logger, PackageUtil } from '@brentbahry/util';
 import fs from 'fs/promises';
 import path from 'path';
-import ts from 'typescript';
 
 export interface TsFile extends FileDescriptor {
   declaration: string;
@@ -61,56 +60,6 @@ export class Repo {
     }
     return queriedDeclarations;
   }
-
-  static generateDeclarations(params: { tsFilePaths: string[], includeDependencyDeclarations?: boolean }): {[tsFilePath: string]: string} {
-    // declarations for this file and its local dependencies
-    const declarations: {[filePath: string]: string} = {};
-
-    // Create a Program from a root file name.
-    const program = ts.createProgram(params.tsFilePaths, {
-      target: ts.ScriptTarget.ES5,
-      module: ts.ModuleKind.CommonJS,
-      declaration: true,  // This is what makes the magic happen.
-      emitDeclarationOnly: true,
-    });
-
-    // Create a custom emit writer that writes to our variable.
-    const customWriteFile: ts.WriteFileCallback = (fileName, data) => {
-      if (fileName.endsWith('.d.ts')) {
-        const tsFileName = fileName.slice(0, fileName.indexOf('.d.ts')) + '.ts';
-        declarations[tsFileName] = data;
-      }
-    };
-
-    // Generate the declaration content.
-    if (params.includeDependencyDeclarations) {
-      const result = program.emit(undefined, customWriteFile, undefined, true);
-      Repo.logCompilerErrors(result);
-    } else {
-      for (let tsFilePath of params.tsFilePaths) {
-        const sourceFile = program.getSourceFile(tsFilePath);
-        const result = program.emit(sourceFile, customWriteFile, undefined, true);
-        Repo.logCompilerErrors(result);
-      }
-    }
-
-    return declarations;
-  }
-
-  private static logCompilerErrors(result: ts.EmitResult) {
-    if (result.emitSkipped || result.diagnostics.length > 0) {
-      // Log errors if there were any.
-      result.diagnostics.forEach(diagnostic => {
-        if (diagnostic.file) {
-          const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!);
-          const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-          console.error(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
-        } else {
-          console.error(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
-        }
-      });
-    }
-  }
 }
 
 export class RepoFactory {
@@ -166,7 +115,7 @@ export class RepoFactory {
       if (dirPath) {
         repoParams.packages[packageName].fileDescriptors.push(...await Fs.getFilesInDirectory(dirPath, ['node_modules', 'dist']));
         for (let fileDescriptor of repoParams.packages[packageName].fileDescriptors) {
-          const typescriptDeclaration = Repo.generateDeclarations({ tsFilePaths: [fileDescriptor.path] })[fileDescriptor.path];
+          const typescriptDeclaration = PackageUtil.generateTypescriptDeclarations({ tsFilePaths: [fileDescriptor.path] })[fileDescriptor.path];
           const tsFile = Object.assign({ declaration: typescriptDeclaration }, fileDescriptor);
           repoParams.packages[packageName].tsFiles[fileDescriptor.path] = tsFile;
           repoParams.tsFiles[fileDescriptor.path] = tsFile;
