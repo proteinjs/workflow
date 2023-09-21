@@ -1,9 +1,5 @@
-import fs from 'fs-extra';
-import path from 'path';
 import * as readline from 'readline-sync';
-import { cmd } from '@brentbahry/util';
 import { Conversation } from './Conversation';
-import { OpenAi } from './OpenAi';
 import { KeywordToFilesIndexModuleFactory } from './fs/keyword_to_files_index/KeywordToFilesIndexModule';
 import { ConversationTemplateModuleFactory } from './template/ConversationTemplateModule';
 import { ConversationFsModuleFactory } from './fs/conversation_fs/ConversationFsModule';
@@ -12,7 +8,6 @@ import { ConversationModule, ConversationModuleFactory } from './ConversationMod
 
 export class CodegenConversation {
   private static INITIAL_QUESTION = 'What would you like to create?';
-  private static CODE_RESPONSE = 'Code with user input:';
   private static BOT_NAME = 'Alina';
   private static MODEL = 'gpt-4';
   private repoPath: string;
@@ -29,8 +24,6 @@ export class CodegenConversation {
     while (true) {
       const userInput = this.respondToUser(response);
       response = await conversation.generateResponse([userInput], CodegenConversation.MODEL);
-      if (response.includes(CodegenConversation.CODE_RESPONSE))
-        await this.generateCode(response, conversation);
     }
   }
 
@@ -61,40 +54,13 @@ export class CodegenConversation {
   private getSystemMessages() {
     return [
       `We are going to have a conversation with the user to generate code`,
-      `If the user asks to change the cwd, do not create a new folder, assume the new working directory already exists`,
-      `If they want to create a function/class/object using an API we are familiar with, we will ask the user for the required information to fill in all mandatory parameters and ask them if they want to provide optional parameter values`,
-      `Once we have gotten the values for all parameters, respond with '${CodegenConversation.CODE_RESPONSE}' followed by the code to instantiate/call the function/class/object with the user's responses for parameter values`,
-      `If the code we generate returns a promise, make sure we await it`,
-      `You have access to code in a private repo, you can read and write code to and from the file system`,
+      `Await all function calls that return a promise`,
       `If the user wants to generate code, identify files that may contain libraries to use from this repo, and access either their content or their typescript declarations via the available functions, whichever is needed for code generation`,
       `If using one of the repo apis, import the api from its corresponding package when generating code that uses that api`,
-      `If you're generating a call to a class that extends Template, require that the user provide Template's constructor parameters as well and combine them into the parameters passed into the base class you're instantiating`,
-      `Make sure you ask for a srcPath and pass that in to the Template base class constructor arg`,
-      `Surround generated code (not including imports) with a self-executing, anonymous async function like this (async function() =>{})()`,
     ];
   }
 
   private respondToUser(message: string) {
     return readline.question(`[${CodegenConversation.BOT_NAME}] ${message}\n`);
-  }
-
-  private async generateCode(message: string, conversation: Conversation) {
-    const code = OpenAi.parseCodeFromMarkdown(message);
-    const srcPathToken = 'TOKEN';
-    const responseSrcPath = await conversation.generateResponse([`Return the srcPath the user provided surrounded by the token ${srcPathToken}`], CodegenConversation.MODEL);
-    const srcPath = responseSrcPath.replace(/["'`]/g, '').match(/TOKEN(.*?)TOKEN/)?.[1];
-    if (!srcPath)
-      throw new Error(`Failed to parse responseSrcPath: ${responseSrcPath}`);
-    const codePath = path.join(process.cwd(), srcPath, 'template.ts');
-    await fs.ensureFile(codePath);
-    await fs.writeFile(codePath, code);
-    console.log(`Wrote file: ${codePath}`);
-    const command = 'node';
-    const args = [codePath];
-    const commandLog = `${command} ` + args.join(' ');
-    console.info(`Running command: ${commandLog}`);
-    await cmd(command, args, {OPENAI_API_KEY: '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'});
-    console.info(`Ran command: ${commandLog}`);
-    console.info(`Generated code from template: ${codePath}`);
   }
 }

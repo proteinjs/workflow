@@ -5,4 +5,4 @@ export * from './src/CodeTemplate';
 export * from './src/Conversation';
 export * from './src/fs/keyword_to_files_index/KeywordToFilesIndexModule';
 export * from './src/CodegenConversation';
-export * from './src/Code';
+export * from './src/code_template/Code';

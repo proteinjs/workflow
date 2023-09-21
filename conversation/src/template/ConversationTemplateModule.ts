@@ -37,13 +37,12 @@ export class ConversationTemplateModule implements ConversationModule {
   }
 
   getSystemMessages() {
-    const instructions = [
+    return [
       `Whenever the user wants to create or talk about something, fisrt use the searchConversationTemplates function to identify if there are relevant conversation templates to use`,
       `Use the getConversationTemplate function to get the conversation template`,
       `Once you've identified a conversation template that's relevant to the conversation, ask the user if they'd like to use that conversation template`,
       `If they want to engage in the templated conversation, ask only the conversation template questions (template.questions), then use the user's answers to carry out the conversation template instructions (template.instructions)`,
     ];
-    return [instructions.join('. ')];
   }
 
   getFunctions() {

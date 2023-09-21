@@ -1,4 +1,4 @@
-import { RepoFactory } from '../../src/Repo';
+import { RepoFactory } from '../../src/code_template/Repo';
 // import { Table } from 'conversation/src/table';
 import { Conversation } from '../../src/Conversation';
 import { Fs } from '@brentbahry/util';

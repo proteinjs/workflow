@@ -1,4 +1,4 @@
-import { Conversation } from './Conversation';
+import { Conversation } from '../Conversation';
 import { Repo } from './Repo';
 
 export type SourceFile = {
