@@ -1,5 +1,5 @@
 import { Package, PackageUtil } from '@brentbahry/util';
-import { Function } from './Function';
+import { Function } from '../../Function';
 
 const installPackagesFunction: Function = {
   definition: {
@@ -67,7 +67,7 @@ const runPackageScriptFunction: Function = {
   call: async (params: { name: string, cwdPath?: string }) => await PackageUtil.runPackageScript(params.name, params.cwdPath),
 }
 
-export const PackageUtilFunctions: Function[] = [
+export const packageFunctions: Function[] = [
   installPackagesFunction,
   runPackageScriptFunction,
 ]

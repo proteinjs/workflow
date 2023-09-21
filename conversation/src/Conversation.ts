@@ -1,10 +1,16 @@
 import { ChatCompletionMessageParam } from 'openai/resources/chat';
 import { OpenAi } from './OpenAi';
-import { MessageHistory } from './MessageHistory';
-import { Function } from './functions/Function';
+import { MessageHistory } from './history/MessageHistory';
+import { Function } from './Function';
 import { Logger, LogLevel, Fs } from '@brentbahry/util';
-import { MessageModerator } from './MessageModerator';
-import { ConversationFileSystemModerator } from './ConversationFileSystemModerator';
+import { MessageModerator } from './history/MessageModerator';
+import { ConversationModule } from './ConversationModule';
+
+export type ConversationParams = {
+  name: string,
+  modules?: ConversationModule[];
+  logLevel?: LogLevel;
+}
 
 export class Conversation {
   private history = new MessageHistory();
@@ -13,12 +19,21 @@ export class Conversation {
   private generatedCode = false;
   private generatedList = false;
   private logger: Logger;
-  private logging: { conversationName: string, logLevel?: LogLevel };
+  private params: ConversationParams;
 
-  constructor(logging: { conversationName: string, logLevel?: LogLevel }) {
-    this.logging = logging;
-    this.logger = new Logger(logging.conversationName, logging.logLevel);
-    this.messageModerators.push(new ConversationFileSystemModerator(logging.logLevel));
+  constructor(params: ConversationParams) {
+    this.params = params;
+    this.logger = new Logger(params.name, params.logLevel);
+    if (params.modules)
+      this.load(params.modules);
+  }
+
+  private load(modules: ConversationModule[]) {
+    for (let module of modules) {
+      this.addSystemMessagesToHistory(module.getSystemMessages());
+      this.addFunctions(module.getFunctions());
+      this.addMessageModerators(module.getMessageModerators());
+    }
   }
 
   addFunctions(functions: Function[]) {
@@ -48,12 +63,12 @@ export class Conversation {
   }
 
   async generateResponse(messages: string[], model?: string) {
-    return await OpenAi.generateResponse(messages, model, this.history, this.functions, this.messageModerators, this.logging.logLevel);
+    return await OpenAi.generateResponse(messages, model, this.history, this.functions, this.messageModerators, this.params.logLevel);
   }
 
   async generateCode(description: string[], model?: string) {
     this.logger.info(`Generating code for description:\n${description.join('\n')}`);
-    const code = await OpenAi.generateCode(description, model, this.history, this.functions, this.messageModerators, !this.generatedCode, this.logging.logLevel);
+    const code = await OpenAi.generateCode(description, model, this.history, this.functions, this.messageModerators, !this.generatedCode, this.params.logLevel);
     this.logger.info(`Generated code:\n${code.slice(0, 150)}${code.length > 150 ? '...' : ''}`);
     this.generatedCode = true;
     return code;
@@ -73,14 +88,14 @@ export class Conversation {
 
   async updateCode(code: string, description: string, model?: string) {
     this.logger.info(`Updating code:\n${code.slice(0, 150)}${code.length > 150 ? '...' : ''}\nFrom description: ${description}`);
-    const updatedCode = await OpenAi.updateCode(code, description, model, this.history, this.functions, this.messageModerators, !this.generatedCode, this.logging.logLevel);
+    const updatedCode = await OpenAi.updateCode(code, description, model, this.history, this.functions, this.messageModerators, !this.generatedCode, this.params.logLevel);
     this.logger.info(`Updated code:\n${updatedCode.slice(0, 150)}${updatedCode.length > 150 ? '...' : ''}`);
     this.generatedCode = true;
     return updatedCode;
   }
 
   async generateList(description: string[], model?: string) {
-    const list = await OpenAi.generateList(description, model, this.history, this.functions, this.messageModerators, !this.generatedList, this.logging.logLevel);
+    const list = await OpenAi.generateList(description, model, this.history, this.functions, this.messageModerators, !this.generatedList, this.params.logLevel);
     this.generatedList = true;
     return list;
   }

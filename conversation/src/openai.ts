@@ -2,8 +2,8 @@ import { OpenAI } from 'openai';
 import { ChatCompletionMessage, ChatCompletionMessageParam } from 'openai/resources/chat';
 import { LogLevel, Logger } from '@brentbahry/util';
 import { MessageModerator } from './MessageModerator';
-import { Function } from './functions/Function';
-import { MessageHistory } from './MessageHistory';
+import { Function } from './Function';
+import { MessageHistory } from './history/MessageHistory';
 
 export class OpenAi {
   static async generateResponse(messages: string[], model?: string, history?: MessageHistory, functions?: Function[], messageModerators?: MessageModerator[], logLevel: LogLevel = 'info'): Promise<string> {

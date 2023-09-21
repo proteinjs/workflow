@@ -1,6 +1,6 @@
-import { ConversationTemplateRepo } from '../conversation_templates/ConversationTemplateRepo';
+import { ConversationTemplateModule } from './ConversationTemplateModule';
 
-export const searchConversationTemplatesFunction = (repo: ConversationTemplateRepo) => {
+export const searchConversationTemplatesFunction = (repo: ConversationTemplateModule) => {
   return {
     definition: {
       name: 'searchConversationTemplates',
@@ -20,7 +20,7 @@ export const searchConversationTemplatesFunction = (repo: ConversationTemplateRe
   }
 }
 
-export const getConversationTemplateFunction = (repo: ConversationTemplateRepo) => {
+export const getConversationTemplateFunction = (repo: ConversationTemplateModule) => {
   return {
     definition: {
       name: 'getConversationTemplate',

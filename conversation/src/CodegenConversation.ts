@@ -4,44 +4,59 @@ import * as readline from 'readline-sync';
 import { cmd } from '@brentbahry/util';
 import { Conversation } from './Conversation';
 import { OpenAi } from './OpenAi';
-import { Repo } from './Repo2';
-import { PackageUtilFunctions } from './functions/PackageUtilFunctions';
-import { FsFunctions } from './functions/FsFunctions';
-import { searchFilesFunction } from './functions/RepoFunctions';
-import { ConversationTemplateRepoFactory } from './conversation_templates/ConversationTemplateRepo';
-import { getConversationTemplateFunction, searchConversationTemplatesFunction } from './functions/ConversationTemplateRepoFunctions';
+import { KeywordToFilesIndexModuleFactory } from './fs/keyword_to_files_index/KeywordToFilesModule';
+import { ConversationTemplateModuleFactory } from './template/ConversationTemplateModule';
+import { ConversationFsModule } from './fs/conversation_fs/ConversationFsModule';
+import { PackageModule } from './fs/package/PackageModule';
+import { ConversationModule } from './ConversationModule';
 
 export class CodegenConversation {
   private static INITIAL_QUESTION = 'What would you like to create?';
   private static CODE_RESPONSE = 'Code with user input:';
   private static BOT_NAME = 'Alina';
   private static MODEL = 'gpt-4';
-  private conversation = new Conversation({ conversationName: this.constructor.name, logLevel: 'info' });
-  private repo: Repo;
-  private conversationTemplateRepo = new ConversationTemplateRepoFactory().create();
+  private repoPath: string;
 
-  constructor(repo: Repo) {
-    this.repo = repo;
+  constructor(repoPath: string) {
+    this.repoPath = repoPath;
   }
 
   async start() {
-    this.loadSystemMessages();
-    this.loadFunctions();
-    this.conversation.addAssistantMessagesToHistory([CodegenConversation.INITIAL_QUESTION]);
+    const conversation = await this.createConversation();
+    conversation.addAssistantMessagesToHistory([CodegenConversation.INITIAL_QUESTION]);
     const initialUserInput = this.respondToUser(CodegenConversation.INITIAL_QUESTION);
-    let response = await this.conversation.generateResponse([initialUserInput], CodegenConversation.MODEL);
+    let response = await conversation.generateResponse([initialUserInput], CodegenConversation.MODEL);
     while (true) {
       const userInput = this.respondToUser(response);
-      response = await this.conversation.generateResponse([userInput], CodegenConversation.MODEL);
+      response = await conversation.generateResponse([userInput], CodegenConversation.MODEL);
       if (response.includes(CodegenConversation.CODE_RESPONSE))
-        await this.generateCode(response);
+        await this.generateCode(response, conversation);
     }
   }
 
-  private loadSystemMessages() {
-    const systemMessages = [
+  private async createConversation() {
+    const conversation = new Conversation({
+      name: this.constructor.name,
+      modules: await this.getModules(),
+      logLevel: 'info',
+    });
+    conversation.addSystemMessagesToHistory(this.getSystemMessages());
+    return conversation;
+  }
+
+  private async getModules(): Promise<ConversationModule[]> {
+    return [
+      new ConversationFsModule(),
+      await KeywordToFilesIndexModuleFactory.createModule(this.repoPath),
+      new PackageModule(),
+      ConversationTemplateModuleFactory.createModule(),
+    ];
+  }
+
+  private getSystemMessages() {
+    return [
       `We are going to have a conversation with the user to generate code`,
-      `Assume the current working directory is: ${this.repo.params.dir} unless specified by the user`,
+      `Assume the current working directory is: ${this.repoPath} unless specified by the user`,
       `Pre-pend the current working directory as the base path to file paths when performing file operations, unless specified otherwise by the user`,
       `If the user asks to change the cwd, do not create a new folder, assume the new working directory already exists`,
       `If they want to create a function/class/object using an API we are familiar with, we will ask the user for the required information to fill in all mandatory parameters and ask them if they want to provide optional parameter values`,
@@ -53,29 +68,17 @@ export class CodegenConversation {
       `If you're generating a call to a class that extends Template, require that the user provide Template's constructor parameters as well and combine them into the parameters passed into the base class you're instantiating`,
       `Make sure you ask for a srcPath and pass that in to the Template base class constructor arg`,
       `Surround generated code (not including imports) with a self-executing, anonymous async function like this (async function() =>{})()`,
-      ...this.conversationTemplateRepo.getSystemMessages(),
     ];
-    this.conversation.addSystemMessagesToHistory(systemMessages);
-  }
-
-  private loadFunctions() {
-    this.conversation.addFunctions([
-      ...FsFunctions, 
-      ...PackageUtilFunctions, 
-      searchFilesFunction(this.repo), 
-      searchConversationTemplatesFunction(this.conversationTemplateRepo), 
-      getConversationTemplateFunction(this.conversationTemplateRepo),
-    ]);
   }
 
   private respondToUser(message: string) {
     return readline.question(`[${CodegenConversation.BOT_NAME}] ${message}\n`);
   }
 
-  private async generateCode(message: string) {
+  private async generateCode(message: string, conversation: Conversation) {
     const code = OpenAi.parseCodeFromMarkdown(message);
     const srcPathToken = 'TOKEN';
-    const responseSrcPath = await this.conversation.generateResponse([`Return the srcPath the user provided surrounded by the token ${srcPathToken}`], CodegenConversation.MODEL);
+    const responseSrcPath = await conversation.generateResponse([`Return the srcPath the user provided surrounded by the token ${srcPathToken}`], CodegenConversation.MODEL);
     const srcPath = responseSrcPath.replace(/["'`]/g, '').match(/TOKEN(.*?)TOKEN/)?.[1];
     if (!srcPath)
       throw new Error(`Failed to parse responseSrcPath: ${responseSrcPath}`);

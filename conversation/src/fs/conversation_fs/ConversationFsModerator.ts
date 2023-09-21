@@ -1,27 +1,27 @@
 import { FileContentMap, LogLevel, Logger } from '@brentbahry/util';
 import { ChatCompletionMessageParam } from 'openai/resources/chat';
-import { MessageModerator } from './MessageModerator';
+import { MessageModerator } from '../../history/MessageModerator';
 
-export interface ConversationFileSystem {
+export interface ConversationFs {
   fileContentMap: FileContentMap;
   order: string[]; // ordered list of filePaths
 }
 
-export interface ConversationFileSystemFactoryParams {
+export interface ConversationFsFactoryParams {
   maxFiles: number;
   logLevel: LogLevel;
 }
 
-export class ConversationFileSystemFactory {
+export class ConversationFsFactory {
   private logger: Logger;
-  private params: ConversationFileSystemFactoryParams;
+  private params: ConversationFsFactoryParams;
 
-  constructor(params?: Partial<ConversationFileSystemFactoryParams>) {
+  constructor(params?: Partial<ConversationFsFactoryParams>) {
     this.params = Object.assign({ maxFiles: 10, logLevel: 'info' }, params);
     this.logger = new Logger(this.constructor.name, this.params.logLevel);
   }
 
-  merge(existingFs: ConversationFileSystem, updates: FileContentMap): ConversationFileSystem {
+  merge(existingFs: ConversationFs, updates: FileContentMap): ConversationFs {
     for (let filePath of Object.keys(updates)) {
       // if the file already exists in the fs
       if (existingFs.fileContentMap[filePath]) {
@@ -52,7 +52,7 @@ export class ConversationFileSystemFactory {
   }
 }
 
-export class ConversationFileSystemModerator implements MessageModerator {
+export class ConversationFsModerator implements MessageModerator {
   private logLevel: LogLevel = 'info';
 
   constructor(logLevel?: LogLevel) {
@@ -62,7 +62,7 @@ export class ConversationFileSystemModerator implements MessageModerator {
 
   observe(messages: ChatCompletionMessageParam[]): ChatCompletionMessageParam[] {
     let conversationFileSystemMessageIndex: number = -1;
-    let conversationFileSystem: ConversationFileSystem|undefined;
+    let conversationFileSystem: ConversationFs|undefined;
     let readFilesFunctionCallMessageIndexes: number[] = [];
     const readFilesConsolidatedOutput: FileContentMap = {}; // newest version of file wins
     for (let i = 0; i < messages.length; i++) {
@@ -97,7 +97,7 @@ export class ConversationFileSystemModerator implements MessageModerator {
     }
 
     if (conversationFileSystem) {
-      conversationFileSystem = new ConversationFileSystemFactory({ logLevel: this.logLevel }).merge(conversationFileSystem, readFilesConsolidatedOutput);
+      conversationFileSystem = new ConversationFsFactory({ logLevel: this.logLevel }).merge(conversationFileSystem, readFilesConsolidatedOutput);
       const content = JSON.stringify({ fileSystem: conversationFileSystem });
       messages[conversationFileSystemMessageIndex].content = content;
     } else {

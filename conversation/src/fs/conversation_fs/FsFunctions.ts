@@ -1,5 +1,5 @@
 import { Fs } from '@brentbahry/util';
-import { Function } from './Function';
+import { Function } from '../../Function';
 
 const readFilesFunction: Function = {
   definition: {
@@ -78,7 +78,7 @@ const createFolderFunction: Function = {
   ],
 }
 
-export const FsFunctions: Function[] = [
+export const fsFunctions: Function[] = [
   readFilesFunction,
   writeFilesFunction,
   createFolderFunction,

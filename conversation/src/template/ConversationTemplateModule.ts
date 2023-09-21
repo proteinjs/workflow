@@ -1,21 +1,23 @@
 import { Logger } from '@brentbahry/util';
 import { ConversationTemplate } from './ConversationTemplate';
 import { createPackageConversationTemplate } from './createPackage/CreatePackageConversationTemplate';
+import { ConversationModule } from '../ConversationModule';
+import { getConversationTemplateFunction, searchConversationTemplatesFunction } from './ConversationTemplateFunctions';
 
 const conversationTemplates: ConversationTemplate[] = [
   createPackageConversationTemplate,
 ];
 
-export type ConversationTemplateRepoParams = {
+export type ConversationTemplateModuleParams = {
   conversationTemplates: { [conversationTemplateName: string]: ConversationTemplate},
   conversationTemplateKeywordIndex: { [keyword: string]: string[] /** conversationTemplateNames */ }
 }
 
-export class ConversationTemplateRepo {
+export class ConversationTemplateModule implements ConversationModule {
   private logger = new Logger(this.constructor.name);
-  params: ConversationTemplateRepoParams;
+  params: ConversationTemplateModuleParams;
 
-  constructor(params: ConversationTemplateRepoParams) {
+  constructor(params: ConversationTemplateModuleParams) {
     this.params = params;
   }
 
@@ -43,11 +45,22 @@ export class ConversationTemplateRepo {
     ];
     return [instructions.join('. ')];
   }
+
+  getFunctions() {
+    return [
+      searchConversationTemplatesFunction(this),
+      getConversationTemplateFunction(this),
+    ];
+  }
+
+  getMessageModerators() {
+    return [];
+  }
 }
 
-export class ConversationTemplateRepoFactory {
-  create() {
-    const params: ConversationTemplateRepoParams = { conversationTemplates: {}, conversationTemplateKeywordIndex: {} };
+export class ConversationTemplateModuleFactory {
+  static createModule() {
+    const params: ConversationTemplateModuleParams = { conversationTemplates: {}, conversationTemplateKeywordIndex: {} };
     for (let conversationTemplate of conversationTemplates) {
       params.conversationTemplates[conversationTemplate.name] = conversationTemplate;
       for (let keyword of conversationTemplate.keywords) {
@@ -58,6 +71,6 @@ export class ConversationTemplateRepoFactory {
       }
     }
 
-    return new ConversationTemplateRepo(params);
+    return new ConversationTemplateModule(params);
   }
 }

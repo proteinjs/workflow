@@ -1,6 +1,6 @@
-import { Repo } from '../Repo2'
+import { KeywordToFilesIndexModule } from './KeywordToFilesModule'
 
-export const searchFilesFunction = (repo: Repo) => {
+export const searchFilesFunction = (module: KeywordToFilesIndexModule) => {
   return {
     definition: {
       name: 'searchFiles',
@@ -16,7 +16,7 @@ export const searchFilesFunction = (repo: Repo) => {
         required: ['keyword']
       },
     },
-    call: async (params: { keyword: string }) => repo.searchFiles(params),
+    call: async (params: { keyword: string }) => module.searchFiles(params),
     instructions: [
       `If the user is trying to interact with a file, but does not provide a path, you can find file paths that match a keyword using searchFiles`,
       `Only call functions that take in filePaths with valid file paths, if you don't know the valid file path try and search for it by keyword with the searchFiles function`,
