@@ -55,8 +55,6 @@ export class CodegenConversation {
     return [
       `We are going to have a conversation with the user to generate code`,
       `Await all function calls that return a promise`,
-      `If the user wants to generate code, identify files that may contain libraries to use from this repo, and access either their content or their typescript declarations via the available functions, whichever is needed for code generation`,
-      `If using one of the repo apis, import the api from its corresponding package when generating code that uses that api`,
     ];
   }
 

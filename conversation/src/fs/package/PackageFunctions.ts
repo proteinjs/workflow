@@ -43,6 +43,10 @@ const installPackagesFunction: Function = {
     },
   },
   call: async (params: { packages: Package[], cwdPath?: string }) => await PackageUtil.installPackages(params.packages, params.cwdPath),
+  instructions: [
+    `If the user wants to install a package, use the installPackages function`,
+    `If generating code and adding an import statement to a module that is not local to the package we're generating code in, read the package.json dependencies for the package you're generating code in; if the dependency is missing, install it with the installPackages function`,
+  ],
 }
 
 const runPackageScriptFunction: Function = {
@@ -65,6 +69,9 @@ const runPackageScriptFunction: Function = {
     },
   },
   call: async (params: { name: string, cwdPath?: string }) => await PackageUtil.runPackageScript(params.name, params.cwdPath),
+  instructions: [
+    `If the user wants to run a npm script (such as start, test, or watch), use the runPackageScript function`,
+  ],
 }
 
 export const packageFunctions: Function[] = [
