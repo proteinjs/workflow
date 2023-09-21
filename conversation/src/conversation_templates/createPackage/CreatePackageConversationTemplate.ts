@@ -9,6 +9,8 @@ export const createPackageConversationTemplate: ConversationTemplate = {
     'package',
     'create package',
     'create',
+    'create a package',
+    'create a new package',
   ],
   description: 'Create a npm package',
   questions: [
