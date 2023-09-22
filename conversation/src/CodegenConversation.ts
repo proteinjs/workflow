@@ -9,7 +9,7 @@ import { ConversationModule, ConversationModuleFactory } from './ConversationMod
 export class CodegenConversation {
   private static INITIAL_QUESTION = 'What would you like to create?';
   private static BOT_NAME = 'Alina';
-  private static MODEL = 'gpt-4';
+  private static MODEL = 'gpt-4'; //'gpt-3.5-turbo-16k';
   private repoPath: string;
 
   constructor(repoPath: string) {
