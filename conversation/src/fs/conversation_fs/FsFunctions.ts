@@ -1,7 +1,7 @@
 import { Fs } from '@brentbahry/util';
 import { Function } from '../../Function';
 
-const readFilesFunction: Function = {
+export const readFilesFunction: Function = {
   definition: {
     name: 'readFiles',
     description: 'Get the content of files',
@@ -22,7 +22,7 @@ const readFilesFunction: Function = {
   call: Fs.readFiles,
 }
 
-const writeFilesFunction: Function = {
+export const writeFilesFunction: Function = {
   definition: {
     name: 'writeFiles',
     description: 'Write files to the file system',
@@ -51,10 +51,7 @@ const writeFilesFunction: Function = {
     },
   },
   call: Fs.writeFiles,
-  instructions: [
-    `If the user has asked to update a file, do not write to the file if it does not already exist`,
-    `Before writing to a file, confirm the full file path with the user`,
-  ],
+  instructions: [],
 }
 
 const createFolderFunction: Function = {
@@ -73,9 +70,6 @@ const createFolderFunction: Function = {
     },
   },
   call: async (params: { path: string }) => await Fs.createFolder(params.path),
-  instructions: [
-    `Before creating a folder, confirm the full folder path with the user`,
-  ],
 }
 
 export const fileOrDirectoryExistsFunction: Function = {

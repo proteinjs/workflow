@@ -1,7 +1,7 @@
 import { OpenAI } from 'openai';
 import { ChatCompletionMessage, ChatCompletionMessageParam } from 'openai/resources/chat';
 import { LogLevel, Logger } from '@brentbahry/util';
-import { MessageModerator } from './MessageModerator';
+import { MessageModerator } from './history/MessageModerator';
 import { Function } from './Function';
 import { MessageHistory } from './history/MessageHistory';
 

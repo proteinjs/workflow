@@ -55,14 +55,14 @@ export class KeywordToFilesIndexModuleFactory implements ConversationModuleFacto
    * @param baseDir - The directory to start the file search from.
    * @returns An index with keywords mapped to file paths.
    */
-  private async createKeywordFilesIndex(baseDir: string, globIgnorePatterns: string[] = []): Promise<{ [keyword: string]: string[] }> {
+  async createKeywordFilesIndex(baseDir: string, globIgnorePatterns: string[] = []): Promise<{ [keyword: string]: string[] }> {
     // Ensure the base directory has a trailing slash
     if (!baseDir.endsWith(path.sep)) {
         baseDir += path.sep;
     }
 
     // Get all file paths, recursively, excluding node_modules and dist directories
-    const filePaths = await Fs.getFilePaths(baseDir, ['**/node_modules/**', '**/dist/**']);
+    const filePaths = await Fs.getFilePaths(baseDir, ['**/node_modules/**', '**/dist/**', ...globIgnorePatterns]);
 
     const keywordFilesIndex: { [keyword: string]: string[] } = {};
 

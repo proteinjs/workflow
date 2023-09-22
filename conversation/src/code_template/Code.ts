@@ -1,3 +1,4 @@
+import { PackageUtil } from '@brentbahry/util';
 import { Conversation } from '../Conversation';
 import { Repo } from './Repo';
 
@@ -40,7 +41,7 @@ export class Code {
   }
 
   private declarationMessage(tsFilePaths: string[]) {
-    const declarationMap = Repo.generateDeclarations({ tsFilePaths, includeDependencyDeclarations: true });
+    const declarationMap = PackageUtil.generateTypescriptDeclarations({ tsFilePaths, includeDependencyDeclarations: true });
     const declarations = Object.values(declarationMap).join('\n');
     return `Assume the following code exists in other files:\n${declarations}`;
   }

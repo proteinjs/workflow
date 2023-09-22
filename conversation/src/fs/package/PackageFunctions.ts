@@ -2,7 +2,7 @@ import { Package, PackageUtil } from '@brentbahry/util';
 import { Function } from '../../Function';
 import { PackageModule } from './PackageModule';
 
-const installPackagesFunction: Function = {
+export const installPackagesFunction: Function = {
   definition: {
     name: 'installPackages',
     description: 'Get the content of files',
@@ -46,8 +46,6 @@ const installPackagesFunction: Function = {
   call: async (params: { packages: Package[], cwdPath?: string }) => await PackageUtil.installPackages(params.packages, params.cwdPath),
   instructions: [
     `If the user wants to install a package, use the installPackages function`,
-    `If generating code and adding an import statement to a module that is not local to the package we're generating code in, read the package.json dependencies for the package you're generating code in; if the dependency is missing, install it with the installPackages function`,
-    `If installing a local package, use the relative path (from the current package to the package we're installing) as the version`,
   ],
 }
 
