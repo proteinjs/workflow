@@ -30,7 +30,12 @@ export class Conversation {
 
   private addModules(modules: ConversationModule[]) {
     for (let module of modules) {
-      this.addSystemMessagesToHistory(module.getSystemMessages());
+      if (module.getSystemMessages().length < 1)
+        continue;
+
+      this.addSystemMessagesToHistory([
+        `The following are instructions from the ${module.getName()} module: ${module.getSystemMessages().join('. ')}`,
+      ]);
       this.addFunctions(module.getFunctions());
       this.addMessageModerators(module.getMessageModerators());
     }
@@ -40,7 +45,12 @@ export class Conversation {
     this.functions.push(...functions);
     for (let f of functions) {
       if (f.instructions) {
-        const mps: ChatCompletionMessageParam[] = f.instructions.map(instruction => { return { role: 'system', content: instruction }});
+        if (!f.instructions || f.instructions.length < 1)
+          continue;
+
+        const instructionsParagraph = f.instructions.join('. ');
+        const content = `The following are instructions for using the ${f.definition.name} function: ${instructionsParagraph}`;
+        const mps: ChatCompletionMessageParam[] = [{ role: 'system', content }];
         this.history.push(mps);
       }
     }

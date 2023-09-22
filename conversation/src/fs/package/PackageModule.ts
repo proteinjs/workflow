@@ -1,7 +1,7 @@
-import { Fs, PackageUtil } from '@brentbahry/util';
+import { Fs } from '@brentbahry/util';
 import { ConversationModule, ConversationModuleFactory } from '../../ConversationModule';
 import { Function } from '../../Function';
-import { packageFunctions, searchLibrariesFunction, searchPackagesFunction } from './PackageFunctions';
+import { packageFunctions, searchLibrariesFunction, searchPackagesFunction, searchPackagesFunctionName } from './PackageFunctions';
 import path from 'path';
 
 export type Library = {
@@ -22,9 +22,14 @@ export class PackageModule implements ConversationModule {
     this.repoPath = repoPath;
   }
 
+  getName(): string {
+    return 'Package';
+  }
+
   getSystemMessages(): string[] {
     return [
       `When generating code, prefer importing code from local packages`,
+      `Use the ${searchPackagesFunctionName} function on every package you plan to install to derermine if the package is in the local repo; if it is, calculate the relative path from the cwd package to the package being installed, use that path as the version when installing the package`,
       // `When generating code, use the searchFiles function to find all file paths to index.ts files; these are the local apis we have access to`,
       // `When generating import statements, use the searchFiles function to find all file paths to package.json files; if importing from a local package, make sure you import via its package if it is not a local file to the package we're generating code in`,
     ];

@@ -1,9 +1,10 @@
 import { Fs } from '@brentbahry/util';
 import { Function } from '../../Function';
 
+export const readFilesFunctionName = 'readFiles';
 export const readFilesFunction: Function = {
   definition: {
-    name: 'readFiles',
+    name: readFilesFunctionName,
     description: 'Get the content of files',
     parameters: {
       type: 'object',
@@ -20,11 +21,15 @@ export const readFilesFunction: Function = {
     },
   },
   call: Fs.readFiles,
+  instructions: [
+    `To read files from the local file system, use the ${readFilesFunctionName} function`,
+  ],
 }
 
+export const writeFilesFunctionName = 'writeFiles';
 export const writeFilesFunction: Function = {
   definition: {
-    name: 'writeFiles',
+    name: writeFilesFunctionName,
     description: 'Write files to the file system',
     parameters: {
       type: 'object',
@@ -51,12 +56,15 @@ export const writeFilesFunction: Function = {
     },
   },
   call: Fs.writeFiles,
-  instructions: [],
+  instructions: [
+    `To write files to the local file system, use the ${writeFilesFunctionName} function`,
+  ],
 }
 
+const createFolderFunctionName = 'createFolder';
 const createFolderFunction: Function = {
   definition: {
-    name: 'createFolder',
+    name: createFolderFunctionName,
     description: 'Create a folder/directory',
     parameters: {
       type: 'object',
@@ -70,11 +78,15 @@ const createFolderFunction: Function = {
     },
   },
   call: async (params: { path: string }) => await Fs.createFolder(params.path),
+  instructions: [
+    `To create a folder on the local file system, use the ${createFolderFunctionName} function`,
+  ],
 }
 
+export const fileOrDirectoryExistsFunctionName = 'fileOrDirectoryExists';
 export const fileOrDirectoryExistsFunction: Function = {
   definition: {
-    name: 'fileOrDirectoryExists',
+    name: fileOrDirectoryExistsFunctionName,
     description: 'Check if a file or directory exists',
     parameters: {
       type: 'object',
@@ -88,6 +100,9 @@ export const fileOrDirectoryExistsFunction: Function = {
     },
   },
   call: async (params: { path: string }) => await Fs.exists(params.path),
+  instructions: [
+    `To check if a file or folder exists on the local file system, use the ${fileOrDirectoryExistsFunctionName} function`,
+  ],
 }
 
 export const fsFunctions: Function[] = [

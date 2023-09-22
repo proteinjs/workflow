@@ -32,6 +32,7 @@ export const createCodeConversationTemplate: ConversationTemplate = {
       `3.a.3. Use the typescript declaration and the package name to add the import statements to the top of the file`,
       `3.a.4. Use the ${readFilesFunction.definition.name} function on the package.json if it's not in the fileSystem`,
       `3.a.5. Check the pacakge.json dependencies, if the imported package is not already a dependency, use the ${installPackagesFunction.definition.name} function to install it`,
+      `3.a.5.a. Use the ${searchPackagesFunctionName} on the import package to derermine if it's in the local repo; if it is, calculate the relative path from the cwd package to the package being installed, use that path as the version when installing the package`,
       `3.b Generate the code the user asked to create, leveraging the imported library where appropriate`,
       `4. Repeat 3. unless the user asks to switch packages or files`,
     ];

@@ -4,6 +4,10 @@ import { MessageModerator } from '../history/MessageModerator';
 
 export class CodeTemplateModule implements ConversationModule {
   private static CODE_RESPONSE = 'Code with user input:';
+
+  getName(): string {
+    return 'Code Template';
+  }
   
   getSystemMessages(): string[] {
     return [

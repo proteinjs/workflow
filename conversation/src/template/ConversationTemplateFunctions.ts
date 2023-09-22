@@ -1,9 +1,10 @@
 import { ConversationTemplateModule } from './ConversationTemplateModule';
 
+export const searchConversationTemplatesFunctionName = 'searchConversationTemplates';
 export const searchConversationTemplatesFunction = (repo: ConversationTemplateModule) => {
   return {
     definition: {
-      name: 'searchConversationTemplates',
+      name: searchConversationTemplatesFunctionName,
       description: 'Get the conversation template names for templates matching the keyword',
       parameters: {
         type: 'object',
@@ -20,10 +21,11 @@ export const searchConversationTemplatesFunction = (repo: ConversationTemplateMo
   }
 }
 
+export const getConversationTemplateFunctionName = 'getConversationTemplate';
 export const getConversationTemplateFunction = (repo: ConversationTemplateModule) => {
   return {
     definition: {
-      name: 'getConversationTemplate',
+      name: getConversationTemplateFunctionName,
       description: 'Get the conversation template matching the name',
       parameters: {
         type: 'object',

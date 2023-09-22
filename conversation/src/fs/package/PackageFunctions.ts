@@ -2,9 +2,10 @@ import { Package, PackageUtil } from '@brentbahry/util';
 import { Function } from '../../Function';
 import { PackageModule } from './PackageModule';
 
+export const installPackagesFunctionName = 'installPackages';
 export const installPackagesFunction: Function = {
   definition: {
-    name: 'installPackages',
+    name: installPackagesFunctionName,
     description: 'Get the content of files',
     parameters: {
       type: 'object',
@@ -45,13 +46,14 @@ export const installPackagesFunction: Function = {
   },
   call: async (params: { packages: Package[], cwdPath?: string }) => await PackageUtil.installPackages(params.packages, params.cwdPath),
   instructions: [
-    `If the user wants to install a package, use the installPackages function`,
+    `To install a package, use the ${installPackagesFunctionName} function`,
   ],
 }
 
+export const runPackageScriptFunctionName = 'runPackageScript';
 const runPackageScriptFunction: Function = {
   definition: {
-    name: 'runPackageScript',
+    name: runPackageScriptFunctionName,
     description: 'Run `npm run x`, where `x` is an existing script in a package.json',
     parameters: {
       type: 'object',
@@ -70,7 +72,7 @@ const runPackageScriptFunction: Function = {
   },
   call: async (params: { name: string, cwdPath?: string }) => await PackageUtil.runPackageScript(params.name, params.cwdPath),
   instructions: [
-    `If the user wants to run a npm script (such as start, test, or watch), use the runPackageScript function`,
+    `To run a npm script (such as start, test, or watch), use the ${runPackageScriptFunctionName} function`,
   ],
 }
 
@@ -92,6 +94,9 @@ export function searchPackagesFunction(packageModule: PackageModule) {
       },
     },
     call: async (params: { keyword: string }) => await packageModule.searchPackages(params.keyword),
+    instructions: [
+      `To search for packages in the local repo, use the ${searchPackagesFunctionName} function`,
+    ],
   }
 }
 
@@ -113,12 +118,16 @@ export function searchLibrariesFunction(packageModule: PackageModule) {
       },
     },
     call: async (params: { keyword: string }) => await packageModule.searchLibraries(params.keyword),
+    instructions: [
+      `To search for libraries in the local repo, use the ${searchLibrariesFunctionName} function`,
+    ],
   }
 }
 
+export const generateTypescriptDeclarationsFunctionName = 'generateTypescriptDesclarations';
 export const generateTypescriptDeclarationsFunction = {
   definition: {
-    name: 'generateTypescriptDesclarations',
+    name: generateTypescriptDeclarationsFunctionName,
     description: 'Return the typescript declarations for the files',
     parameters: {
       type: 'object',
@@ -135,6 +144,9 @@ export const generateTypescriptDeclarationsFunction = {
     },
   },
   call: async (params: { tsFilePaths: string[] }) => PackageUtil.generateTypescriptDeclarations(params),
+  instructions: [
+    `To generate typescript declarations for a local file, use the ${generateTypescriptDeclarationsFunctionName} function`,
+  ],
 }
 
 export const packageFunctions: Function[] = [

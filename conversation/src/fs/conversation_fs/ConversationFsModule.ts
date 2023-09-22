@@ -9,6 +9,10 @@ export class ConversationFsModule implements ConversationModule {
   constructor(repoPath: string) {
     this.repoPath = repoPath;
   }
+
+  getName(): string {
+    return 'Conversation Fs';
+  }
   
   getSystemMessages(): string[] {
     return [

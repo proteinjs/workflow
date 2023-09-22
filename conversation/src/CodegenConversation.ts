@@ -31,7 +31,7 @@ export class CodegenConversation {
     const conversation = new Conversation({
       name: this.constructor.name,
       modules: await this.getModules(),
-      logLevel: 'info',
+      logLevel: 'debug',
     });
     conversation.addSystemMessagesToHistory(this.getSystemMessages());
     return conversation;

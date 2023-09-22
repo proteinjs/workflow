@@ -17,6 +17,10 @@ export class KeywordToFilesIndexModule implements ConversationModule {
     this.params = params;
   }
 
+  getName(): string {
+    return 'Keyword to files index';
+  }
+
   searchFiles(params: { keyword: string }) {
     this.logger.info(`Searching for file, keyword: ${params.keyword}`);
     const filePaths = this.params.keywordFilesIndex[params.keyword];
@@ -42,10 +46,10 @@ export class KeywordToFilesIndexModuleFactory implements ConversationModuleFacto
   private logger = new Logger(this.constructor.name);
 
   async createModule(repoPath: string): Promise<KeywordToFilesIndexModule> {
-    this.logger.info(`Creating module for repo: ${repoPath}`);
+    this.logger.debug(`Creating module for repo: ${repoPath}`);
     let repoParams: KeywordToFilesIndexModuleParams = { keywordFilesIndex: {}, dir: repoPath };
     repoParams.keywordFilesIndex = await this.createKeywordFilesIndex(repoPath, ['**/node-typescript-parser/**']);
-    this.logger.info(`Created module for repo: ${repoPath}`);
+    this.logger.debug(`Created module for repo: ${repoPath}`);
     return new KeywordToFilesIndexModule(repoParams);
   }
 
