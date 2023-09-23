@@ -18,6 +18,7 @@
     "author": "Brent Bahry",
     "license": "ISC",
     "scripts": {
+        "watch": "tsc -w -p .",
         "build": "tsc",
         "test": "jest"
     },

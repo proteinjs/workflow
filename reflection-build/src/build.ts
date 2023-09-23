@@ -31,7 +31,7 @@ export async function build() {
 	async function writeTsconfig() {
 		if (await promisifiedFs.exists(targetDirTsconfig)) {
 			const existingTsconfig = require(targetDirTsconfig);
-			if (!existingTsconfig.include.includes(`./${path.relative(targetDir, generatedIndex)}`)) {
+			if (existingTsconfig.include && !existingTsconfig.include.includes(`./${path.relative(targetDir, generatedIndex)}`)) {
 				existingTsconfig.include.push(`./${path.relative(targetDir, generatedIndex)}`);
 				await promisifiedFs.writeFile(targetDirTsconfig, JSON.stringify(existingTsconfig, null, 4));
 			}
