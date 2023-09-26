@@ -1,5 +1,6 @@
 import knex from 'knex';
 import { DBIDriver } from '@proteinjs/db';
+import { loadTables } from './loadTables';
 
 export class MysqlDBI implements DBIDriver {
 	private static CONFIG = {
@@ -16,6 +17,7 @@ export class MysqlDBI implements DBIDriver {
 	async init(): Promise<void> {
 		await this.createDatabaseIfNotExists(MysqlDBI.DB_NAME);
 		await this.setMaxAllowedPacketSize();
+		await loadTables();
 	}
 
 	get(): any {
