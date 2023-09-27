@@ -50,6 +50,17 @@ export class PackageUtil {
     PackageUtil.LOGGER.info(`Ran command: ${command}`);
   }
 
+  static async npmInstall(cwd: string) {
+    const args = ['i'];
+    const command = 'npm ' + args.join(' ');
+    let envVars;
+    if (cwd)
+      envVars = { cwd: cwd }
+    PackageUtil.LOGGER.info(`Running command: ${command}`);
+    await cmd('npm', args, envVars);
+    PackageUtil.LOGGER.info(`Ran command: ${command}`);
+  }
+
   static generateTypescriptDeclarations(params: { tsFilePaths: string[], includeDependencyDeclarations?: boolean }): {[tsFilePath: string]: string} {
     // declarations for this file and its local dependencies
     const declarations: {[filePath: string]: string} = {};

@@ -149,8 +149,31 @@ export const generateTypescriptDeclarationsFunction = {
   ],
 }
 
+export const npmInstallFunctionName = 'npmInstall';
+export const npmInstallFunction: Function = {
+  definition: {
+    name: npmInstallFunctionName,
+    description: 'Run `npm install` in the specified directory',
+    parameters: {
+      type: 'object',
+      properties: {
+        cwdPath: {
+          type: 'string',
+          description: 'Directory to execute the command from',
+        }
+      },
+      required: ['cwdPath']
+    },
+  },
+  call: async (params: { cwdPath: string }) => await PackageUtil.npmInstall(params.cwdPath),
+  instructions: [
+    `To run npm install in a specific directory, use the ${npmInstallFunctionName} function`,
+  ],
+}
+
 export const packageFunctions: Function[] = [
   installPackagesFunction,
   runPackageScriptFunction,
   generateTypescriptDeclarationsFunction,
+  npmInstallFunction,
 ]

@@ -4,10 +4,12 @@ import { createPackageConversationTemplate } from './createPackage/CreatePackage
 import { ConversationModule, ConversationModuleFactory } from '../ConversationModule';
 import { getConversationTemplateFunction, getConversationTemplateFunctionName, searchConversationTemplatesFunction, searchConversationTemplatesFunctionName } from './ConversationTemplateFunctions';
 import { createCodeConversationTemplate } from './createCode/CreateCodeConversationTemplate';
+import { createAppTemplate } from './createApp/CreateAppTemplate';
 
 const conversationTemplates: ConversationTemplate[] = [
   createPackageConversationTemplate,
   createCodeConversationTemplate,
+  createAppTemplate,
 ];
 
 export type ConversationTemplateModuleParams = {

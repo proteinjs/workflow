@@ -17,7 +17,7 @@ export class ConversationFsFactory {
   private params: ConversationFsFactoryParams;
 
   constructor(params?: Partial<ConversationFsFactoryParams>) {
-    this.params = Object.assign({ maxFiles: 10, logLevel: 'info' }, params);
+    this.params = Object.assign({ maxFiles: 2, logLevel: 'info' }, params);
     this.logger = new Logger(this.constructor.name, this.params.logLevel);
   }
 
