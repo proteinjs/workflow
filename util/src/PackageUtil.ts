@@ -36,6 +36,21 @@ export class PackageUtil {
     }
   }
 
+  static async uninstallPackages(packages: Package[], cwdPath?: string) {
+    const packageNames = packages.map(p => p.name).join(' ');
+    const args = [
+      'uninstall',
+      packageNames
+    ];
+    const command = 'npm ' + args.join(' ');
+    let envVars;
+    if (cwdPath)
+      envVars = { cwd: cwdPath }
+    PackageUtil.LOGGER.info(`Running command: ${command}`);
+    await cmd('npm', args, envVars);
+    PackageUtil.LOGGER.info(`Ran command: ${command}`);
+  }
+
   static async runPackageScript(name: string, cwdPath?: string) {
     const args = [
       'run',
