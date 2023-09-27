@@ -1,8 +1,18 @@
+import { Logger } from './Logger';
 import { cmd } from './cmd';
 
 export class GitUtil {
+  private static LOGGER = new Logger('GitUtil');
+
   static async cloneAppTemplatePackages(directory: string): Promise<void> {
-    await cmd(`git clone https://github.com/brentbahry/app-template.git ${directory}`);
+    const args = ['clone', 'https://github.com/brentbahry/app-template.git', directory];
+    const command = 'git ' + args.join(' ');
+    let envVars;
+    if (directory)
+      envVars = { cwd: directory }
+    GitUtil.LOGGER.info(`Running command: ${command}`);
+    await cmd('git', args, envVars);
+    GitUtil.LOGGER.info(`Ran command: ${command}`);
   }
 }
 
