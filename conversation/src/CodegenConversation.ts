@@ -5,6 +5,7 @@ import { ConversationTemplateModuleFactory } from './template/ConversationTempla
 import { ConversationFsModuleFactory } from './fs/conversation_fs/ConversationFsModule';
 import { PackageModuleFactory } from './fs/package/PackageModule';
 import { ConversationModule, ConversationModuleFactory } from './ConversationModule';
+import { Reset, textColorMap } from '@brentbahry/util';
 
 export class CodegenConversation {
   private static INITIAL_QUESTION = 'What would you like to create?';
@@ -59,6 +60,6 @@ export class CodegenConversation {
   }
 
   private respondToUser(message: string) {
-    return readline.question(`[${CodegenConversation.BOT_NAME}] ${message}\n`);
+    return readline.question(`${textColorMap.cyan}[${CodegenConversation.BOT_NAME}] ${message}${Reset}\n`);
   }
 }
