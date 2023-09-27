@@ -5,7 +5,7 @@ const createAppQuestions: Question[] = [
     text: 'What is the name of the app you want to create?',
   },
   {
-    text: 'Which directory would you like to create the app in? (if you give a relative path, it will be from the cwd; type cwd or pwd to get the current working directory)',
+    text: 'Which directory would you like to create the app in?',
   },
 ];
 

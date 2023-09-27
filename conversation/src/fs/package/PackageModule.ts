@@ -1,4 +1,4 @@
-import { Fs } from '@brentbahry/util';
+import { Fs, cloneAppTemplatePackagesFunction } from '@brentbahry/util';
 import { ConversationModule, ConversationModuleFactory } from '../../ConversationModule';
 import { Function } from '../../Function';
 import { packageFunctions, searchLibrariesFunction, searchPackagesFunction, searchPackagesFunctionName } from './PackageFunctions';
@@ -40,6 +40,7 @@ export class PackageModule implements ConversationModule {
       ...packageFunctions,
       searchPackagesFunction(this),
       searchLibrariesFunction(this),
+      cloneAppTemplatePackagesFunction,
     ];
   }
 
