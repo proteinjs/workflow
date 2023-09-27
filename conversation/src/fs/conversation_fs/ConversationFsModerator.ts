@@ -64,6 +64,7 @@ export class ConversationFsModerator implements MessageModerator {
     let conversationFileSystemMessageIndex: number = -1;
     let conversationFileSystem: ConversationFs|undefined;
     let readFilesFunctionCallMessageIndexes: number[] = [];
+    let writeFilesFunctionCallMessageIndexes: number[] = [];
     const readFilesConsolidatedOutput: FileContentMap = {}; // newest version of file wins
     for (let i = 0; i < messages.length; i++) {
       const message = messages[i];
@@ -94,6 +95,10 @@ export class ConversationFsModerator implements MessageModerator {
 
         readFilesFunctionCallMessageIndexes.push(i);
       }
+
+      if (message.role == 'function' && message.name == 'writeFiles') {
+        writeFilesFunctionCallMessageIndexes.push(i);
+      }
     }
 
     if (conversationFileSystem) {
@@ -108,7 +113,7 @@ export class ConversationFsModerator implements MessageModerator {
     }
 
     const moderatedMessages = messages
-      .filter((message, i) => !readFilesFunctionCallMessageIndexes.includes(i))
+      .filter((message, i) => !readFilesFunctionCallMessageIndexes.includes(i) && !writeFilesFunctionCallMessageIndexes.includes(i))
     ;
     return moderatedMessages;
   }
