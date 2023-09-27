@@ -12,7 +12,8 @@ const createAppQuestions: Question[] = [
 const createAppInstructions = async () => {
   // Here we would implement the instructions based on the user's answers to the questions
   return [
-    'cloneAppTemplatePackages',
+    'create a directory for the app (if it doesnt already exist), with the same name as the app (replace ` ` with `-`)',
+    'cloneAppTemplatePackages on the app directory',
     'update the package.json files of the packages you just cloned, set the package names to be app-name-ui and app-name-server',
     'npmInstall each newly cloned package',
     'runPackageScript(`build`, cwd) each newly cloned package',
