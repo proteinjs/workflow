@@ -171,9 +171,40 @@ export const npmInstallFunction: Function = {
   ],
 }
 
+export const uninstallPackagesFunctionName = 'uninstallPackages';
+export const uninstallPackagesFunction: Function = {
+  definition: {
+    name: uninstallPackagesFunctionName,
+    description: 'Uninstall packages',
+    parameters: {
+      type: 'object',
+      properties: {
+        packageNames: {
+          type: 'array',
+          description: 'Packages to uninstall',
+          items: {
+            type: 'string',
+            description: 'Name of package',
+          },
+        },
+        cwdPath: {
+          type: 'string',
+          description: 'The directory to uninstall packages from',
+        }
+      },
+      required: ['packageNames', 'cwdPath']
+    },
+  },
+  call: async (params: { packageNames: string[], cwdPath: string }) => await PackageUtil.uninstallPackages(params.packageNames, params.cwdPath),
+  instructions: [
+    `To uninstall a package, use the ${uninstallPackagesFunctionName} function`,
+  ],
+}
+
 export const packageFunctions: Function[] = [
   installPackagesFunction,
   runPackageScriptFunction,
   generateTypescriptDeclarationsFunction,
   npmInstallFunction,
+  uninstallPackagesFunction,
 ]

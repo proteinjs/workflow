@@ -36,11 +36,11 @@ export class PackageUtil {
     }
   }
 
-  static async uninstallPackages(packages: Package[], cwdPath?: string) {
-    const packageNames = packages.map(p => p.name).join(' ');
+  static async uninstallPackages(packageNames: string[], cwdPath?: string) {
+    const packageNamesStr = packageNames.join(' ');
     const args = [
       'uninstall',
-      packageNames
+      packageNamesStr
     ];
     const command = 'npm ' + args.join(' ');
     let envVars;
