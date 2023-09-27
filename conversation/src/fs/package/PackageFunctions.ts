@@ -38,13 +38,13 @@ export const installPackagesFunction: Function = {
         },
         cwdPath: {
           type: 'string',
-          description: 'If omitted, defaults to process.cwd',
+          description: 'The directory to install packages in',
         }
       },
-      required: ['packages']
+      required: ['packages', 'cwdPath']
     },
   },
-  call: async (params: { packages: Package[], cwdPath?: string }) => await PackageUtil.installPackages(params.packages, params.cwdPath),
+  call: async (params: { packages: Package[], cwdPath: string }) => await PackageUtil.installPackages(params.packages, params.cwdPath),
   instructions: [
     `To install a package, use the ${installPackagesFunctionName} function`,
   ],
