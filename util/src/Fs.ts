@@ -86,7 +86,6 @@ export class Fs {
     });
   }
 
-
   // @param dirPrefix recursively search for files in this dir
   // @param glob file matching pattern ie. **/package.json
   // @param globIgnorePatterns ie. ['**/node_modules/**', '**/dist/**'] to ignore these directories

@@ -105,9 +105,43 @@ export const fileOrDirectoryExistsFunction: Function = {
   ],
 }
 
+export const getFilePathsMatchingGlobFunctionName = 'getFilePathsMatchingGlob';
+const getFilePathsMatchingGlobFunction: Function = {
+  definition: {
+    name: getFilePathsMatchingGlobFunctionName,
+    description: 'Get file paths matching a glob',
+    parameters: {
+      type: 'object',
+      properties: {
+        dirPrefix: {
+          type: 'string',
+          description: 'Directory to recursively search for files',
+        },
+        glob: {
+          type: 'string',
+          description: 'File matching pattern',
+        },
+        globIgnorePatterns: {
+          type: 'array',
+          description: 'Directories to ignore',
+          items: {
+            type: 'string',
+          },
+        },
+      },
+      required: ['dirPrefix', 'glob']
+    },
+  },
+  call: async (params: { dirPrefix: string, glob: string, globIgnorePatterns?: string[] }) => await Fs.getFilePathsMatchingGlob(params.dirPrefix, params.glob, params.globIgnorePatterns),
+  instructions: [
+    `To get file paths matching a glob, use the ${getFilePathsMatchingGlobFunctionName} function`,
+  ],
+}
+
 export const fsFunctions: Function[] = [
   readFilesFunction,
   writeFilesFunction,
   createFolderFunction,
   fileOrDirectoryExistsFunction,
+  getFilePathsMatchingGlobFunction,
 ]

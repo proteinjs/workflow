@@ -17,7 +17,7 @@ export class ConversationFsFactory {
   private params: ConversationFsFactoryParams;
 
   constructor(params?: Partial<ConversationFsFactoryParams>) {
-    this.params = Object.assign({ maxFiles: 2, logLevel: 'info' }, params);
+    this.params = Object.assign({ maxFiles: 3, logLevel: 'info' }, params);
     this.logger = new Logger(this.constructor.name, this.params.logLevel);
   }
 
@@ -102,7 +102,7 @@ export class ConversationFsModerator implements MessageModerator {
       messages[conversationFileSystemMessageIndex].content = content;
     } else {
       conversationFileSystem = { fileContentMap: readFilesConsolidatedOutput, order: Object.keys(readFilesConsolidatedOutput) };
-      messages.push({ role: 'system', content: `Whenever you make a call to readFiles, the file content will be loaded into the { fileSystem } object in the message history` });
+      messages.push({ role: 'system', content: `Whenever you make a call to readFiles, the file content will be loaded into the { fileSystem } object in the message history. Do not respond with fileSystem's content in a message.` });
       const content = JSON.stringify({ fileSystem: conversationFileSystem });
       messages.push({ role: 'system', content });
     }

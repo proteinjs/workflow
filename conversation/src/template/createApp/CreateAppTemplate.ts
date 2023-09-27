@@ -1,3 +1,4 @@
+import { getFilePathsMatchingGlobFunctionName } from '../../fs/conversation_fs/FsFunctions';
 import { ConversationTemplate, Question } from '../ConversationTemplate';
 
 const createAppQuestions: Question[] = [
@@ -15,10 +16,11 @@ const createAppInstructions = async () => {
     'create a directory for the app (if it doesnt already exist), with the same name as the app (replace ` ` with `-`)',
     'cloneAppTemplatePackages on the app directory',
     'update the package.json files of the packages you just cloned, set the package names to be app-name-ui and app-name-server',
+    `update the ui/src/Container.tsx and ui/src/SplashPage.tsx files to replace the occurrences of 'appName' with their app name in each file`,
     'npmInstall each newly cloned package',
     'runPackageScript(`build`, cwd) each newly cloned package',
     'describe the packages',
-    'tell the user they can start the server by calling npm run dev in the server package',
+    'tell the user they can start the server by calling `npm run dev` in the server package',
   ];
 };
 
