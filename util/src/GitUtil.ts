@@ -91,6 +91,17 @@ export class GitUtil {
     await cmd('git', args, envVars);
     GitUtil.LOGGER.info(`Ran command: ${command}`);
   }
+
+  static async addAll(directory: string): Promise<void> {
+    const args = ['add', '.'];
+    const command = 'git ' + args.join(' ');
+    let envVars;
+    if (directory)
+      envVars = { cwd: directory }
+    GitUtil.LOGGER.info(`Running command: ${command}`);
+    await cmd('git', args, envVars);
+    GitUtil.LOGGER.info(`Ran command: ${command}`);
+  }
 }
 
 export const cloneAppTemplatePackagesFunctionName = 'cloneAppTemplatePackages';
@@ -257,6 +268,25 @@ export const statusFunction = {
   call: async (params: { directory: string }) => await GitUtil.status(params.directory),
 }
 
+export const addAllFunctionName = 'gitAddAll';
+export const addAllFunction = {
+  definition: {
+    name: addAllFunctionName,
+    description: 'Add all changes in the git repository in the specified directory',
+    parameters: {
+      type: 'object',
+      properties: {
+        directory: {
+          type: 'string',
+          description: 'The directory of the git repository',
+        },
+      },
+      required: ['directory']
+    },
+  },
+  call: async (params: { directory: string }) => await GitUtil.addAll(params.directory),
+}
+
 export const gitFunctions = [
   cloneAppTemplatePackagesFunction,
   initFunction,
@@ -266,4 +296,5 @@ export const gitFunctions = [
   pullFunction,
   pushFunction,
   statusFunction,
+  addAllFunction,
 ]
