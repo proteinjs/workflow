@@ -138,10 +138,91 @@ const getFilePathsMatchingGlobFunction: Function = {
   ],
 }
 
+export const renameFunctionName = 'renameFileOrDirectory';
+const renameFunction: Function = {
+  definition: {
+    name: renameFunctionName,
+    description: 'Rename a file or directory',
+    parameters: {
+      type: 'object',
+      properties: {
+        oldPath: {
+          type: 'string',
+          description: 'Original path of the file or directory',
+        },
+        newName: {
+          type: 'string',
+          description: 'New name for the file or directory',
+        },
+      },
+      required: ['oldPath', 'newName']
+    },
+  },
+  call: async (params: { oldPath: string, newName: string }) => await Fs.rename(params.oldPath, params.newName),
+  instructions: [
+    `To rename a file or directory, use the ${renameFunctionName} function`,
+  ],
+}
+
+export const copyFunctionName = 'copyFileOrDirectory';
+const copyFunction: Function = {
+  definition: {
+    name: copyFunctionName,
+    description: 'Copy a file or directory',
+    parameters: {
+      type: 'object',
+      properties: {
+        sourcePath: {
+          type: 'string',
+          description: 'Path of the source file or directory',
+        },
+        destinationPath: {
+          type: 'string',
+          description: 'Destination path for the copied file or directory',
+        },
+      },
+      required: ['sourcePath', 'destinationPath']
+    },
+  },
+  call: async (params: { sourcePath: string, destinationPath: string }) => await Fs.copy(params.sourcePath, params.destinationPath),
+  instructions: [
+    `To copy a file or directory, use the ${copyFunctionName} function`,
+  ],
+}
+
+export const moveFunctionName = 'moveFileOrDirectory';
+const moveFunction: Function = {
+  definition: {
+    name: moveFunctionName,
+    description: 'Move a file or directory',
+    parameters: {
+      type: 'object',
+      properties: {
+        sourcePath: {
+          type: 'string',
+          description: 'Path of the source file or directory',
+        },
+        destinationPath: {
+          type: 'string',
+          description: 'Destination path for the moved file or directory',
+        },
+      },
+      required: ['sourcePath', 'destinationPath']
+    },
+  },
+  call: async (params: { sourcePath: string, destinationPath: string }) => await Fs.move(params.sourcePath, params.destinationPath),
+  instructions: [
+    `To move a file or directory, use the ${moveFunctionName} function`,
+  ],
+}
+
 export const fsFunctions: Function[] = [
   readFilesFunction,
   writeFilesFunction,
   createFolderFunction,
   fileOrDirectoryExistsFunction,
   getFilePathsMatchingGlobFunction,
+  renameFunction,
+  copyFunction,
+  moveFunction,
 ]

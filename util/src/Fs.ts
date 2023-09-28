@@ -127,4 +127,20 @@ export class Fs {
 
     return results;
   }
+
+  static async rename(oldPath: string, newName: string) {
+    const newPath = path.join(path.dirname(oldPath), newName);
+    await fsExtra.rename(oldPath, newPath);
+    Fs.LOGGER.info(`Renamed: ${oldPath} to ${newPath}`);
+  }
+
+  static async copy(sourcePath: string, destinationPath: string) {
+    await fsExtra.copy(sourcePath, destinationPath);
+    Fs.LOGGER.info(`Copied: ${sourcePath} to ${destinationPath}`);
+  }
+
+  static async move(sourcePath: string, destinationPath: string) {
+    await fsExtra.move(sourcePath, destinationPath);
+    Fs.LOGGER.info(`Moved: ${sourcePath} to ${destinationPath}`);
+  }
 }
