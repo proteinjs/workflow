@@ -102,6 +102,11 @@ export class GitUtil {
     await cmd('git', args, envVars);
     GitUtil.LOGGER.info(`Ran command: ${command}`);
   }
+
+  static async sync(directory: string): Promise<void> {
+    await GitUtil.pull(directory);
+    await GitUtil.push(directory);
+  }
 }
 
 export const cloneAppTemplatePackagesFunctionName = 'cloneAppTemplatePackages';
@@ -287,6 +292,25 @@ export const addAllFunction = {
   call: async (params: { directory: string }) => await GitUtil.addAll(params.directory),
 }
 
+export const syncFunctionName = 'gitSync';
+export const syncFunction = {
+  definition: {
+    name: syncFunctionName,
+    description: 'Perform a pull then a push in the git repository in the specified directory',
+    parameters: {
+      type: 'object',
+      properties: {
+        directory: {
+          type: 'string',
+          description: 'The directory of the git repository',
+        },
+      },
+      required: ['directory']
+    },
+  },
+  call: async (params: { directory: string }) => await GitUtil.sync(params.directory),
+}
+
 export const gitFunctions = [
   cloneAppTemplatePackagesFunction,
   initFunction,
@@ -297,4 +321,5 @@ export const gitFunctions = [
   pushFunction,
   statusFunction,
   addAllFunction,
+  syncFunction,
 ]
