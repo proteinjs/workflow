@@ -256,3 +256,14 @@ export const statusFunction = {
   },
   call: async (params: { directory: string }) => await GitUtil.status(params.directory),
 }
+
+export const gitFunctions = [
+  cloneAppTemplatePackagesFunction,
+  initFunction,
+  setRemoteFunction,
+  addRemoteFunction,
+  commitFunction,
+  pullFunction,
+  pushFunction,
+  statusFunction,
+]

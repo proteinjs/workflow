@@ -6,6 +6,7 @@ import { ConversationFsModuleFactory } from './fs/conversation_fs/ConversationFs
 import { PackageModuleFactory } from './fs/package/PackageModule';
 import { ConversationModule, ConversationModuleFactory } from './ConversationModule';
 import { Reset, textColorMap } from '@brentbahry/util';
+import { GitModuleFactory } from './fs/git/GitModule';
 
 export class CodegenConversation {
   private static INITIAL_QUESTION = 'What would you like to create?';
@@ -44,6 +45,7 @@ export class CodegenConversation {
       new KeywordToFilesIndexModuleFactory(),
       new PackageModuleFactory(),
       new ConversationTemplateModuleFactory(),
+      new GitModuleFactory(),
     ];
     const modules: ConversationModule[] = [];
     for (let moduleFactory of moduleFactories)
@@ -56,6 +58,7 @@ export class CodegenConversation {
     return [
       `We are going to have a conversation with the user to generate code`,
       `Await all function calls that return a promise`,
+      `Try to repspond to the user with as few words as possible while still having a conversational tone`,
     ];
   }
 
