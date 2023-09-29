@@ -40,7 +40,7 @@ export function AuthenticatedPageContainer(props: AuthenticatedPageContainerProp
 
                     proteinjs['sessionData']['data'][userCache.key] = guestUser;
                     setIsLoggedIn(false);
-                    return '/';
+                    return loginPath;
                 }
             }}
             {...other}

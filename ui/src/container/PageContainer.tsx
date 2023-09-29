@@ -13,41 +13,7 @@ import {
 import { CssVarsProvider as JoyCssVarsProvider } from '@mui/joy/styles';
 
 const materialTheme = materialExtendTheme();
-
 const drawerWidth = 240;
-// const useStyles = makeStyles(theme => ({
-//     root: {
-//         flexGrow: 1,
-//     },
-// 	menuButton: {
-//         marginRight: theme.spacing(2),
-//     },
-//     title: {
-//         flexGrow: 1,
-//     },
-//     drawer: {
-//         width: drawerWidth,
-//         flexShrink: 0,
-//     },
-//     drawerPaper: {
-//         width: drawerWidth,
-//     },
-// }));
-
-// const theme = extendTheme({
-//     components: {
-//         JoyChip: {
-//         defaultProps: {
-//             size: 'sm',
-//         },
-//         styleOverrides: {
-//             root: {
-//             borderRadius: '4px',
-//             },
-//         },
-//         },
-//     },
-// });
 
 /** Either a dialog component, or a path to be redirected to */
 export type LinkOrDialog = React.ComponentType<{onClose: () => void}>|string;
@@ -78,21 +44,23 @@ export type PageContainerProps = {
 }
 
 export function PageContainer(props: PageContainerProps) {
-    // const history = useHistory();
     const navigate = useNavigate();
     const { appName, page, toolbarChildren, auth, profileMenuItems, navMenuItems } = props;
-    const [anchorEl, setAnchorEl] = React.useState(null);
-    const profileMenuOpen = Boolean(anchorEl);
-    const handleProfileMenu = (event: any) => {
-        setAnchorEl(event.currentTarget);
-    };
-    const handleProfileMenuClose = () => {
-        setAnchorEl(null);
-    };
     const [loginClicked, setLoginClicked] = React.useState(false);
     const [selectedProfileMenuItem, setSelectedProfileMenuItem] = React.useState<number>(-1);
     const [navMenuOpen, setNavMenuOpen] = React.useState(false);
     const [selectedNavMenuItem, setSelectedNavMenuItem] = React.useState<number>(-1);
+    React.useEffect(() => {
+        if (auth?.canViewPage(page))
+            return;
+
+        if (!auth?.isLoggedIn) {
+            if (typeof auth?.login === 'string') {
+                const p = qualifiedPath(auth.login);
+                navigate(p);
+            }
+        }
+    }, [page]);
 
     return (
         <div style={{
@@ -132,92 +100,37 @@ export function PageContainer(props: PageContainerProps) {
             return null;
 
         if (auth.isLoggedIn) {
+            const [selectedIndex, setSelectedIndex] = React.useState<number>(1);
             return (
                 <div>
-                    {/* <IconButton
-                        aria-label='account of current user'
-                        aria-controls='menu-appbar'
-                        aria-haspopup='true'
-                        onClick={handleProfileMenu}
-                        color='inherit'
-                    >
-                        <AccountCircle />
-                    </IconButton>
-                    <Menu
-                        id='menu-appbar'
-                        anchorEl={anchorEl}
-                        anchorOrigin={{
-                            vertical: 'top',
-                            horizontal: 'right',
-                        }}
-                        keepMounted
-                        transformOrigin={{
-                            vertical: 'top',
-                            horizontal: 'right',
-                        }}
-                        open={profileMenuOpen}
-                        onClose={handleProfileMenuClose}
-                    >
-                        { profileMenuItems &&
-                            profileMenuItems.map((profileMenuItem, index) => (
-                                <MenuItem 
-                                    onClick={event => {
-                                        if (typeof profileMenuItem.action === 'string'){
-                                            history.push(profileMenuItem.action);
-                                            return;
-                                        }
-
-                                        setSelectedProfileMenuItem(index)
-                                    }}
-                                >
-                                    {profileMenuItem.name}
-                                </MenuItem>
-                            ))
-                        }
-                        <MenuItem onClick={event => auth.logout().then(redirectPath => history.push(redirectPath))}>
-                            Logout
-                        </MenuItem>
-                    </Menu> */}
                     <Dropdown>
-                        <MenuButton
-                            slots={{ root: IconButton }}
-                            slotProps={{ root: { variant: 'outlined', color: 'neutral' } }}
-                            onClick={handleProfileMenu}
-                        >
+                        <MenuButton>
                             <AccountCircle />
                         </MenuButton>
-                        <Menu
-                            id='menu-appbar'
-                            // anchorEl={anchorEl}
-                            // anchorOrigin={{
-                            //     vertical: 'top',
-                            //     horizontal: 'right',
-                            // }}
-                            // keepMounted
-                            // transformOrigin={{
-                            //     vertical: 'top',
-                            //     horizontal: 'right',
-                            // }}
-                            open={profileMenuOpen}
-                            onClose={handleProfileMenuClose}
-                        >
+                        <Menu>
                             { profileMenuItems &&
                                 profileMenuItems.map((profileMenuItem, index) => (
                                     <MenuItem 
                                         onClick={event => {
                                             if (typeof profileMenuItem.action === 'string'){
-                                                navigate(profileMenuItem.action);
+                                                navigate(qualifiedPath(profileMenuItem.action));
                                                 return;
                                             }
 
-                                            setSelectedProfileMenuItem(index)
+                                            setSelectedIndex(index);
                                         }}
+                                        selected={selectedIndex === index}
                                     >
                                         {profileMenuItem.name}
                                     </MenuItem>
                                 ))
                             }
-                            <MenuItem onClick={event => auth.logout().then(redirectPath => navigate(redirectPath))}>
+                            <MenuItem 
+                                onClick={async (event) => {
+                                    const redirectPath = await auth.logout();
+                                    navigate(qualifiedPath(redirectPath));
+                                }}
+                            >
                                 Logout
                             </MenuItem>
                         </Menu>
@@ -229,7 +142,7 @@ export function PageContainer(props: PageContainerProps) {
 
         return (
             <div>
-                <Button onClick={event => auth && typeof auth.login === 'string' ? navigate(auth.login) : setLoginClicked(!loginClicked)}>
+                <Button onClick={event => auth && typeof auth.login === 'string' ? navigate(qualifiedPath(auth.login)) : setLoginClicked(!loginClicked)}>
                     Login
                 </Button>
                 <Login />
@@ -268,9 +181,6 @@ export function PageContainer(props: PageContainerProps) {
                     }}
                     anchor='left'
                     open={navMenuOpen}
-                    // classes={{
-                    //     paper: classes.drawerPaper,
-                    // }}
                 >
                     <Toolbar />
                     <List>
@@ -312,14 +222,6 @@ export function PageContainer(props: PageContainerProps) {
             return <page.component />;
 
         if (!auth?.isLoggedIn) {
-            if (typeof auth?.login === 'string') {
-                // if (history.location.pathname == qualifiedPath(auth.login))
-                //     return <page.component />;
-
-                navigate(auth.login);
-                return null;
-            }
-
             if (!loginClicked)
                 setLoginClicked(true);
             
