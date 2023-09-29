@@ -1,33 +1,33 @@
 import React from 'react';
-import { Button, Container, Grid, IconButton, Typography, LinearProgress } from '@material-ui/core';
-import { Theme, WithStyles, createStyles, withStyles } from '@material-ui/core/styles';
+import { Button, Container, Grid, IconButton, Typography, LinearProgress, Sheet } from '@mui/joy';
 import queryString from 'query-string';
 import { Field, FieldComponent, Fields } from './Field';
 import { FormButton, FormButtons } from './FormButton';
+import { withRouter, WithRouterProps } from '../router/withRouter';
 
-const styles = (theme: Theme) => createStyles({
-	root: {
-		padding: 0
-	},
-	title: {
-		marginBottom: theme.spacing(2)
-	},
-	status: {
-		marginBottom: theme.spacing(1)
-    },
-    fieldRow: {
-        marginBottom: theme.spacing(3)
-    },
-	buttons: {
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(1)
-    },
-    button: {
-        marginLeft: theme.spacing(1)
-    }
-});
+// const styles = (theme: Theme) => createStyles({
+// 	root: {
+// 		padding: 0
+// 	},
+// 	title: {
+// 		marginBottom: theme.spacing(2)
+// 	},
+// 	status: {
+// 		marginBottom: theme.spacing(1)
+//     },
+//     fieldRow: {
+//         marginBottom: theme.spacing(3)
+//     },
+// 	buttons: {
+//         marginTop: theme.spacing(2),
+//         marginBottom: theme.spacing(1)
+//     },
+//     button: {
+//         marginLeft: theme.spacing(1)
+//     }
+// });
 
-export type FormProps<F extends Fields, B extends FormButtons<F>> = WithStyles<typeof styles> & {
+export type FormProps<F extends Fields, B extends FormButtons<F>> = {
     name?: string,
     documentation?: React.ComponentType,
     createFields: () => F,
@@ -35,7 +35,7 @@ export type FormProps<F extends Fields, B extends FormButtons<F>> = WithStyles<t
     buttons: B,
     onLoad?: (fields: F, buttons: B) => Promise<void>,
     onLoadProgressMessage?: string
-}
+} & Partial<WithRouterProps>
 
 export type FormState<F extends Fields> = {
     status?: { message?: string, isError?: boolean },
@@ -44,9 +44,9 @@ export type FormState<F extends Fields> = {
     onLoadExecuted?: boolean
 }
 
-class FormComponent<F extends Fields, B extends FormButtons<F>> extends React.Component<FormProps<F, B>, FormState<F>> {
-    constructor(props: FormProps<F, B>, context?: any) {
-        super(props, context);
+export class FormComponent<F extends Fields, B extends FormButtons<F>> extends React.Component<FormProps<F, B>, FormState<F>> {
+    constructor(props: FormProps<F, B>) {
+        super(props);
         this.state = { fields: props.createFields() };
     }
 
@@ -107,7 +107,7 @@ class FormComponent<F extends Fields, B extends FormButtons<F>> extends React.Co
                 const successMessage = await button.onClick(this.state.fields, this.props.buttons);
                 if (successMessage)
                     this.setState({ status: { message: successMessage, isError: false}});
-            } catch (error) {
+            } catch (error: any) {
                 this.setState({ status: { message: error.message, isError: true}});
                 console.error(`Error when clicking button: ${button.name}`, error);
             }
@@ -118,7 +118,10 @@ class FormComponent<F extends Fields, B extends FormButtons<F>> extends React.Co
             let path = button.redirect.path;
             if (button.redirect.props)
                 path += `?${queryString.stringify(button.redirect.props)}`;
-            this.context.router.history.push(path);
+            
+            if (this.props.navigate)
+                this.props.navigate(path);
+            
             return;
         }
 
@@ -127,17 +130,16 @@ class FormComponent<F extends Fields, B extends FormButtons<F>> extends React.Co
     }
 
     render() {
-        const { classes } = this.props;
         return (
-            <Container className={classes.root} maxWidth={this.getContainerMaxWidth()}>
+            <Container sx={{ padding: 0 }} maxWidth={this.getContainerMaxWidth()}>
                 <form autoComplete='off'>
                     <Grid container>
-                        {this.Title(classes)}
+                        {this.Title()}
                         {this.Documentation()}
-                        {this.Status(classes)}
-                        {this.Fields(classes)}
+                        {this.Status()}
+                        {this.Fields()}
                         {this.Progress()}
-                        {this.Buttons(classes)}
+                        {this.Buttons()}
                     </Grid>
                 </form>
             </Container>
@@ -173,17 +175,28 @@ class FormComponent<F extends Fields, B extends FormButtons<F>> extends React.Co
         return 'xs';
     }
 
-    private Title(classes: any) {
+    private Title() {
         if (!this.props.name)
             return null;
 
         return (
-            <Grid container item xs={12} justify='flex-start' alignItems='flex-start' spacing={2}>
-                <Grid item>
-                    <Typography variant='h5' className={classes.title}>
+            <Grid 
+                container 
+                spacing={2} 
+                xs={12} 
+                justifyContent='flex-start' 
+                alignItems='flex-start'
+            >
+                <Sheet>
+                    <Typography 
+                        level='title-md' 
+                        sx={(theme) => ({
+                            marginBottom: theme.spacing(2),
+                        })}
+                    >
                         {this.props.name}
                     </Typography>
-                </Grid>
+                </Sheet>
             </Grid>
         );
     }
@@ -193,35 +206,50 @@ class FormComponent<F extends Fields, B extends FormButtons<F>> extends React.Co
             return null;
 
         return (
-            <Grid container item xs={12} justify='flex-start' alignItems='flex-start'>
-                <Grid item>
+            <Grid 
+                container 
+                xs={12} 
+                justifyContent='flex-start' 
+                alignItems='flex-start'
+            >
+                <Sheet>
                     <this.props.documentation />
-                </Grid>
+                </Sheet>
             </Grid>
         );
     }
     
-    private Status(classes: any) {
+    private Status() {
         if (!this.state.status || !this.state.status.message)
             return null;
 
         return (
-            <Grid container item xs={12}>
-                <Grid item xs={12} className={classes.status}>
+            <Grid 
+                container
+                xs={12}
+            >
+                <Sheet
+                    sx={(theme) => ({
+                        marginBottom: theme.spacing(1),
+                    })}
+                >
                     <Typography
-                        variant='subtitle1'
-                        color={this.state.status.isError ? 'error' : 'primary'}
+                        level='body-sm'
+                        color={this.state.status.isError ? 'danger' : 'primary'}
                     >
                         {this.state.status.message}
                     </Typography>
-                </Grid>
+                </Sheet>
             </Grid>
         );
     }
     
-    private Fields(classes: any) {
+    private Fields() {
         return (
-            <Grid container item xs={12}>
+            <Grid 
+                container 
+                xs={12}
+            >
                 {
                     this.getFieldRows().map((fieldComponents, index) => {
                         if (!this.isFieldRowVisible(fieldComponents))
@@ -230,8 +258,9 @@ class FormComponent<F extends Fields, B extends FormButtons<F>> extends React.Co
                         return (
                                 <Grid
                                     container
-                                    item
-                                    className={classes.fieldRow}
+                                    sx={(theme) => ({
+                                        marginBottom: theme.spacing(3),
+                                    })}
                                     key={index}
                                 >
                                     {
@@ -241,12 +270,16 @@ class FormComponent<F extends Fields, B extends FormButtons<F>> extends React.Co
                                     
                                             return true;
                                         }).map((fieldComponent) => (
-                                            <Grid item xs={12} sm={fieldComponent.field.layout?.width as 1} key={fieldComponent.field.name}>
+                                            <Sheet 
+                                                // xs={12} 
+                                                // sm={fieldComponent.field.layout?.width as 1} 
+                                                key={fieldComponent.field.name}
+                                            >
                                                 <fieldComponent.component
                                                     field={fieldComponent.field}
                                                     onChange={this.onChange.bind(this)}
                                                 />
-                                            </Grid>
+                                            </Sheet>
                                         ))
                                     }
                                 </Grid>
@@ -324,24 +357,32 @@ class FormComponent<F extends Fields, B extends FormButtons<F>> extends React.Co
             return null;
 
         return (
-            <Grid container item xs={12} justify='center' alignItems='center' spacing={2}>
-                <Grid item>
-                    <LinearProgress variant='indeterminate' color='primary' />
-                </Grid>
+            <Grid 
+                container 
+                xs={12} 
+                justifyContent='center' 
+                alignItems='center' 
+                spacing={2}
+            >
+                <Sheet>
+                    <LinearProgress determinate={false} color='primary' />
+                </Sheet>
             </Grid>
         );
     }
     
-    private Buttons(classes: any) {
+    private Buttons() {
         return (
             <Grid 
                 container
-                item
                 direction="row"
-                justify="flex-end"
+                justifyContent="flex-end"
                 alignItems="center"
                 xs={12}
-                className={classes.buttons}
+                sx={(theme) => ({
+                    marginTop: theme.spacing(2),
+                    marginBottom: theme.spacing(1),
+                })}
             >
                 {
                     Object.keys(this.props.buttons).map((buttonPropertyName) => this.props.buttons[buttonPropertyName]).filter((button) => {
@@ -351,25 +392,30 @@ class FormComponent<F extends Fields, B extends FormButtons<F>> extends React.Co
                         return true;
                     }).map((button, key) => {
                         return (
-                            <Grid item key={key} className={classes.button}>
+                            <Sheet 
+                                key={key} 
+                                sx={(theme) => ({
+                                    marginLeft: theme.spacing(1),
+                                })}
+                            >
                                 { button.style.icon ?
                                     <IconButton
                                         disabled={button.accessibility?.disabled}
-                                        onClick={event => this.onClick(button)}
+                                        onClick={(event: any) => this.onClick(button)}
                                     >
                                         <button.style.icon />
                                     </IconButton>
                                     :
                                     <Button
                                         color={button.style.color}
-                                        variant={button.style.border ? 'contained' : 'text'}
+                                        variant={button.style.variant ? button.style.variant : 'solid'}
                                         disabled={button.accessibility?.disabled}
-                                        onClick={event => this.onClick(button)}
+                                        onClick={(event: any) => this.onClick(button)}
                                     >
                                         {button.name}
                                     </Button>
                                 }
-                            </Grid>
+                            </Sheet>
                         )
                     })
                 }
@@ -379,4 +425,4 @@ class FormComponent<F extends Fields, B extends FormButtons<F>> extends React.Co
 }
 
 type FormType = <F extends Fields, B extends FormButtons<F>>(props: Omit<FormProps<F, B>, 'classes'>) => JSX.Element;
-export const Form = withStyles(styles)(FormComponent) as FormType;
+export const Form = withRouter(FormComponent) as FormType;

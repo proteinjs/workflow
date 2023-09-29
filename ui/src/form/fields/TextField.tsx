@@ -1,15 +1,8 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import { IconButton, InputAdornment, TextField as MuiTextField } from '@material-ui/core';
-import { Visibility, VisibilityOff } from '@material-ui/icons';
+import { IconButton } from '@mui/joy';
+import { InputAdornment, TextField as MuiTextField } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { Field, FieldComponent, FieldComponentProps, fieldDisplayValue, fieldLabel, Fields } from '../Field';
-
-const useStyles = makeStyles(theme => ({
-	root: {
-		display: 'flex',
-		flexWrap: 'nowrap'
-	},
-}));
 
 export type TextFieldProps<T, F extends Fields> = Field<T, F> & {
     isPassword?: boolean
@@ -24,7 +17,6 @@ export function textField<F extends Fields>(props: TextFieldProps<string, F>): F
     };
 
     function TextField(props: FieldComponentProps<string, F>) {
-        const classes = useStyles(props);
         const { field, onChange, ...other } = props;
         const [error, setError] = React.useState(false);
         const [statusMessage, setStatusMessage] = React.useState<string>();
@@ -32,8 +24,11 @@ export function textField<F extends Fields>(props: TextFieldProps<string, F>): F
     
         return (
             <MuiTextField
+                sx={{
+                    display: 'flex',
+		            flexWrap: 'nowrap',
+                }}
                 key={field.name}
-                className={classes.root}
                 label={fieldLabel(field)}
                 type={isPassword && !passwordVisible ? 'password' : 'text'}
                 value={fieldDisplayValue(field)}

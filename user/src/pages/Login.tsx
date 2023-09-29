@@ -2,9 +2,10 @@ import React from 'react';
 import { Page, Form, Fields, textField, FormButtons, clearButton, FormPage } from '@proteinjs/ui';
 import { login } from '../routes/login';
 
+export const loginPath = 'login';
 export const loginPage: Page = {
     name: 'Login',
-    path: 'login',
+    path: loginPath,
     public: true,
     component: () => (
         <FormPage>
@@ -39,7 +40,7 @@ const buttons: FormButtons<LoginFields> = {
 		name: 'Login',
 		style: {
 			color: 'primary',
-			border: true
+			variant: 'solid'
 		},
 		onClick: async (fields: LoginFields, buttons: FormButtons<LoginFields>) => {
 			const response = await fetch(login.path, {

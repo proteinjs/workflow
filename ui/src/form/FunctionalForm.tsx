@@ -346,7 +346,7 @@ export function Form<F extends Fields, B extends FormButtons<F>>(props: FormProp
                                     <RootBox className={classes.button}>
                                         <Button
                                             color={button.style.color}
-                                            variant={button.style.border ? 'contained' : 'text'}
+                                            variant={button.style.variant ? 'contained' : 'text'}
                                             disabled={button.accessibility?.disabled}
                                             onClick={event => onClick(button)}
                                         >

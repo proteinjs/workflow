@@ -17,8 +17,6 @@
     },
     "dependencies": {
         "@brentbahry/reflection": "file:../reflection",
-        "@material-ui/core": "4.11.0",
-        "@material-ui/icons": "4.9.1",
         "@proteinjs/db": "file:../db/db",
         "@proteinjs/server-api": "file:../server/api",
         "@proteinjs/ui": "file:../ui",

@@ -1,29 +1,24 @@
 import React from 'react';
-import { Grid, PaperProps } from '@material-ui/core';
-import { makeStyles, Theme } from '@material-ui/core/styles';
+import { Grid, Sheet } from '@mui/joy';
+import { PaperProps } from '@mui/material'
 import { FormPaper } from './FormPaper';
 
-const useStyles = makeStyles<Theme, PaperProps>(theme => ({
-	root: {
-        marginTop: theme.spacing(4),
-    }
-}));
-
 export function FormPage(props: PaperProps) {
-    const classes = useStyles(props);
     return (
         <Grid
             container
-            className={classes.root}
+            sx={(theme) => ({
+                marginTop: theme.spacing(4),
+            })} 
             direction='row'
-            justify='center'
+            justifyContent='center'
             alignItems='center'
         >
-            <Grid item>
+            <Sheet>
                 <FormPaper {...props}>
                     {props.children}
                 </FormPaper>
-            </Grid>
+            </Sheet>
         </Grid>
     );
 }

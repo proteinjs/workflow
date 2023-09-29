@@ -1,8 +1,8 @@
 import React from 'react';
-import * as ReactRouter from 'react-router';
+import { Route, Routes } from 'react-router';
 import * as ReactDom from 'react-dom';
-import { BrowserRouter, Switch, Redirect } from 'react-router-dom';
-import { CssBaseline } from '@material-ui/core';
+import { BrowserRouter } from 'react-router-dom';
+import { CssBaseline } from '@mui/joy';
 import { Page, getPages } from './Page';
 
 export type AppOptions = {
@@ -20,36 +20,41 @@ export function Router(props: { pages: Page[], options: AppOptions }) {
         <div>
             <CssBaseline />
             <BrowserRouter>
-                <Switch>
+                <Routes>
                     {
                         (() => {
                             const routes = [];
                             let key = 0;
                             for (const page of pages) {
-                            routes.push(<ReactRouter.Route path={getPath(page.path)} exact={true} component={options.pageContainer && !page.noPageContainer ? () => <ContainerizedComponent container={options.pageContainer} page={page}/> : page.component} key={key++} />);
-
-                                if (!page.redirects)
-                                    continue;
-
-                                for (const redirect of page.redirects)
-                                    routes.push(<ReactRouter.Route path={getPath(redirect)} exact={true} component={() => <Redirect to={getPath(page.path)} />} key={key++} />);
+                                if (typeof page.path === 'string')
+                                    routes.push(<Route key={key++} path={getPath(page.path)} element={<ContainerizedComponent options={options} page={page} />} />);
+                                else {
+                                    const paths = page.path as string[];
+                                    for (const path of paths)
+                                        routes.push(<Route key={key++} path={getPath(path)} element={<ContainerizedComponent options={options} page={page} />} />);
+                                }
                             }
                             return routes;
                         })()
                     }
-                    <ReactRouter.Route component={options.pageNotFound ? options.pageNotFound : () => <h1>404: Page not found</h1>} />
-                </Switch>
+                    <Route element={<PageNotFound pageNotFound={options.pageNotFound} />} />
+                </Routes>
             </BrowserRouter>
         </div>
     );
 
-    function ContainerizedComponent(props: { container: AppOptions['pageContainer'], page: Page}) {
-        if (!props.container)
-            return null;
+    function ContainerizedComponent(props: { options: AppOptions, page: Page}) {
+        if (props.options.pageContainer && !props.page.noPageContainer)
+            return ( <props.options.pageContainer page={props.page} /> );
         
-        return (
-            <props.container page={props.page} />
-        );
+        return ( <props.page.component /> );
+    }
+
+    function PageNotFound(props: { pageNotFound: AppOptions['pageNotFound'] }) {
+        if (props.pageNotFound)
+            return ( <props.pageNotFound /> );
+
+        return <h1>404: Page not found</h1>;
     }
 }
 

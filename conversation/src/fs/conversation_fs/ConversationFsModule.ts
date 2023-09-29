@@ -24,6 +24,7 @@ export class ConversationFsModule implements ConversationModule {
       `You have access to code in a local repo, you can read and write code to and from the file system with the ${readFilesFunction.definition.name} function and the ${writeFilesFunction.definition.name} function`,
       `Before writing to a file that already exists, read the file first and make your changes to its contents`,
       `When reading/writing a file in a specified package, join the package directory with the relative path to form the file path`,
+      `When searching for source files, do not look in the dist directory`,
     ];
   }
 

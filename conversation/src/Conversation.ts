@@ -14,6 +14,7 @@ export type ConversationParams = {
 
 export class Conversation {
   private history = new MessageHistory();
+  private systemMessages: ChatCompletionMessageParam[] = [];
   private functions: Function[] = [];
   private messageModerators: MessageModerator[] = [];
   private generatedCode = false;
@@ -26,6 +27,10 @@ export class Conversation {
     this.logger = new Logger(params.name, params.logLevel);
     if (params.modules)
       this.addModules(params.modules);
+
+    this.addFunctions([
+      clearHistoryFunction(this),
+    ]);
   }
 
   private addModules(modules: ConversationModule[]) {
@@ -60,8 +65,16 @@ export class Conversation {
     this.messageModerators.push(...messageModerators);
   }
 
+  clearHistory(summary: string) {
+    this.history = new MessageHistory();
+    this.history.push(this.systemMessages);
+    this.history.push([{ role: 'assistant', content: `Summary of previous conversation: ${summary}` }]);
+  }
+
   addSystemMessagesToHistory(messages: string[]) {
-   this.history.push(messages.map(message => { return { role: 'system', content: message }}));
+    const chatCompletions: ChatCompletionMessageParam[] = messages.map(message => { return { role: 'system', content: message }});
+    this.history.push(chatCompletions);
+    this.systemMessages.push(...chatCompletions);
   }
 
   addAssistantMessagesToHistory(messages: string[]) {
@@ -108,5 +121,29 @@ export class Conversation {
     const list = await OpenAi.generateList(description, model, this.history, this.functions, this.messageModerators, !this.generatedList, this.params.logLevel);
     this.generatedList = true;
     return list;
+  }
+}
+
+export const clearHistoryFunctionName = 'clearConversationHistory';
+export const clearHistoryFunction = (conversation: Conversation) => {
+  return {
+    definition: {
+      name: clearHistoryFunctionName,
+      description: 'Clear the conversation history; use after completing conversations',
+      parameters: {
+        type: 'object',
+        properties: {
+          summary: {
+            type: 'string',
+            description: 'A 2-3 sentence summary of the current chat history',
+          },
+        },
+        required: ['directory']
+      },
+    },
+    call: async (params: { summary: string }) => conversation.clearHistory(params.summary),
+    instructions: [
+      `After conversations complete, call the ${clearHistoryFunctionName} function to replace the chat history with a single message summary`
+    ],
   }
 }

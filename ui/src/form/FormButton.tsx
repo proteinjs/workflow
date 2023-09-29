@@ -1,5 +1,4 @@
 import React from 'react';
-import { PropTypes } from '@material-ui/core';
 import { Fields } from './Field';
 
 export type FormButton<F extends Fields> = {
@@ -9,8 +8,8 @@ export type FormButton<F extends Fields> = {
 		hidden?: boolean,
 	};
 	style: {
-		color?: PropTypes.Color,
-		border?: boolean,
+		color?: 'primary'|'neutral'|'danger'|'success'|'warning',
+		variant?: 'plain'|'outlined'|'soft'|'solid',
 		icon?: React.ComponentType,
     };
     clearFormOnClick?: boolean,
@@ -24,7 +23,7 @@ export abstract class FormButtons<F extends Fields> { [name: string]: FormButton
 export const clearButton: FormButton<any> = {
 	name: 'clear',
 	style: {
-		color: 'secondary'
+		color: 'neutral'
 	},
 	clearFormOnClick: true
 };
