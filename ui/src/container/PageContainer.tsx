@@ -81,7 +81,7 @@ export function PageContainer(props: PageContainerProps) {
                                     <MenuIcon />
                                 </IconButton>
                             }
-                            <Typography level='h4' sx={{ flexGrow: 1, }}>
+                            <Typography level='h4' textColor='common.white' sx={{ flexGrow: 1, }}>
                                 {appName}
                             </Typography>
                             {toolbarChildren}
