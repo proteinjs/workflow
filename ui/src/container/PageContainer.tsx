@@ -104,7 +104,16 @@ export function PageContainer(props: PageContainerProps) {
             return (
                 <div>
                     <Dropdown>
-                        <MenuButton>
+                        <MenuButton
+                            slots={{ root: IconButton }}
+                            slotProps={{ root: { variant: 'plain', color: 'neutral' } }}
+                            sx={{
+                                '&:hover': {
+                                    color: '#fff',
+                                },
+                            }}
+                            style={{ backgroundColor: 'transparent' }}
+                        >
                             <AccountCircle />
                         </MenuButton>
                         <Menu>

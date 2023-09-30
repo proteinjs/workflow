@@ -5,28 +5,6 @@ import { Field, FieldComponent, Fields } from './Field';
 import { FormButton, FormButtons } from './FormButton';
 import { withRouter, WithRouterProps } from '../router/withRouter';
 
-// const styles = (theme: Theme) => createStyles({
-// 	root: {
-// 		padding: 0
-// 	},
-// 	title: {
-// 		marginBottom: theme.spacing(2)
-// 	},
-// 	status: {
-// 		marginBottom: theme.spacing(1)
-//     },
-//     fieldRow: {
-//         marginBottom: theme.spacing(3)
-//     },
-// 	buttons: {
-//         marginTop: theme.spacing(2),
-//         marginBottom: theme.spacing(1)
-//     },
-//     button: {
-//         marginLeft: theme.spacing(1)
-//     }
-// });
-
 export type FormProps<F extends Fields, B extends FormButtons<F>> = {
     name?: string,
     documentation?: React.ComponentType,
