@@ -121,7 +121,7 @@ export class FormComponent<F extends Fields, B extends FormButtons<F>> extends R
             
             if (this.props.navigate)
                 this.props.navigate(path);
-            
+
             return;
         }
 
@@ -186,13 +186,13 @@ export class FormComponent<F extends Fields, B extends FormButtons<F>> extends R
                 xs={12} 
                 justifyContent='flex-start' 
                 alignItems='flex-start'
+                sx={(theme) => ({
+                    marginBottom: theme.spacing(3),
+                })}
             >
                 <Sheet>
                     <Typography 
-                        level='title-md' 
-                        sx={(theme) => ({
-                            marginBottom: theme.spacing(2),
-                        })}
+                        level='h3'
                     >
                         {this.props.name}
                     </Typography>
@@ -247,7 +247,8 @@ export class FormComponent<F extends Fields, B extends FormButtons<F>> extends R
     private Fields() {
         return (
             <Grid 
-                container 
+                container
+                direction='column'
                 xs={12}
             >
                 {
@@ -256,33 +257,32 @@ export class FormComponent<F extends Fields, B extends FormButtons<F>> extends R
                             return null;
             
                         return (
-                                <Grid
-                                    container
-                                    sx={(theme) => ({
-                                        marginBottom: theme.spacing(3),
-                                    })}
-                                    key={index}
-                                >
-                                    {
-                                        fieldComponents.filter((fieldComponent) => {
-                                            if (fieldComponent.field.accessibility?.hidden)
-                                                return false;
-                                    
-                                            return true;
-                                        }).map((fieldComponent) => (
-                                            <Sheet 
-                                                // xs={12} 
-                                                // sm={fieldComponent.field.layout?.width as 1} 
-                                                key={fieldComponent.field.name}
-                                            >
-                                                <fieldComponent.component
-                                                    field={fieldComponent.field}
-                                                    onChange={this.onChange.bind(this)}
-                                                />
-                                            </Sheet>
-                                        ))
-                                    }
-                                </Grid>
+                            <Grid
+                                container
+                                spacing={3}
+                                alignItems='center'
+                                sx={(theme) => ({
+                                    flexGrow: 1,
+                                    marginBottom: theme.spacing(3),
+                                })}
+                                key={index}
+                            >
+                                {
+                                    fieldComponents.filter((fieldComponent) => {
+                                        if (fieldComponent.field.accessibility?.hidden)
+                                            return false;
+                                
+                                        return true;
+                                    }).map((fieldComponent) => (
+                                        <Grid xs key={fieldComponent.field.name}>
+                                            <fieldComponent.component
+                                                field={fieldComponent.field}
+                                                onChange={this.onChange.bind(this)}
+                                            />
+                                        </Grid>
+                                    ))
+                                }
+                            </Grid>
                         );
                     })
                 }
