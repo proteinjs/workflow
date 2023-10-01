@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { ReactElement } from 'react'
 import { Box } from '@mui/material'
 
-type DataTree<T> = T | Array<DataTree<T>>
-type Data = DataTree<string>
-type NestedListProps = { items: Data[], level?: number }
+export type NestedDataTree<T> = T | Array<NestedDataTree<T>>
+export type NestedElements = NestedDataTree<ReactElement>
+type NestedListProps = { items: NestedElements[], level?: number }
 const blue = '#1976d2';
 const green = '#76d275';
 const orange = '#ffa726';
