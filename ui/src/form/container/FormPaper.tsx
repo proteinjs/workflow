@@ -8,7 +8,8 @@ export function FormPaper(props: PaperProps) {
                 padding: theme.spacing(2, 2, 1),
 		        width: 'fit-content'
             })} 
-            {...props}>
+            {...props}
+        >
             {props.children}
         </Paper>
     );
