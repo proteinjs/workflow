@@ -75,7 +75,7 @@ export class OpenAi {
     try {
       logger.info(`Assistant calling function: ${f.definition.name}(${functionCall.arguments})`);
       returnObject = JSON.stringify(await f.call(JSON.parse(functionCall.arguments)));
-      logger.info(`Assistant called function: ${f.definition.name}(${functionCall.arguments}) => ${returnObject}`);
+      logger.info(`Assistant called function: ${f.definition.name}(${functionCall.arguments}) => ${returnObject}`, 1000);
     } catch (error: any) {
       logger.error(error.message);
     }
