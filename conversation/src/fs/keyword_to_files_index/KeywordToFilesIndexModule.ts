@@ -2,7 +2,7 @@ import { Fs, Logger } from '@brentbahry/util';
 import { ConversationModule, ConversationModuleFactory } from '../../ConversationModule';
 import { Function } from '../../Function';
 import path from 'path';
-import { searchFilesFunction } from './KeywordToFilesIndexFunctions';
+import { searchFilesFunction, searchFilesFunctionName } from './KeywordToFilesIndexFunctions';
 
 export type KeywordToFilesIndexModuleParams = {
   dir: string,
@@ -28,7 +28,9 @@ export class KeywordToFilesIndexModule implements ConversationModule {
   }
 
   getSystemMessages(): string[] {
-    return [];
+    return [
+      `If the user wants to work with something, and it's not a package, use the ${searchFilesFunctionName} function to find the file they're likely referring to`,
+    ];
   }
 
   getFunctions(): Function[] {
