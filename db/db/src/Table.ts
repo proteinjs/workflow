@@ -5,7 +5,7 @@ export const getTables = () => SourceRepository.get().objects<Table<any>>('@prot
 
 export type Table<T> = Loadable & {
 	name: string,
-	columns: { [P in keyof T]: Column<T[P], T> },
+	columns: { [P in keyof T]: Column<T[P], any> },
 	primaryKey?: (keyof T)[],
 	indexes?: { columns: (keyof T)[], name?: string }[]
 }

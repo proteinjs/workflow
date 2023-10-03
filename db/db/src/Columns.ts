@@ -201,3 +201,31 @@ export class UuidColumn implements Column<string, string> {
 		return tableBuilder.uuid(this.name);
 	}
 }
+
+export class ArrayColumn<T> implements Column<T[], string> {
+	private objectColumn: ObjectColumn<T[]>;
+	
+	constructor(
+		public name: string,
+		public options?: ColumnOptions,
+		public largeObject: boolean = false // up to 4g, default up to 16m
+	) {
+		this.objectColumn = new ObjectColumn(name, options, largeObject);
+	}
+
+	get type() {
+		return this.objectColumn.type;
+	}
+
+	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
+		return this.objectColumn.create(tableBuilder);
+	}
+
+	async serialize(fieldValue: T[], table: Table<any>, record: unknown, columnPropertyName: string): Promise<string> {
+		return await this.objectColumn.serialize(fieldValue, table, record, columnPropertyName);
+	}
+
+	async deserialize(serializedField: string, table: Table<any>, record: unknown, columnPropertyName: string): Promise<T[]> {
+		return await this.objectColumn.deserialize(serializedField, table, record, columnPropertyName);
+	}
+}
