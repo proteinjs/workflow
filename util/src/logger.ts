@@ -17,8 +17,8 @@ export class Logger {
     return `${timestamp}${namePrefix}`;
   }
 
-  log(message: string) {
-    console.log(`${this.prefix()} ${this.limitMessageLength(message)}`);
+  log(message: string, limit?: number) {
+    console.log(`${this.prefix()} ${this.limitMessageLength(message, limit)}`);
   }
 
   debug(message: string, ignoreLimitMessageLength: boolean = false) {
@@ -31,27 +31,28 @@ export class Logger {
     console.debug(`${this.prefix()} ${message}`);
   }
 
-  info(message: string) {
+  info(message: string, limit?: number) {
     if (this.logLevel == 'warn' || this.logLevel == 'error')
       return;
 
-    console.info(`${this.prefix()} ${this.limitMessageLength(message)}`);
+    console.info(`${this.prefix()} ${this.limitMessageLength(message, limit)}`);
   }
 
-  warn(message: string) {
+  warn(message: string, limit?: number) {
     if (this.logLevel == 'error')
       return;
 
-    console.warn(`${this.prefix()} ${this.limitMessageLength(message)}`);
+    console.warn(`${this.prefix()} ${this.limitMessageLength(message, limit)}`);
   }
 
-  error(message: string) {
+  error(message: string, limit?: number) {
     console.error(`${this.prefix()} ${message}`);
   }
 
-  private limitMessageLength(message: string) {
-    if (message.length > this.limit)
-      return message.slice(0, this.limit) + '...';
+  private limitMessageLength(message: string, limit?: number) {
+    const resolvedLimit = typeof limit !== 'undefined' ? limit : this.limit;
+    if (message.length > resolvedLimit)
+      return message.slice(0, resolvedLimit) + '...';
 
     return message;
   }
