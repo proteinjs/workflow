@@ -31,9 +31,9 @@ export class Fs {
     await fs.mkdir(path);
   }
 
-  static async readFiles(params: { filePaths: string[] }) {
+  static async readFiles(filePaths: string[]) {
     const fileMap: FileContentMap = {};
-    for (let filePath of params.filePaths) {
+    for (let filePath of filePaths) {
       const fp = `${filePath}`;
       fileMap[fp] = await Fs.readFile(fp);
     }
@@ -48,15 +48,15 @@ export class Fs {
     if (!fileContent)
       throw new Error(`File is empty: ${filePath}`);
 
-    Fs.LOGGER.info(`Read file: ${filePath}`);
+    Fs.LOGGER.debug(`Read file: ${filePath}`);
     return fileContent;
   }
 
-  static async writeFiles(params: { files: File[] }) {
-    for (let file of params.files) {
+  static async writeFiles(files: File[]) {
+    for (let file of files) {
       await fsExtra.ensureFile(file.path);
       await fsExtra.writeFile(file.path, file.content);
-      Fs.LOGGER.info(`Wrote file: ${file.path}`);
+      Fs.LOGGER.debug(`Wrote file: ${file.path}`);
     }
   }
 
