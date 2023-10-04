@@ -63,6 +63,7 @@ export class CodegenConversation {
       `We are going to have a conversation with the user to generate code`,
       `Await all function calls that return a promise`,
       `Try to repspond to the user with as few words as possible while still having a conversational tone`,
+      `When generating code, export the objects you create inline; do not use 'export default' syntax`,
       // `After finding a file to work with, assume the user's following question pertains to that file and use ${readFilesFunctionName} to read the file if needed`,
       // `If a conversation summary exists, if you aren't already working with a file, use the most relevant keyword mentioned in the conversation summary to find a file to read (using the ${searchFilesFunctionName} function) and then respond to the user after reading the file`,
       // `Use the most relevant keyword mentioned in the conversation summary to find a file to read (using the ${searchFilesFunctionName} function) and then respond to the user after reading the file`,
