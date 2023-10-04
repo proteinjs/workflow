@@ -5,7 +5,6 @@ import { MessageModerator } from './history/MessageModerator';
 import { Function } from './Function';
 import { MessageHistory } from './history/MessageHistory';
 import { TiktokenModel } from 'tiktoken';
-import { RateLimitError } from 'openai/error';
 
 function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -56,6 +55,8 @@ export class OpenAi {
       const latestMessage = messageParamsWithHistory.getMessages()[messageParamsWithHistory.getMessages().length - 1];
       if (latestMessage.content)
         logger.info(`Sending request: ${latestMessage.content}`);
+      else if (latestMessage.role == 'function')
+        logger.info(`Sending request: returning output of ${latestMessage.name} function`);
       else
         logger.info(`Sending request`);
       logger.debug(`Sending messages: ${JSON.stringify(messageParamsWithHistory.getMessages(), null, 2)}`, true);
@@ -65,8 +66,11 @@ export class OpenAi {
         messages: messageParamsWithHistory.getMessages(),
         functions: functions?.map(f => f.definition),
       });
-      if (response.choices[0].message.content)
-        logger.info(`Received response: ${response.choices[0].message.content}`);
+      const responseMessage = response.choices[0].message;
+      if (responseMessage.content)
+        logger.info(`Received response: ${responseMessage.content}`);
+      else if (responseMessage.function_call)
+        logger.info(`Received response: call ${responseMessage.function_call.name} function`);
       else
         logger.info(`Received response`);
       if (response.usage)
