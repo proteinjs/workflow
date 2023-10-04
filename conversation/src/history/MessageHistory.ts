@@ -18,6 +18,10 @@ export class MessageHistory {
     return this.messages;
   }
 
+  toString() {
+    return this.messages.map(message => message.content).join('. ');
+  }
+
   setMessages(messages: ChatCompletionMessageParam[]): MessageHistory {
     this.messages = messages;
     this.prune();
