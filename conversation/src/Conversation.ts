@@ -6,6 +6,7 @@ import { Logger, LogLevel, Fs } from '@brentbahry/util';
 import { MessageModerator } from './history/MessageModerator';
 import { ConversationModule } from './ConversationModule';
 import { TiktokenModel, encoding_for_model } from 'tiktoken';
+import { searchLibrariesFunctionName } from './fs/package/PackageFunctions';
 
 export type ConversationParams = {
   name: string,
@@ -83,7 +84,7 @@ export class Conversation {
 
     const summarizeConversationRequest = `First, call the ${summarizeConversationHistoryFunctionName} function`;
     await OpenAi.generateResponse([summarizeConversationRequest], model, this.history, this.functions, this.messageModerators, this.params.logLevel);
-    const referenceSummaryRequest = `If there's a file mentioned in the conversation summary, find and read the file to better respond to my next request`;
+    const referenceSummaryRequest = `If there's a file mentioned in the conversation summary, find and read the file to better respond to my next request. If that doesn't find anything, call the ${searchLibrariesFunctionName} function on other keywords in the conversation summary to find a file to read`;
     await OpenAi.generateResponse([referenceSummaryRequest], model, this.history, this.functions, this.messageModerators, this.params.logLevel);
   }
 
