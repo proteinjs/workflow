@@ -21,12 +21,11 @@ export class OpenAi {
     let messageParamsWithHistory = history ? history : new MessageHistory().push(messageParams);
     if (messageModerators)
       messageParamsWithHistory = OpenAi.moderateHistory(messageParamsWithHistory, messageModerators);
-    logger.debug(`Sending messages: ${JSON.stringify(messageParamsWithHistory.getMessages(), null, 2)}`, true);
     const response = await OpenAi.executeRequest(messageParamsWithHistory, logLevel, functions, model);
     const responseMessage = response.choices[0].message;
     if (responseMessage.function_call) {
       messageParamsWithHistory.push([responseMessage]);
-      const functionReturnMessage = await this.callFunction(logger, responseMessage.function_call, functions);
+      const functionReturnMessage = await this.callFunction(logLevel, responseMessage.function_call, functions);
       if (functionReturnMessage)
         messageParamsWithHistory.push([functionReturnMessage])
       return await this.generateResponse([], model, messageParamsWithHistory, functions, messageModerators, logLevel);
@@ -54,20 +53,28 @@ export class OpenAi {
     const openai = new OpenAI();
     let response: ChatCompletion;
     try {
-      logger.debug(`Sending request`);
+      const latestMessage = messageParamsWithHistory.getMessages()[messageParamsWithHistory.getMessages().length - 1];
+      if (latestMessage.content)
+        logger.info(`Sending request: ${latestMessage.content}`);
+      else
+        logger.info(`Sending request`);
+      logger.debug(`Sending messages: ${JSON.stringify(messageParamsWithHistory.getMessages(), null, 2)}`, true);
       response = await openai.chat.completions.create({
         model: model ? model : DEFAULT_MODEL,
         temperature: 0,
         messages: messageParamsWithHistory.getMessages(),
         functions: functions?.map(f => f.definition),
       });
-      logger.debug(`Received response`);
+      if (response.choices[0].message.content)
+        logger.info(`Received response: ${response.choices[0].message.content}`);
+      else
+        logger.info(`Received response`);
       if (response.usage)
         logger.info(JSON.stringify(response.usage));
       else
         logger.info(JSON.stringify(`Usage data missing`));
     } catch(error: any) {
-      logger.debug(`Received response`);
+      logger.info(`Received error response, error type: ${error.type}`);
       if (typeof error.status !== 'undefined' && error.status == 429) {
         if (error.type == 'tokens' && typeof error.headers['x-ratelimit-reset-tokens'] === 'string') {
           const waitTime = parseInt(error.headers['x-ratelimit-reset-tokens']);
@@ -85,7 +92,8 @@ export class OpenAi {
     return response;
   }
 
-  private static async callFunction(logger: Logger, functionCall: ChatCompletionMessage.FunctionCall, functions?: Function[]): Promise<ChatCompletionMessageParam|undefined> {
+  private static async callFunction(logLevel: LogLevel, functionCall: ChatCompletionMessage.FunctionCall, functions?: Function[]): Promise<ChatCompletionMessageParam|undefined> {
+    const logger = new Logger('OpenAi.callFunction', logLevel);
     if (!functions) {
       const warning = `Assistant attempted to call a function when no functions were provided`;
       logger.warn(warning);
