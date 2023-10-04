@@ -1,14 +1,20 @@
 import { OpenAI } from 'openai';
-import { ChatCompletionMessage, ChatCompletionMessageParam } from 'openai/resources/chat';
+import { ChatCompletionMessage, ChatCompletionMessageParam, ChatCompletion } from 'openai/resources/chat';
 import { LogLevel, Logger } from '@brentbahry/util';
 import { MessageModerator } from './history/MessageModerator';
 import { Function } from './Function';
 import { MessageHistory } from './history/MessageHistory';
+import { TiktokenModel } from 'tiktoken';
+import { RateLimitError } from 'openai/error';
 
+function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export const DEFAULT_MODEL: TiktokenModel = 'gpt-3.5-turbo';
 export class OpenAi {
   static async generateResponse(messages: string[], model?: string, history?: MessageHistory, functions?: Function[], messageModerators?: MessageModerator[], logLevel: LogLevel = 'info'): Promise<string> {
-    const logger = new Logger('generateResponse', logLevel);
-    const openai = new OpenAI();
+    const logger = new Logger('OpenAi.generateResponse', logLevel);
     const messageParams: ChatCompletionMessageParam[] = messages.map(message => { return { role: 'user', content: message }});
     if (history)
       history.push(messageParams);
@@ -16,18 +22,7 @@ export class OpenAi {
     if (messageModerators)
       messageParamsWithHistory = OpenAi.moderateHistory(messageParamsWithHistory, messageModerators);
     logger.debug(`Sending messages: ${JSON.stringify(messageParamsWithHistory.getMessages(), null, 2)}`, true);
-    const response = await openai.chat.completions.create({
-      model: model ? model : 'gpt-3.5-turbo',
-      temperature: 0,
-      messages: messageParamsWithHistory.getMessages(),
-      functions: functions?.map(f => f.definition),
-    });
-
-    if (response.usage)
-      logger.info(JSON.stringify(response.usage));
-    else
-      logger.info(JSON.stringify(`Usage data missing`));
-
+    const response = await OpenAi.executeRequest(messageParamsWithHistory, logLevel, functions, model);
     const responseMessage = response.choices[0].message;
     if (responseMessage.function_call) {
       messageParamsWithHistory.push([responseMessage]);
@@ -52,6 +47,42 @@ export class OpenAi {
       history.setMessages(messageModerator.observe(history.getMessages()));
 
     return history;
+  }
+
+  private static async executeRequest(messageParamsWithHistory: MessageHistory, logLevel: LogLevel, functions?: Function[], model?: string): Promise<ChatCompletion> {
+    const logger = new Logger('OpenAi.executeRequest', logLevel);
+    const openai = new OpenAI();
+    let response: ChatCompletion;
+    try {
+      logger.debug(`Sending request`);
+      response = await openai.chat.completions.create({
+        model: model ? model : DEFAULT_MODEL,
+        temperature: 0,
+        messages: messageParamsWithHistory.getMessages(),
+        functions: functions?.map(f => f.definition),
+      });
+      logger.debug(`Received response`);
+      if (response.usage)
+        logger.info(JSON.stringify(response.usage));
+      else
+        logger.info(JSON.stringify(`Usage data missing`));
+    } catch(error: any) {
+      logger.debug(`Received response`);
+      if (typeof error.status !== 'undefined' && error.status == 429) {
+        if (error.type == 'tokens' && typeof error.headers['x-ratelimit-reset-tokens'] === 'string') {
+          const waitTime = parseInt(error.headers['x-ratelimit-reset-tokens']);
+          const remainingTokens = error.headers['x-ratelimit-remaining-tokens'];
+          const delayMs = 15000;
+          logger.warn(`Waiting to retry in ${delayMs/1000}s, token reset in: ${waitTime}s, remaining tokens: ${remainingTokens}`);
+          await delay(delayMs);
+          return await OpenAi.executeRequest(messageParamsWithHistory, logLevel, functions, model);
+        }
+      }
+
+      throw error;
+    }
+
+    return response;
   }
 
   private static async callFunction(logger: Logger, functionCall: ChatCompletionMessage.FunctionCall, functions?: Function[]): Promise<ChatCompletionMessageParam|undefined> {
