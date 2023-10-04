@@ -1,64 +1,91 @@
-import { Fs } from '@brentbahry/util';
+import { File, Fs } from '@brentbahry/util';
 import { Function } from '../../Function';
+import { ConversationFsModule } from './ConversationFsModule';
 
 export const readFilesFunctionName = 'readFiles';
-export const readFilesFunction: Function = {
-  definition: {
-    name: readFilesFunctionName,
-    description: 'Get the content of files',
-    parameters: {
-      type: 'object',
-      properties: {
-        filePaths: {
-          type: 'array',
-          description: 'Paths to the files',
-          items: {
-            type: 'string',
+export function readFilesFunction(fsModule: ConversationFsModule) {
+  return {
+    definition: {
+      name: readFilesFunctionName,
+      description: 'Get the content of files',
+      parameters: {
+        type: 'object',
+        properties: {
+          filePaths: {
+            type: 'array',
+            description: 'Paths to the files',
+            items: {
+              type: 'string',
+            },
           },
         },
+        required: ['filePaths']
       },
-      required: ['filePaths']
     },
-  },
-  call: Fs.readFiles,
-  instructions: [
-    `To read files from the local file system, use the ${readFilesFunctionName} function`,
-  ],
+    call: async (params: { filePaths: string[] }) => {
+      fsModule.pushRecentlyAccessedFilePath(params.filePaths);
+      return await Fs.readFiles(params.filePaths);
+    },
+    instructions: [
+      `To read files from the local file system, use the ${readFilesFunctionName} function`,
+    ],
+  }
 }
 
 export const writeFilesFunctionName = 'writeFiles';
-export const writeFilesFunction: Function = {
-  definition: {
-    name: writeFilesFunctionName,
-    description: 'Write files to the file system',
-    parameters: {
-      type: 'object',
-      properties: {
-        files: {
-          type: 'array',
-          description: 'Files to write',
-          items: {
-            type: 'object',
-            properties: {
-              path: {
-                type: 'string',
-                description: 'the file path',
-              },
-              content: {
-                type: 'string',
-                description: 'the content to write to the file',
+export function writeFilesFunction(fsModule: ConversationFsModule) {
+  return {
+    definition: {
+      name: writeFilesFunctionName,
+      description: 'Write files to the file system',
+      parameters: {
+        type: 'object',
+        properties: {
+          files: {
+            type: 'array',
+            description: 'Files to write',
+            items: {
+              type: 'object',
+              properties: {
+                path: {
+                  type: 'string',
+                  description: 'the file path',
+                },
+                content: {
+                  type: 'string',
+                  description: 'the content to write to the file',
+                },
               },
             },
           },
         },
+        required: ['files']
       },
-      required: ['files']
     },
-  },
-  call: Fs.writeFiles,
-  instructions: [
-    `To write files to the local file system, use the ${writeFilesFunctionName} function`,
-  ],
+    call: async (params: { files: File[] }) => {
+      fsModule.pushRecentlyAccessedFilePath(params.files.map(file => file.path));
+      return await Fs.writeFiles(params.files);
+    },
+    instructions: [
+      `To write files to the local file system, use the ${writeFilesFunctionName} function`,
+    ],
+  }
+}
+
+export const getRecentlyAccessedFilePathsFunctionName = 'getRecentlyAccessedFilePaths';
+export function getRecentlyAccessedFilePathsFunction(fsModule: ConversationFsModule) {
+  return {
+    definition: {
+      name: getRecentlyAccessedFilePathsFunctionName,
+      description: 'Get paths of files accessed during this conversation, in order from oldest to newest',
+      parameters: {
+        type: 'object',
+        properties: {},
+        required: [],
+      },
+    },
+    call: async () => fsModule.getRecentlyAccessedFilePaths(),
+  }
 }
 
 const createFolderFunctionName = 'createFolder';
@@ -217,8 +244,6 @@ const moveFunction: Function = {
 }
 
 export const fsFunctions: Function[] = [
-  readFilesFunction,
-  writeFilesFunction,
   createFolderFunction,
   fileOrDirectoryExistsFunction,
   getFilePathsMatchingGlobFunction,

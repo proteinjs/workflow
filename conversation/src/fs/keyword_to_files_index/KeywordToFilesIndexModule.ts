@@ -29,7 +29,7 @@ export class KeywordToFilesIndexModule implements ConversationModule {
 
   getSystemMessages(): string[] {
     return [
-      `If the user wants to work with something, and it's not a package, use the ${searchFilesFunctionName} function to find the file they're likely referring to`,
+      `If you're searching for something, use the ${searchFilesFunctionName} function to find a file matching the search string`,
     ];
   }
 
