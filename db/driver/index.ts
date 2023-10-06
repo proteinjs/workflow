@@ -1,2 +1,2 @@
-export * from './src/MysqlDBI';
-export * from './src/loadTables';
+export * from './src/MysqlDriver';
+export * from './src/MysqlConfig';

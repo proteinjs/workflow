@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import passportLocal from 'passport-local';
-import { DBI } from '@proteinjs/db';
+import { Db } from '@proteinjs/db';
 import { ServerConfig, getRoutes } from '@proteinjs/server-api';
 import { loadRoutes, loadDefaultStarRoute } from './loadRoutes';
 
@@ -26,7 +26,7 @@ export async function startServer(config: ServerConfig = {}) {
 }
 
 async function runStartupEvents(config: ServerConfig) {
-    await DBI.init();
+    await Db.init();
 
     if (config.onStartup)
         await config.onStartup();

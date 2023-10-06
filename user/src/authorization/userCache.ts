@@ -1,5 +1,5 @@
 import { SessionDataCache } from '@proteinjs/server-api';
-import { DBI } from '@proteinjs/db';
+import { Db } from '@proteinjs/db';
 import { User, UserTable } from '../tables/UserTable';
 import { DefaultAdminCredentials } from '../authentication/DefaultAdminCredentials';
 
@@ -8,7 +8,10 @@ export const guestUser: User = {
     email: 'guest',
     password: 'guest',
     emailVerified: false,
-    roles: ''
+    roles: '',
+    created: '',
+    updated: '',
+    id: '',
 };
 export const userCache: SessionDataCache<User> = {
     key: '@proteinjs/user/userCache',
@@ -17,11 +20,10 @@ export const userCache: SessionDataCache<User> = {
         if (userEmail) {
             const adminCredentials = DefaultAdminCredentials.getCredentials();
             if (userEmail == adminCredentials.username) {
-                const adminUser: User = { name: 'Admin', email: adminCredentials.username, password: adminCredentials.password, emailVerified: true, roles: 'admin' };
+                const adminUser: User = { name: 'Admin', email: adminCredentials.username, password: adminCredentials.password, emailVerified: true, roles: 'admin', created: '', updated: '', id: '' };
                 user = adminUser;
             } else {
-                const result = await DBI.get().withSchema(DBI.databaseName()).select().from(UserTable.name).where({ email: userEmail });
-                user = result[0];
+                user = await Db.get(UserTable, { email: userEmail });
             }
         }
 

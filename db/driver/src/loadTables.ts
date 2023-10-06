@@ -1,5 +1,7 @@
 import * as knex from 'knex';
-import { Table, Column, mysqlColumnTypeMap, getTables, DBI } from '@proteinjs/db';
+import { Table, Column, mysqlColumnTypeMap, getTables } from '@proteinjs/db';
+import { MysqlDriver } from './MysqlDriver';
+import { getColumnFactory } from './getColumnFactory';
 
 export async function loadTables(): Promise<void> {
 	const tables = getTables();
@@ -8,7 +10,7 @@ export async function loadTables(): Promise<void> {
 }
 
 export async function loadTable(table: Table<any>): Promise<void> {
-	if (await DBI.get().schema.withSchema(DBI.databaseName()).hasTable(table.name))
+	if (await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(table.name))
 		await alterTable(table);
 	else
 		await createTable(table);
@@ -23,7 +25,7 @@ async function createTable(table: Table<any>) {
 	});
 
 	console.info(`Creating table: ${table.name}`);
-	await DBI.get().schema.withSchema(DBI.databaseName()).createTable(table.name, (tableBuilder) => {
+	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).createTable(table.name, (tableBuilder: any) => {
 		for (const columnPropertyName in table.columns) {
 			const column = table.columns[columnPropertyName];
 			createColumn(column, tableBuilder as any, table);
@@ -45,7 +47,7 @@ async function createTable(table: Table<any>) {
 
 		console.info(`Finished creating table: ${table.name}`);
 		resolve();
-	}).catch((reason) => {
+	}).catch((reason: any) => {
 		reject(`Failed to create table: ${table.name}. reason: ${reason}`);
 	});
 
@@ -147,7 +149,7 @@ async function alterTable(table: Table<any>) {
 		return;
 		
 	console.info(`Altering table: ${table.name}`);
-	await DBI.get().schema.withSchema(DBI.databaseName()).table(table.name, (tableBuilder) => {
+	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).table(table.name, (tableBuilder: any) => {
 		for (const columnPropertyName of columnsToCreate) {
 			const column = table.columns[columnPropertyName];
 			createColumn(column, tableBuilder as any, table);
@@ -202,7 +204,7 @@ async function alterTable(table: Table<any>) {
 		console.info(`Finished altering table: ${table.name}`);
 		resolve();
 		return;
-	}).catch((reason) => {
+	}).catch((reason: any) => {
 		reject(`Failed to alter table: ${table.name}. reason: ${reason}`);
 		return;
 	});
@@ -239,8 +241,8 @@ async function getIndexOperations(table: Table<any>) {
 }
 
 export async function columnExists(tableName: string, columnName: string): Promise<boolean> {
-	const result = await DBI.get().withSchema('INFORMATION_SCHEMA').select().from('COLUMNS').where({
-		'TABLE_SCHEMA': DBI.databaseName(),
+	const result = await MysqlDriver.getKnex().withSchema('INFORMATION_SCHEMA').select().from('COLUMNS').where({
+		'TABLE_SCHEMA': MysqlDriver.getDbName(),
 		'TABLE_NAME': tableName,
 		'COLUMN_NAME': columnName
 	});
@@ -248,14 +250,15 @@ export async function columnExists(tableName: string, columnName: string): Promi
 }
 
 function createColumn(column: Column<any, any>, tableBuilder: knex.TableBuilder, table: Table<any>) {
-	const columnBuilder = column.create(tableBuilder as any);
+	const columnFactory = getColumnFactory(column);
+	const columnBuilder = columnFactory.create(column, tableBuilder);
 	if (column.options?.unique?.unique) {
 		columnBuilder.unique(column.options.unique.indexName);
 		console.info(`[${table.name}.${column.name}] Added unique constraint`);
 	}
 
 	if (column.options?.references) {
-		columnBuilder.references(column.options.references.column).inTable(`${DBI.databaseName()}.${column.options.references.table}`);
+		columnBuilder.references(column.options.references.column).inTable(`${MysqlDriver.getDbName()}.${column.options.references.table}`);
 		console.info(`[${table.name}.${column.name}] Added foreign key -> ${column.options.references.table}.${column.options.references.column}`);
 	}
 
@@ -277,8 +280,8 @@ function createColumn(column: Column<any, any>, tableBuilder: knex.TableBuilder,
 }
 
 export async function getColumnMetadata(table: Table<any>) {
-	const result = await DBI.get().withSchema('INFORMATION_SCHEMA').select().from('COLUMNS').where({
-		'TABLE_SCHEMA': DBI.databaseName(),
+	const result = await MysqlDriver.getKnex().withSchema('INFORMATION_SCHEMA').select().from('COLUMNS').where({
+		'TABLE_SCHEMA': MysqlDriver.getDbName(),
 		'TABLE_NAME': table.name
 	});
 	const columnMetadata: {[columnName: string]: any} = {};
@@ -289,8 +292,8 @@ export async function getColumnMetadata(table: Table<any>) {
 }
 
 export async function getPrimaryKey(table: Table<any>) {
-	const result = await DBI.get().withSchema('INFORMATION_SCHEMA').select().from('KEY_COLUMN_USAGE').where({
-		'TABLE_SCHEMA': DBI.databaseName(),
+	const result = await MysqlDriver.getKnex().withSchema('INFORMATION_SCHEMA').select().from('KEY_COLUMN_USAGE').where({
+		'TABLE_SCHEMA': MysqlDriver.getDbName(),
 		'TABLE_NAME': table.name,
 		'CONSTRAINT_NAME': 'PRIMARY'
 	});
@@ -302,8 +305,8 @@ export async function getPrimaryKey(table: Table<any>) {
 }
 
 export async function getForeignKeys(table: Table<any>) {
-	const result = await DBI.get().withSchema('INFORMATION_SCHEMA').select().from('KEY_COLUMN_USAGE').where({
-		'TABLE_SCHEMA': DBI.databaseName(),
+	const result = await MysqlDriver.getKnex().withSchema('INFORMATION_SCHEMA').select().from('KEY_COLUMN_USAGE').where({
+		'TABLE_SCHEMA': MysqlDriver.getDbName(),
 		'TABLE_NAME': table.name
 	});
 	const foreignKeys: {[columnName: string]: any} = {};
@@ -318,8 +321,8 @@ export async function getForeignKeys(table: Table<any>) {
 }
 
 export async function getUniqueColumns(table: Table<any>) {
-	const result = await DBI.get().withSchema('INFORMATION_SCHEMA').select().from('KEY_COLUMN_USAGE').where({
-		'TABLE_SCHEMA': DBI.databaseName(),
+	const result = await MysqlDriver.getKnex().withSchema('INFORMATION_SCHEMA').select().from('KEY_COLUMN_USAGE').where({
+		'TABLE_SCHEMA': MysqlDriver.getDbName(),
 		'TABLE_NAME': table.name
 	});
 	const uniqueColumns: string[] = [];
@@ -334,7 +337,7 @@ export async function getUniqueColumns(table: Table<any>) {
 }
 
 export async function getIndexes(table: Table<any>) {
-	const result = await DBI.get().raw(`SHOW INDEX FROM ${DBI.databaseName()}.${table.name}`);
+	const result = await MysqlDriver.getKnex().raw(`SHOW INDEX FROM ${MysqlDriver.getDbName()}.${table.name}`);
 	const indexes: { [keyName: string]: string[] } = {};
 	for (const row of result[0]) {
 		if (!indexes[row['Key_name']])

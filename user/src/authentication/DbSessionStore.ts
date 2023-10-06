@@ -1,6 +1,6 @@
 import { Store } from 'express-session';
-import { DBI } from '@proteinjs/db';
-import { Session, SessionTable } from '../tables/SessionTable';
+import { Db } from '@proteinjs/db';
+import { SessionTable } from '../tables/SessionTable';
 import { destroySession } from './destroySession';
 
 export class DbSessionStore extends Store {
@@ -13,13 +13,13 @@ export class DbSessionStore extends Store {
 
 	get = (sessionId: string, cb: (error: any, session?: Express.SessionData|null) => void) => {
 		(async () => {
-            const result = await DBI.get().withSchema(DBI.databaseName()).select().from(SessionTable.name).where({ 'session_id': sessionId });
-            if (result.length < 1) {
+            const result = await Db.get(SessionTable, { sessionId });
+            if (!result) {
                 cb(null);
                 return;
             }
 
-            return cb(null, JSON.parse(result[0].session));
+            return cb(null, JSON.parse(result.session));
         })();
 	}
 
@@ -53,21 +53,20 @@ export class DbSessionStore extends Store {
             return;
         }
 
-        const result = await DBI.get().withSchema(DBI.databaseName()).select().from(SessionTable.name).where({ 'session_id': sessionId });
-        if (result.length > 0) {
-            const sessionRecord = result[0];
+        const sessionRecord = await Db.get(SessionTable, { sessionId });
+        if (sessionRecord) {
             sessionRecord.session = JSON.stringify(session);
             sessionRecord.expires = (<Date>session.cookie.expires);
-            sessionRecord['user_email'] = session.passport?.user;
-            await DBI.get().withSchema(DBI.databaseName()).update(sessionRecord).into(SessionTable.name).where({ 'session_id': sessionId });
+            sessionRecord.userEmail = session.passport?.user;
+            await Db.update(SessionTable, sessionRecord, { sessionId });
         } else {
             try {
-                await DBI.get().withSchema(DBI.databaseName()).insert({
-                    'session_id': sessionId,
+                await Db.insert(SessionTable, {
+                    sessionId,
                     session: JSON.stringify(session),
                     expires: (<Date>session.cookie.expires),
-                    'user_email': session.passport?.user
-                }).into(SessionTable.name);
+                    userEmail: session.passport?.user
+                });
             } catch (error) {
                 // race condition on insert
                 // console.error('Failed to create session', error);
@@ -79,12 +78,12 @@ export class DbSessionStore extends Store {
     }
 
     private async sweep(): Promise<void> {
-        if (!await DBI.get().schema.withSchema(DBI.databaseName()).hasTable(SessionTable.name))
+        if (!await Db.tableExists(SessionTable))
             return;
 
         console.info(`Sweeping expired sessions`);
-        const expiredSessions = (await DBI.get().withSchema(DBI.databaseName()).select().from<Session>(SessionTable.name).where(SessionTable.columns.expires.name, '<=', new Date())).length;
-        await DBI.get().withSchema(DBI.databaseName()).delete().from(SessionTable.name).where(SessionTable.columns.expires.name, '<=', new Date());
+        const expiredSessions = (await Db.query(SessionTable, [{ column: 'expires', operator: '<=', value: new Date() }])).length;
+        await Db.delete(SessionTable, [{ column: 'expires', operator: '<=', value: new Date() }]);
 		console.info(`Swept ${expiredSessions} expired sessions`);
 	}
 }

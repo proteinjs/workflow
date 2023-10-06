@@ -79,6 +79,7 @@ export class Conversation {
     const encoder = encoding_for_model(resolvedModel);
     const conversation = this.history.toString() + messages.join('. ');
     const encoded = encoder.encode(conversation);
+    console.log(`current tokens: ${encoded.length}`);
     if (encoded.length < Conversation.TOKEN_LIMIT)
       return;
 

@@ -1,9 +1,9 @@
-import knex from 'knex';
 import { Loadable, SourceRepository } from '@brentbahry/reflection';
+import { Record } from './Record';
 
 export const getTables = () => SourceRepository.get().objects<Table<any>>('@proteinjs/db/Table');
 
-export type Table<T> = Loadable & {
+export type Table<T extends Record> = Loadable & {
 	name: string,
 	columns: { [P in keyof T]: Column<T[P], any> },
 	primaryKey?: (keyof T)[],
@@ -19,15 +19,9 @@ export type Column<T, Serialized> = {
 	 * Note: after name change has happened in prod, oldName can be removed.
 	 */
 	oldName?: string,
-	/**
-	 * Note: no need to apply Column.options, those will be added by the caller.
-	 * 
-	 * @return the knex.ColumnBuilder created for this column
-	 */
-	create: (tableBuilder: knex.TableBuilder) => knex.ColumnBuilder,
 	options?: ColumnOptions,
-	serialize?: (fieldValue: T, table: Table<any>, record: unknown, columnPropertyName: string) => Promise<Serialized>,
-	deserialize?: (serializedField: Serialized, table: Table<any>, record: unknown, columnPropertyName: string) => Promise<T>
+	serialize?: (fieldValue: T, table: Table<any>, record: any, columnPropertyName: string) => Promise<Serialized>,
+	deserialize?: (serializedField: Serialized, table: Table<any>, record: any, columnPropertyName: string) => Promise<T>
 }
 
 export type ColumnType = 'integer'

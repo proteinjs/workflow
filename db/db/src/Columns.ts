@@ -9,8 +9,8 @@ export class IntegerColumn implements Column<number, number> {
 	constructor(
 		public name: string,
 		public options?: ColumnOptions,
-		private length?: number,
-		private unsigned: boolean = false
+		public length?: number,
+		public unsigned: boolean = false
 	) {}
 
 	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
@@ -28,7 +28,7 @@ export class BigIntegerColumn implements Column<number, number> {
 	constructor(
 		public name: string,
 		public options?: ColumnOptions,
-		private unsigned: boolean = false
+		public unsigned: boolean = false
 	) {}
 
 	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
@@ -46,7 +46,7 @@ export class TextColumn implements Column<string, string> {
 	constructor(
 		public name: string,
 		public options?: ColumnOptions,
-		private textType: 'text'|'mediumtext'|'longtext' = 'text'
+		public textType: 'text'|'mediumtext'|'longtext' = 'text'
 	) {
 		this.type = textType;
 	}
@@ -62,7 +62,7 @@ export class StringColumn implements Column<string, string> {
 	constructor(
 		public name: string,
 		public options?: ColumnOptions,
-		private maxLength: number = 255
+		public maxLength: number = 255
 	) {}
 
 	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
@@ -76,8 +76,8 @@ export class FloatColumn implements Column<number, number> {
 	constructor(
 		public name: string,
 		public options?: ColumnOptions,
-		private precision: number = 8,
-		private scale: number = 2
+		public precision: number = 8,
+		public scale: number = 2
 	) {}
 
 	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
@@ -171,10 +171,11 @@ export class ObjectColumn<T> implements Column<T, string> {
 		public name: string,
 		public options?: ColumnOptions,
 		public largeObject: boolean = false // up to 4g, default up to 16m
-	) {}
+	) {
+		this.type = largeObject ? 'longtext' : 'mediumtext';
+	}
 
 	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		this.type = this.largeObject ? 'longtext' : 'mediumtext';
 		return tableBuilder.text(this.name, this.type);
 	}
 

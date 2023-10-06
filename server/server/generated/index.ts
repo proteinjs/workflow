@@ -2,7 +2,6 @@
 
 import '@brentbahry/reflection';
 import '@proteinjs/db';
-import '@proteinjs/db-driver';
 import '@proteinjs/server-api';
 import 'body-parser';
 import 'compression';

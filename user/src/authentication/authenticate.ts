@@ -1,6 +1,6 @@
 import sha256 from 'crypto-js/sha256';
-import { DBI } from '@proteinjs/db';
-import { User, UserTable } from '../tables/UserTable';
+import { Db } from '@proteinjs/db';
+import { UserTable } from '../tables/UserTable';
 import { DefaultAdminCredentials } from './DefaultAdminCredentials';
 
 export function createAuthentication(defaultAdminCredentials?: { username: string, password: string }) {
@@ -17,11 +17,11 @@ export async function authenticate(email: string, password: string): Promise<tru
         return true;
     }
 
-    const result = await DBI.get().withSchema(DBI.databaseName()).select().from(UserTable.name).where({
+    const users = await Db.query(UserTable, {
         email,
         password: sha256(password).toString()
-    }) as User[];
-    if (result.length < 1)
+    });
+    if (users.length < 1)
         return 'User name or password incorrect';
 
     return true;

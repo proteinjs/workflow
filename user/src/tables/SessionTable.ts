@@ -1,6 +1,6 @@
-import { DateColumn, StringColumn, Table } from '@proteinjs/db';
+import { DateColumn, StringColumn, Table, Record, withRecordColumns } from '@proteinjs/db';
 
-export type Session = {
+export type Session = Record & {
     sessionId: string,
     session: string,
     expires: Date,
@@ -9,10 +9,10 @@ export type Session = {
 
 export const SessionTable: Table<Session> = {
     name: 'session',
-    columns: {
+    columns: withRecordColumns({
         sessionId: new StringColumn('session_id'),
         session: new StringColumn('session', {}, 4000),
         expires: new DateColumn('expires'),
-        userEmail: new StringColumn('user_email')
-    }
+        userEmail: new StringColumn('user_email'),
+    })
 };
