@@ -1,4 +1,3 @@
-import knex from 'knex';
 import moment from 'moment';
 import uuid from 'uuid';
 import { Column, ColumnOptions, Table, ColumnType } from './Table';
@@ -12,14 +11,6 @@ export class IntegerColumn implements Column<number, number> {
 		public length?: number,
 		public unsigned: boolean = false
 	) {}
-
-	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		const columnBuilder = tableBuilder.integer(this.name, this.length);
-		if (this.unsigned)
-			columnBuilder.unsigned();
-
-		return columnBuilder;
-	}
 }
 
 export class BigIntegerColumn implements Column<number, number> {
@@ -30,14 +21,6 @@ export class BigIntegerColumn implements Column<number, number> {
 		public options?: ColumnOptions,
 		public unsigned: boolean = false
 	) {}
-
-	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		const columnBuilder = tableBuilder.bigInteger(this.name);
-		if (this.unsigned)
-			columnBuilder.unsigned();
-
-		return columnBuilder;
-	}
 }
 
 export class TextColumn implements Column<string, string> {
@@ -50,10 +33,6 @@ export class TextColumn implements Column<string, string> {
 	) {
 		this.type = textType;
 	}
-
-	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		return tableBuilder.text(this.name, this.textType);
-	}
 }
 
 export class StringColumn implements Column<string, string> {
@@ -64,10 +43,6 @@ export class StringColumn implements Column<string, string> {
 		public options?: ColumnOptions,
 		public maxLength: number = 255
 	) {}
-
-	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		return tableBuilder.string(this.name, this.maxLength);
-	}
 }
 
 export class FloatColumn implements Column<number, number> {
@@ -79,10 +54,6 @@ export class FloatColumn implements Column<number, number> {
 		public precision: number = 8,
 		public scale: number = 2
 	) {}
-
-	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		return tableBuilder.float(this.name, this.precision, this.scale);
-	}
 }
 
 export class DecimalColumn implements Column<number, number> {
@@ -94,10 +65,6 @@ export class DecimalColumn implements Column<number, number> {
 		public precision: number = 8,
 		public scale: number = 2
 	) {}
-
-	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		return tableBuilder.decimal(this.name, this.precision, this.scale);
-	}
 }
 
 export class BooleanColumn implements Column<boolean, boolean> {
@@ -107,10 +74,6 @@ export class BooleanColumn implements Column<boolean, boolean> {
 		public name: string,
 		public options?: ColumnOptions
 	) {}
-
-	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		return tableBuilder.boolean(this.name);
-	}
 }
 
 export class DateColumn implements Column<Date, Date> {
@@ -120,10 +83,6 @@ export class DateColumn implements Column<Date, Date> {
 		public name: string,
 		public options?: ColumnOptions
 	) {}
-
-	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		return tableBuilder.date(this.name);
-	}
 }
 
 export class DateTimeColumn implements Column<moment.Moment, Date> {
@@ -133,10 +92,6 @@ export class DateTimeColumn implements Column<moment.Moment, Date> {
 		public name: string,
 		public options?: ColumnOptions
 	) {}
-
-	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		return tableBuilder.dateTime(this.name);
-	}
 
 	async serialize(fieldValue: moment.Moment, table: Table<any>, record: unknown, columnPropertyName: string): Promise<Date> {
 		if (typeof fieldValue.toDate === 'undefined')
@@ -158,10 +113,6 @@ export class BinaryColumn implements Column<number, number> {
 		public options?: ColumnOptions,
 		public mysqlLength?: number,
 	) {}
-
-	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		return tableBuilder.binary(this.name, this.mysqlLength);
-	}
 }
 
 export class ObjectColumn<T> implements Column<T, string> {
@@ -173,10 +124,6 @@ export class ObjectColumn<T> implements Column<T, string> {
 		public largeObject: boolean = false // up to 4g, default up to 16m
 	) {
 		this.type = largeObject ? 'longtext' : 'mediumtext';
-	}
-
-	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		return tableBuilder.text(this.name, this.type);
 	}
 
 	async serialize(fieldValue: T, table: Table<any>, record: unknown, columnPropertyName: string): Promise<string> {
@@ -197,10 +144,6 @@ export class UuidColumn implements Column<string, string> {
 	) {
 		this.options = Object.assign({ defaultTo: async () => uuid.v1().split('-').join('') }, options);
 	}
-
-	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		return tableBuilder.uuid(this.name);
-	}
 }
 
 export class ArrayColumn<T> implements Column<T[], string> {
@@ -216,10 +159,6 @@ export class ArrayColumn<T> implements Column<T[], string> {
 
 	get type() {
 		return this.objectColumn.type;
-	}
-
-	create(tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		return this.objectColumn.create(tableBuilder);
 	}
 
 	async serialize(fieldValue: T[], table: Table<any>, record: unknown, columnPropertyName: string): Promise<string> {
