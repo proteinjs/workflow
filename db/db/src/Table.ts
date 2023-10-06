@@ -21,7 +21,7 @@ export type Column<T, Serialized> = {
 	oldName?: string,
 	options?: ColumnOptions,
 	serialize?: (fieldValue: T, table: Table<any>, record: any, columnPropertyName: string) => Promise<Serialized>,
-	deserialize?: (serializedField: Serialized, table: Table<any>, record: any, columnPropertyName: string) => Promise<T>
+	deserialize?: (serializedField: Serialized, table: Table<any>, record: any, columnPropertyName: string) => Promise<T|void>
 }
 
 export type ColumnType = 'integer'

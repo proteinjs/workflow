@@ -3,10 +3,11 @@ import { Table } from './Table';
 
 export type Query<T> = ObjectQuery<T> | QueryCondition<T>[]
 export type ObjectQuery<T> = Partial<{ [P in keyof T]: any }>
-export type QueryCondition<T> = { column: keyof T, operator: ComparisonOperator, value: any }
+export type QueryCondition<T> = { column: keyof T, operator: Operator, value: any }
 export type SerializedQuery = ColumnQuery|SerializedQueryCondition[];
-export type SerializedQueryCondition = { column: string, operator: ComparisonOperator, value: any }
+export type SerializedQueryCondition = { column: string, operator: Operator, value: any }
 export type ColumnQuery = {[key: string]: any}
+export type Operator = ComparisonOperator | 'in';
 export type ComparisonOperator = '=' | '>' | '>=' | '<' | '<=' | '<>';
 
 export class QuerySerializer<T extends Record> {

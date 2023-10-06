@@ -1,6 +1,8 @@
 import moment from 'moment';
 import uuid from 'uuid';
 import { Column, ColumnOptions, Table, ColumnType } from './Table';
+import { Record } from './Record';
+import { ReferenceArray } from './Reference';
 
 export class IntegerColumn implements Column<number, number> {
 	type: ColumnType = 'integer';
@@ -167,5 +169,40 @@ export class ArrayColumn<T> implements Column<T[], string> {
 
 	async deserialize(serializedField: string, table: Table<any>, record: unknown, columnPropertyName: string): Promise<T[]> {
 		return await this.objectColumn.deserialize(serializedField, table, record, columnPropertyName);
+	}
+}
+
+export class ReferenceArrayColumn<T extends Record> implements Column<T[], string> {
+	private arrayColumn: ArrayColumn<string>;
+	
+	constructor(
+		public name: string,
+		public referenceTable: Table<T>,
+		public options?: ColumnOptions,
+		public largeObject: boolean = false // up to 4g, default up to 16m
+	) {
+		this.arrayColumn = new ArrayColumn(name, options, largeObject);
+	}
+
+	get type() {
+		return this.arrayColumn.type;
+	}
+
+	async serialize(fieldValue: T[], table: Table<any>, record: any, columnPropertyName: string): Promise<string> {
+		const ids = fieldValue.map(record => record.id);
+		return await this.arrayColumn.serialize(ids, table, record, columnPropertyName);
+	}
+
+	async deserialize(serializedFieldValue: string, table: Table<any>, record: any, columnPropertyName: string): Promise<void> {
+		const ids = await this.arrayColumn.deserialize(serializedFieldValue, table, record, columnPropertyName);
+		const referenceArray = new ReferenceArray(this.referenceTable, ids);
+		Object.defineProperty(record, columnPropertyName, {
+			get() {
+				return referenceArray.get();
+			},
+			set(value) {
+				referenceArray.set(value);
+			}
+		});
 	}
 }

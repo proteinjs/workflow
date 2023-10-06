@@ -37,35 +37,35 @@ export class Db {
     static async get<T extends Record>(table: Table<T>, query: Query<T>): Promise<T> {
         const row = await Db.getDbDriver().get(table, query);
         const recordSearializer = new RecordSerializer(table);
-        return recordSearializer.deserialize(row);
+        return await recordSearializer.deserialize(row);
     }
 
     static async insert<T extends Record>(table: Table<T>, record: Omit<T, keyof Record>): Promise<T> {
         const recordSearializer = new RecordSerializer(table);
-        const row = recordSearializer.serialize(record);
+        const row = await recordSearializer.serialize(record);
         const rowWithId = await Db.getDbDriver().insert(table, row);
-        return recordSearializer.deserialize(rowWithId);
+        return await recordSearializer.deserialize(rowWithId);
     }
 
     static async update<T extends Record>(table: Table<T>, record: T, query: Query<T>): Promise<void> {
         const recordSearializer = new RecordSerializer(table);
-        const row = recordSearializer.serialize(record);
+        const row = await recordSearializer.serialize(record);
         const querySerializer = new QuerySerializer(table);
-        const columnQuery = querySerializer.serializeQuery(query);
-        await Db.getDbDriver().update(table, row, columnQuery);
+        const serializedQuery = querySerializer.serializeQuery(query);
+        await Db.getDbDriver().update(table, row, serializedQuery);
     }
 
     static async delete<T extends Record>(table: Table<T>, query: Query<T>): Promise<void> {
         const querySerializer = new QuerySerializer(table);
-        const columnQuery = querySerializer.serializeQuery(query);
-        await Db.getDbDriver().delete(table, columnQuery);
+        const serializedQuery = querySerializer.serializeQuery(query);
+        await Db.getDbDriver().delete(table, serializedQuery);
     }
 
     static async query<T extends Record>(table: Table<T>, query: Query<T>): Promise<T[]> {
         const querySerializer = new QuerySerializer(table);
-        const columnQuery = querySerializer.serializeQuery(query);
-        const rows = await Db.getDbDriver().query(table, columnQuery);
+        const serializedQuery = querySerializer.serializeQuery(query);
+        const rows = await Db.getDbDriver().query(table, serializedQuery);
         const recordSearializer = new RecordSerializer(table);
-        return rows.map(row => recordSearializer.deserialize(row));
+        return await Promise.all(rows.map(async (row) => recordSearializer.deserialize(row)));
     }
 }
