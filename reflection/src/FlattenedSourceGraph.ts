@@ -117,17 +117,35 @@ function loadInterfaceAndParents(interfaceDeclaration: InterfaceDeclaration, sou
 	const outEdges = sourceGraph.outEdges(interfaceDeclaration.qualifiedName);
 	if (outEdges) {
 		for (const outEdge of outEdges) {
-			const parentInterface = flattenedSourceGraph.interfaces[outEdge.w];
-			if (!parentInterface)
+			const node = sourceGraph.node(outEdge.w);
+			if (!node)
 				continue;
 
-			_interface.directParents[parentInterface.qualifiedName] = parentInterface;
-			_interface.allParents[parentInterface.qualifiedName] = parentInterface;
-			_interface.allParents = Object.assign(_interface.allParents, parentInterface.allParents);
-			if (isRootParent(parentInterface))
-				_interface.rootParents[parentInterface.qualifiedName] = parentInterface;
-			else
-				_interface.rootParents = Object.assign(_interface.rootParents, parentInterface.rootParents);
+			if (node instanceof InterfaceDeclaration) {
+				const parentInterface = flattenedSourceGraph.interfaces[outEdge.w];
+				if (!parentInterface)
+					continue;
+
+				_interface.directParents[parentInterface.qualifiedName] = parentInterface;
+				_interface.allParents[parentInterface.qualifiedName] = parentInterface;
+				_interface.allParents = Object.assign(_interface.allParents, parentInterface.allParents);
+				if (isRootParent(parentInterface))
+					_interface.rootParents[parentInterface.qualifiedName] = parentInterface;
+				else
+					_interface.rootParents = Object.assign(_interface.rootParents, parentInterface.rootParents);
+			} else if (node instanceof TypeAliasDeclaration) {
+				const parentTypeAlias = flattenedSourceGraph.typeAliases[outEdge.w];
+				if (!parentTypeAlias)
+					continue;
+
+				_interface.directParents[parentTypeAlias.qualifiedName] = parentTypeAlias;
+				_interface.allParents[parentTypeAlias.qualifiedName] = parentTypeAlias;
+				_interface.allParents = Object.assign(_interface.allParents, parentTypeAlias.allParents);
+				if (isRootParent(parentTypeAlias))
+					_interface.rootParents[parentTypeAlias.qualifiedName] = parentTypeAlias;
+				else
+					_interface.rootParents = Object.assign(_interface.rootParents, parentTypeAlias.rootParents);
+			}
 		}
 	}
 }
@@ -168,6 +186,18 @@ function loadClassAndParents(classDeclaration: ClassDeclaration, sourceGraph: Gr
 					_class.rootParents[parentInterface.qualifiedName] = parentInterface;
 				else
 					_class.rootParents = Object.assign(_class.rootParents, parentInterface.rootParents);
+			} else if (node instanceof TypeAliasDeclaration) {
+				const parentTypeAlias = flattenedSourceGraph.typeAliases[outEdge.w];
+				if (!parentTypeAlias)
+					continue;
+
+				_class.directParents[parentTypeAlias.qualifiedName] = parentTypeAlias;
+				_class.allParents[parentTypeAlias.qualifiedName] = parentTypeAlias;
+				_class.allParents = Object.assign(_class.allParents, parentTypeAlias.allParents);
+				if (isRootParent(parentTypeAlias))
+					_class.rootParents[parentTypeAlias.qualifiedName] = parentTypeAlias;
+				else
+					_class.rootParents = Object.assign(_class.rootParents, parentTypeAlias.rootParents);
 			}
 		}
 	}
@@ -244,6 +274,18 @@ function loadTypeAliasAndChildren(typeAliasDeclaration: TypeAliasDeclaration, so
 					typeAlias.baseChildren[childTypeAlias.qualifiedName] = childTypeAlias;
 				else
 					typeAlias.baseChildren = Object.assign(typeAlias.baseChildren, childTypeAlias.baseChildren);
+			} else if (node instanceof InterfaceDeclaration) {
+				const childInterface = flattenedSourceGraph.interfaces[node.qualifiedName];
+				if (!childInterface)
+					continue;
+
+				typeAlias.directChildren[childInterface.qualifiedName] = childInterface;
+				typeAlias.allChildren[childInterface.qualifiedName] = childInterface;
+				typeAlias.allChildren = Object.assign(typeAlias.allChildren, childInterface.allChildren);
+				if (Object.keys(childInterface.directChildren).length === 0 && childInterface.directChildren.constructor === Object)
+					typeAlias.baseChildren[childInterface.qualifiedName] = childInterface;
+				else
+					typeAlias.baseChildren = Object.assign(typeAlias.baseChildren, childInterface.baseChildren);
 			} else if (node instanceof VariableDeclaration) {
 				const childVariable = flattenedSourceGraph.variables[node.qualifiedName];
 				if (!childVariable)
@@ -252,6 +294,14 @@ function loadTypeAliasAndChildren(typeAliasDeclaration: TypeAliasDeclaration, so
 				typeAlias.directChildren[childVariable.qualifiedName] = childVariable;
 				typeAlias.allChildren[childVariable.qualifiedName] = childVariable;
 				typeAlias.baseChildren[childVariable.qualifiedName] = childVariable;
+			} else if (node instanceof ClassDeclaration) {
+				const childClass = flattenedSourceGraph.classes[node.qualifiedName];
+				if (!childClass)
+					continue;
+
+				typeAlias.directChildren[childClass.qualifiedName] = childClass;
+				typeAlias.allChildren[childClass.qualifiedName] = childClass;
+				typeAlias.baseChildren[childClass.qualifiedName] = childClass;
 			}
 		}
 	}
