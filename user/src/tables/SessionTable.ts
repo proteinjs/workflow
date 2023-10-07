@@ -9,7 +9,7 @@ export type Session = Record & {
 
 export const SessionTable: Table<Session> = {
     name: 'session',
-    columns: withRecordColumns({
+    columns: withRecordColumns<Session>({
         sessionId: new StringColumn('session_id'),
         session: new StringColumn('session', {}, 4000),
         expires: new DateColumn('expires'),

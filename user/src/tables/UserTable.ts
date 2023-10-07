@@ -10,7 +10,7 @@ export type User = Record & {
 
 export const UserTable: Table<User> = {
     name: 'user',
-    columns: withRecordColumns({
+    columns: withRecordColumns<User>({
         name: new StringColumn('name'),
         email: new StringColumn('email', {}, 250),
         password: new StringColumn('password'),

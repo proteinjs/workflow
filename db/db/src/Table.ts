@@ -3,12 +3,26 @@ import { Record } from './Record';
 
 export const getTables = () => SourceRepository.get().objects<Table<any>>('@proteinjs/db/Table');
 
+export const tableByName = (name: string) => {
+	const tables = getTables();
+	for (let table of tables) {
+		if (table.name = name)
+			return table;
+	}
+
+	throw new Error(`Unable to find table: ${name}`);
+}
+
 export type Table<T extends Record> = Loadable & {
 	name: string,
-	columns: { [P in keyof T]: Column<T[P], any> },
+	columns: Columns<T>,
 	primaryKey?: (keyof T)[],
 	indexes?: { columns: (keyof T)[], name?: string }[]
 }
+
+export type Columns<T> = {
+	[P in keyof T]: Column<T[P], any>
+};
 
 export type Column<T, Serialized> = {
 	name: string,

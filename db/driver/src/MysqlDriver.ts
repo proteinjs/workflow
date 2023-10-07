@@ -49,7 +49,7 @@ export class MysqlDriver implements DbDriver {
 	}
 
 	async tableExists<T extends Record>(table: Table<T>): Promise<boolean> {
-		return await MysqlDriver.getKnex().withSchema(MysqlDriver.getDbName()).hasTable(table.name);
+		return await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(table.name);
 	}
 
 	private async createDatabaseIfNotExists(databaseName: string): Promise<void> {

@@ -1,18 +1,20 @@
 import { Db } from './Db';
 import { Record } from './Record';
-import { Table } from './Table';
+import { tableByName } from './Table';
 
 export class ReferenceArray<T extends Record> {
   private objects: T[]|undefined;
 
   constructor(
-    private table: Table<T>,
+    private table: string,
     private ids: string[],
   ) {}
 
   async get(): Promise<T[]> {
-    if (!this.objects)
-      this.objects = await Db.query(this.table, [{ column: 'id', operator: 'in', value: this.ids }]);
+    if (!this.objects) {
+      const table = tableByName(this.table);
+      this.objects = await Db.query(table, [{ column: 'id', operator: 'in', value: this.ids }]);
+    }
 
     return this.objects;
   }

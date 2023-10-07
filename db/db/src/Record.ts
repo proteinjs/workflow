@@ -1,20 +1,22 @@
 import { DateTimeColumn, StringColumn } from './Columns';
-import { Column, Table } from './Table';
+import { Column, Table, Columns } from './Table';
+
+import moment from 'moment';
 
 export interface Record {
 	id: string;
-	created: string;
-	updated: string;
+	created: moment.Moment;
+	updated: moment.Moment;
 }
 
-export const recordColumns = {
+export const recordColumns: Columns<Record> = {
   id: new StringColumn('id'),
   created: new DateTimeColumn('created'),
   updated: new DateTimeColumn('updated'),
 }
 
-export function withRecordColumns(columns: any) {
-  return Object.assign(recordColumns, columns);
+export function withRecordColumns<T extends Record>(columns: Columns<Omit<T, keyof Record>>): Columns<Record> & Columns<Omit<T, keyof Record>> {
+  return Object.assign(Object.assign({}, recordColumns), columns);
 }
 
 export type Row = { [columnName: string]: any }
@@ -43,16 +45,16 @@ export class RecordSerializer<T extends Record> {
     const deserialized: any = {};
     for (let columnName in row) {
       const columns: {[prop: string]: Column<any, any>} = this.table.columns;
-      if (columns[columnName]) {
-        const column = columns[columnName];
+      let column = columns[columnName];
+      if (column) {
         let value = row[columnName];
         await this.deserializeField(deserialized, column, columnName, value);
         continue;
       }
 
       for (let columnPropertyName in this.table.columns) {
-        const column = this.table.columns[columnPropertyName];
-        if (columnName == column.name) {
+        column = this.table.columns[columnPropertyName];
+        if (column && columnName == column.name) {
           const value = row[columnName];
           await this.deserializeField(deserialized, column, columnPropertyName, value);
           break;

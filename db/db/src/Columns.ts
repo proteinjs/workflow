@@ -172,12 +172,12 @@ export class ArrayColumn<T> implements Column<T[], string> {
 	}
 }
 
-export class ReferenceArrayColumn<T extends Record> implements Column<T[], string> {
+export class ReferenceArrayColumn<T extends Record> implements Column<Promise<T[]>, string> {
 	private arrayColumn: ArrayColumn<string>;
 	
 	constructor(
 		public name: string,
-		public referenceTable: Table<T>,
+		public referenceTable: string,
 		public options?: ColumnOptions,
 		public largeObject: boolean = false // up to 4g, default up to 16m
 	) {
@@ -188,8 +188,8 @@ export class ReferenceArrayColumn<T extends Record> implements Column<T[], strin
 		return this.arrayColumn.type;
 	}
 
-	async serialize(fieldValue: T[], table: Table<any>, record: any, columnPropertyName: string): Promise<string> {
-		const ids = fieldValue.map(record => record.id);
+	async serialize(fieldValue: Promise<T[]>, table: Table<any>, record: any, columnPropertyName: string): Promise<string> {
+		const ids = (await fieldValue).map(record => record.id);
 		return await this.arrayColumn.serialize(ids, table, record, columnPropertyName);
 	}
 
