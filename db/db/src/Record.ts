@@ -1,4 +1,4 @@
-import { DateTimeColumn, StringColumn } from './Columns';
+import { DateTimeColumn, UuidColumn } from './Columns';
 import { Column, Table, Columns } from './Table';
 
 import moment from 'moment';
@@ -10,7 +10,7 @@ export interface Record {
 }
 
 export const recordColumns: Columns<Record> = {
-  id: new StringColumn('id'),
+  id: new UuidColumn('id'),
   created: new DateTimeColumn('created'),
   updated: new DateTimeColumn('updated'),
 }

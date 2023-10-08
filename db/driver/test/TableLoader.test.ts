@@ -1,28 +1,22 @@
 import '../generated/index';
-import { Table, StringColumn, BooleanColumn, ObjectColumn, IntegerColumn, BigIntegerColumn, TextColumn, FloatColumn, DecimalColumn, DateColumn, DateTimeColumn, BinaryColumn, UuidColumn } from '@proteinjs/db';
+import { Table, StringColumn, BooleanColumn, ObjectColumn, IntegerColumn, BigIntegerColumn, TextColumn, FloatColumn, DecimalColumn, DateColumn, DateTimeColumn, BinaryColumn, UuidColumn, Record, withRecordColumns } from '@proteinjs/db';
 import { loadTable, columnExists, getColumnMetadata, getPrimaryKey, getForeignKeys, getUniqueColumns, getIndexes } from '../src/loadTables';
 import { MysqlDriver } from '../src/MysqlDriver';
 
-type User = {
-	id: string,
+type User = Record & {
 	name: string,
 	email: string,
 	active: boolean,
-	created: string,
-	updated: string,
 };
 
 function userTable(): Table<User> {
 	return {
 		name: 'db_test_user',
-		columns: {
-			id: new UuidColumn('id'),
+		columns: withRecordColumns<User>({
 			name: new StringColumn('name'),
 			email: new StringColumn('email'),
 			active: new BooleanColumn('active'),
-			created: new StringColumn('created'),
-			updated: new StringColumn('updated'),
-		},
+		}),
 		primaryKey: ['id'],
 		indexes: [
 			{ columns: ['email'] },
