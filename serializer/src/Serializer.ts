@@ -1,6 +1,6 @@
 import { Loadable, SourceRepository } from '@brentbahry/reflection';
 
-export type Serializable = string | boolean | number | SerializableObject | CustomSerializableObject
+export type Serializable = string | boolean | number | Serializable[] | SerializableObject | CustomSerializableObject
 
 export type SerializableObject = {
 	[key: string]: Serializable
