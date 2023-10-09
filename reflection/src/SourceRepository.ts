@@ -1,7 +1,7 @@
 import { Graph } from '@dagrejs/graphlib';
 import { graphSerializer } from '@brentbahry/util';
 import { SourceType } from './sourceGraphTypes';
-import { VariableDeclaration, TypeAliasDeclaration, ClassDeclaration, InterfaceDeclaration, Class, Variable } from './types';
+import { VariableDeclaration, TypeAliasDeclaration, ClassDeclaration, InterfaceDeclaration, Class, Variable, TypeAlias, Interface } from './types';
 import { FlattenedSourceGraph, flattenSourceGraph } from './FlattenedSourceGraph';
 
 export class SourceRepository {
@@ -25,6 +25,14 @@ export class SourceRepository {
 		return this._flattenedSourceGraph;
 	}
 
+	interface(qualifiedInterfaceName: string) {
+		return this.flattenedSourceGraph.interfaces[qualifiedInterfaceName];
+	}
+
+	interfaceExtends(_interface: Interface, type: string) {
+		return typeof _interface.allParents[type] !== 'undefined';
+	}
+
 	/**
 	 * Same as SourceRepository.objects except assumes it will find only 1 object.
 	 * 
@@ -36,25 +44,14 @@ export class SourceRepository {
 	}
 
 	/**
-	 * @param extendingType a Type or Interface that the Class or Variable extends
+	 * @param extendingType a Type, Interface, or Class that the Class or Variable extends
 	 * @return variables and instantiated classes that extend `extendingType`
 	 */
 	objects<T>(extendingType: string): T[] {
 		if (this.objectCache[extendingType])
 			return this.objectCache[extendingType];
 
-		const _interface = SourceRepository.get().flattenedSourceGraph.interfaces[extendingType];
-		let baseChildren: any;
-		if (_interface)
-			baseChildren = _interface.baseChildren;
-		else {
-			const typeAlias = SourceRepository.get().flattenedSourceGraph.typeAliases[extendingType];
-			if (!typeAlias)
-				throw new Error(`Unable to find type: ${extendingType}`);
-
-			baseChildren = typeAlias.baseChildren;
-		}
-
+		const baseChildren = this.baseChildren(extendingType);
 		const extendingObjects: T[] = [];
 		for (const baseChildQualifiedName in baseChildren) {
 			const child = baseChildren[baseChildQualifiedName];
@@ -66,6 +63,28 @@ export class SourceRepository {
 
 		this.objectCache[extendingType] = extendingObjects;
 		return extendingObjects;
+	}
+
+	/**
+	 * @param extendingType a Type, Interface, or Class that the Class or Variable extends
+	 * @returns an array of base child types (vs the instantiated objects provided by the objects method) that extend `extendingType`
+	 */
+	baseChildren(extendingType: string): (Interface|TypeAlias|Class|Variable)[] {
+		const _interface = SourceRepository.get().flattenedSourceGraph.interfaces[extendingType];
+		const typeAlias = SourceRepository.get().flattenedSourceGraph.typeAliases[extendingType];
+		const _class = SourceRepository.get().flattenedSourceGraph.classes[extendingType];
+		let baseChildren: any;
+		if (_interface)
+			baseChildren = _interface.baseChildren;
+		else if (typeAlias) {
+			baseChildren = typeAlias.baseChildren;
+		} else if (_class) {
+			baseChildren = _class.baseChildren;
+		} else {
+			throw new Error(`Unable to find type: ${extendingType}`);
+		}
+
+		return baseChildren;
 	}
 
 	static merge(serializedSourceGraph: string, sourceLinks: { [qualifiedName: string]: any }) {
