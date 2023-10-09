@@ -1,6 +1,8 @@
 import { Loadable, SourceRepository } from '@brentbahry/reflection';
 
 export type Serializable = string | boolean | number | Serializable[] | SerializableObject | CustomSerializableObject
+export type SerializableFunction = (...args: Serializable[]) => Promise<Serializable> | Promise<void>
+export type NotFunction<T> = T extends Function ? never : T
 
 export type SerializableObject = {
 	[key: string]: Serializable
@@ -88,7 +90,9 @@ export class Serializer {
     if (serialized == 'undefined')
       return undefined;
 
-    const parsed = JSON.parse(serialized);
+    let parsed = serialized;
+    if (typeof parsed === 'string')
+      parsed = JSON.parse(parsed);
     if (parsed == null)
       return parsed;
 
