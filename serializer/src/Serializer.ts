@@ -8,20 +8,20 @@ export type SerializableObject = {
 	[key: string]: Serializable
 }
 
-export type CustomSerializableObject = SerializableObject & {
+export type CustomSerializableObject = {
   __serializerId: string,
 }
 
 type CustomSerializerBase = {
-  serialize: (serializable: Serializable) => string,
-  deserialize: (serialized: string) => Serializable,
+  serialize: (object: any) => SerializableObject,
+  deserialize: (serialized: any) => any,
 }
 
 export type CustomSerializer = Loadable & CustomSerializerBase & {
   id: string,
 }
 
-export type ThirdPartyLibCustomSerializer = Loadable & CustomSerializerBase & {
+export type ThirdPartyLibCustomSerializer = CustomSerializer & {
   matches: (obj: any) => boolean,
 }
 
@@ -61,7 +61,7 @@ export class Serializer {
     if (typeof serializable === 'object' && typeof serializable.__serializerId === 'string') {
       const serializer = Serializer.getCustomSerializerMap()[serializable.__serializerId];
       if (serializer)
-        serialized = serializer.serialize(serializable);
+        serialized = Object.assign({ __serializerId: serializer.id }, serializer.serialize(serializable));
     } else if (typeof serializable === 'object' && serializable.constructor.name != 'Array') {
       const thirdPartyLibCustomSerializers = Serializer.getThirdPartyLibCustomSerializers();
       let thirdPartyLibCustomSerializer;
@@ -72,7 +72,7 @@ export class Serializer {
         }
       }
       if (thirdPartyLibCustomSerializer) {
-        serialized = thirdPartyLibCustomSerializer.serialize(serializable);
+        serialized = Object.assign({ __serializerId: thirdPartyLibCustomSerializer.id }, thirdPartyLibCustomSerializer.serialize(serializable));
       } else {
         serialized = {};
         Object.keys(serializable)
@@ -109,22 +109,10 @@ export class Serializer {
       if (serializer)
         deserialized = serializer.deserialize(parsed);
     } else if (typeof parsed === 'object' && parsed.constructor.name != 'Array') {
-      const thirdPartyLibCustomSerializers = Serializer.getThirdPartyLibCustomSerializers();
-      let thirdPartyLibCustomSerializer;
-      for (let serializer of thirdPartyLibCustomSerializers) {
-        if (serializer.matches(parsed)) {
-          thirdPartyLibCustomSerializer = serializer;
-          break;
-        }
-      }
-      if (thirdPartyLibCustomSerializer) {
-        deserialized = thirdPartyLibCustomSerializer.deserialize(parsed);
-      } else {
-        deserialized = {};
-        Object.keys(parsed)
-          .filter(prop => parsed.hasOwnProperty(prop))
-          .forEach(prop => deserialized[prop] = Serializer._deserialize(parsed[prop]));
-      }
+      deserialized = {};
+      Object.keys(parsed)
+        .filter(prop => parsed.hasOwnProperty(prop))
+        .forEach(prop => deserialized[prop] = Serializer._deserialize(parsed[prop]));
     } else if (typeof parsed === 'object' && parsed.constructor.name == 'Array') {
       deserialized = parsed.map((item: any) => Serializer._deserialize(item));
     }
