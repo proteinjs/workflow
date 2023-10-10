@@ -77,26 +77,24 @@ async function alterTable(table: Table<any>) {
 			let alter = false;
 			const mysqlColumnType = mysqlColumnTypeMap[column.type];
 			const existingMysqlColumnType = columnMetadata[column.name]['DATA_TYPE'];
-			if (mysqlColumnType != existingMysqlColumnType)
+			if (mysqlColumnType != existingMysqlColumnType) {
+				// console.log(`mysqlColumnType != existingMysqlColumnType`);
 				alter = true;
+			}
 			
 			if (
 				(column.options?.nullable && columnMetadata[column.name]['IS_NULLABLE'] == 'NO') ||
 				(column.options?.nullable === false && columnMetadata[column.name]['IS_NULLABLE'] == 'YES')
-			)
+			) {
+				// console.log(`column.options?.nullable`)
 				alter = true;
-			
-			if (
-				(typeof column.options?.defaultValue !== 'undefined' && columnMetadata[column.name]['COLUMN_DEFAULT'] == 'NULL') ||
-				(typeof column.options?.defaultValue === 'undefined' && columnMetadata[column.name]['COLUMN_DEFAULT'] != 'NULL') ||
-				(typeof column.options?.defaultValue !== 'undefined' && columnMetadata[column.name]['COLUMN_DEFAULT'] != column.options.defaultValue)
-			)
-				alter = true;
+			}
 			
 			if (
 				column.options?.unique?.unique && !uniqueColumns.includes(column.name) ||
 				column.options?.unique?.unique === false && uniqueColumns.includes(column.name)
 			) {
+				// console.log(`column.options?.unique?.unique`)
 				columnsWithUniqeConstraintToDrop.push(column.name);
 				alter = true;
 			} 
@@ -106,6 +104,7 @@ async function alterTable(table: Table<any>) {
 				!column.options?.references && foreignKeys[column.name] ||
 				column.options?.references && foreignKeys[column.name] && (foreignKeys[column.name]['REFERENCED_TABLE_NAME'] != column.options.references.table || foreignKeys[column.name]['REFERENCED_COLUMN_NAME'] != column.options.references.column)
 			) {
+				// console.log(`column.options?.references`)
 				columnsWithForeignKeysToDrop.push(column.name);
 				alter = true;
 			}
@@ -130,10 +129,21 @@ async function alterTable(table: Table<any>) {
 		dropExistingPrimaryKey = true;
 
 	let createPrimaryKey = false;
+	// console.log(`Primary key comparison, existing: ${JSON.stringify(existingPrimaryKey)}, current: ${JSON.stringify(table.primaryKey)}`)
 	if (table.primaryKey && JSON.stringify(existingPrimaryKey) != JSON.stringify(table.primaryKey)) {
 		dropExistingPrimaryKey = true;
 		createPrimaryKey = true;
 	}
+
+	// console.log(`columnsToCreate.length == 0: ${columnsToCreate.length == 0}`);
+	// console.log(`columnsToRename.length == 0: ${columnsToRename.length == 0}`);
+	// console.log(`columnsToAlter.length == 0: ${columnsToAlter.length == 0}`);
+	// console.log(`columnsWithForeignKeysToDrop.length == 0: ${columnsWithForeignKeysToDrop.length == 0}`);
+	// console.log(`columnsWithUniqeConstraintToDrop.length == 0: ${columnsWithUniqeConstraintToDrop.length == 0}`);
+	// console.log(`indexesToCreate.length == 0: ${indexesToCreate.length == 0}`);
+	// console.log(`indexesToDrop.length == 0: ${indexesToDrop.length == 0}`);
+	// console.log(`!dropExistingPrimaryKey: ${!dropExistingPrimaryKey}`);
+	// console.log(`!createPrimaryKey: ${!createPrimaryKey}`);
 
 	if (
 		columnsToCreate.length == 0 && 
@@ -149,7 +159,7 @@ async function alterTable(table: Table<any>) {
 		return;
 		
 	console.info(`Altering table: ${table.name}`);
-	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).table(table.name, (tableBuilder: any) => {
+	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).table(table.name, (tableBuilder: knex.TableBuilder) => {
 		for (const columnPropertyName of columnsToCreate) {
 			const column = table.columns[columnPropertyName];
 			createColumn(column, tableBuilder as any, table);
@@ -269,11 +279,6 @@ function createColumn(column: Column<any, any>, tableBuilder: knex.TableBuilder,
 			columnBuilder.notNullable();
 
 		console.info(`[${table.name}.${column.name}] Added constraint nullable: ${column.options?.nullable}`);
-	}
-
-	if (column.options?.defaultValue) {
-		columnBuilder.defaultTo(column.options.defaultValue());
-		console.info(`[${table.name}.${column.name}] Added default value: ${column.options.defaultValue()}`);
 	}
 
 	return columnBuilder;

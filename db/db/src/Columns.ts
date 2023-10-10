@@ -144,7 +144,7 @@ export class UuidColumn implements Column<string, string> {
 		public name: string,
 		public options?: ColumnOptions
 	) {
-		this.options = Object.assign({ defaultTo: async () => uuid.v1().split('-').join('') }, options);
+		this.options = Object.assign({ defaultValue: async () => uuid.v1().split('-').join('') }, options);
 	}
 }
 

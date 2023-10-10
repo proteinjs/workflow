@@ -42,10 +42,19 @@ export class Db implements DbService {
     }
 
     async insert<T extends Record>(table: Table<T>, record: Omit<T, keyof Record>): Promise<T> {
+        await this.addDefaultFieldValues(table, record);
         const recordSearializer = new RecordSerializer(table);
         const row = await recordSearializer.serialize(record);
         const rowWithId = await Db.getDbDriver().insert(table, row);
         return await recordSearializer.deserialize(rowWithId);
+    }
+
+    private async addDefaultFieldValues<T extends Record>(table: Table<T>, record: any) {
+        for (let columnPropertyName in table.columns) {
+            const column = table.columns[columnPropertyName];
+            if (column.options?.defaultValue && typeof record[columnPropertyName] === 'undefined')
+                record[columnPropertyName] = await column.options.defaultValue();
+        }
     }
 
     async update<T extends Record>(table: Table<T>, record: T, query: Query<T>): Promise<void> {
