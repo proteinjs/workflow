@@ -55,7 +55,7 @@ function wrapRoute(route: (request: express.Request, response: express.Response)
         }
         
         if (config.authenticate) {
-            await new Promise((resolve, reject) => {
+            await new Promise<void>((resolve, reject) => {
                 passport.authenticate('local', function (err, user, info) {
                     if (err)
                         reject(err);
