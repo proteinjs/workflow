@@ -1,9 +1,9 @@
 import { Db } from '@proteinjs/db';
-import { SessionTable } from '../tables/SessionTable';
+import { tables } from '../tables/tables';
 
 export async function destroySession(sessionId?: string) {
     if (!sessionId)
         return;
 
-    await Db.delete(SessionTable, { sessionId });
+    await new Db().delete(tables.Session, { sessionId });
 }

@@ -1,5 +1,7 @@
 import { Loadable, SourceRepository } from '@brentbahry/reflection';
+import { CustomSerializableObject } from '@proteinjs/serializer';
 import { Record } from './Record';
+import { TableSerializerId } from './serializers/TableSerializer';
 
 export const getTables = () => SourceRepository.get().objects<Table<any>>('@proteinjs/db/Table');
 
@@ -13,11 +15,12 @@ export const tableByName = (name: string) => {
 	throw new Error(`Unable to find table: ${name}`);
 }
 
-export type Table<T extends Record> = Loadable & {
-	name: string,
-	columns: Columns<T>,
-	primaryKey?: (keyof T)[],
-	indexes?: { columns: (keyof T)[], name?: string }[]
+export abstract class Table<T extends Record> implements Loadable, CustomSerializableObject {
+	public __serializerId = TableSerializerId;
+	abstract name: string;
+	abstract columns: Columns<T>;
+	public primaryKey: (keyof T)[] = ['id'];
+	public indexes: { columns: (keyof T)[], name?: string }[] = [];
 }
 
 export type Columns<T> = {

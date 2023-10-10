@@ -1,14 +1,15 @@
 import sha256 from 'crypto-js/sha256';
 import { Route } from '@proteinjs/server-api';
 import { Db } from '@proteinjs/db';
-import { User, UserTable } from '../tables/UserTable';
+import { User } from '../tables/UserTable';
+import { tables } from '../tables/tables';
 
 export const createUser: Route = {
     path: '/user/create',
     method: 'post',
     onRequest: async (request, response): Promise<void> => {
         const user = request.body as User;
-        const userRecord = await Db.get(UserTable, { email: user.email });
+        const userRecord = await new Db().get(tables.User, { email: user.email });
         if (userRecord) {
             const error = `User with this email already exists`;
             console.error(`${error}: ${user.email}`);
@@ -16,7 +17,7 @@ export const createUser: Route = {
             return;
         }
 
-        await Db.insert(UserTable, {
+        await new Db().insert(tables.User, {
             name: user.name,
             email: user.email,
             password: sha256(user.password).toString(),

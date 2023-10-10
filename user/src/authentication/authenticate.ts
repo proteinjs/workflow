@@ -1,6 +1,6 @@
 import sha256 from 'crypto-js/sha256';
 import { Db } from '@proteinjs/db';
-import { UserTable } from '../tables/UserTable';
+import { tables } from '../tables/tables';
 import { DefaultAdminCredentials } from './DefaultAdminCredentials';
 
 export function createAuthentication(defaultAdminCredentials?: { username: string, password: string }) {
@@ -17,7 +17,7 @@ export async function authenticate(email: string, password: string): Promise<tru
         return true;
     }
 
-    const users = await Db.query(UserTable, {
+    const users = await new Db().query(tables.User, {
         email,
         password: sha256(password).toString()
     });

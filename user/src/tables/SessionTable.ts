@@ -7,12 +7,12 @@ export type Session = Record & {
     userEmail: string
 }
 
-export const SessionTable: Table<Session> = {
-    name: 'session',
-    columns: withRecordColumns<Session>({
+export class SessionTable extends Table<Session> {
+    name = 'session';
+    columns = withRecordColumns<Session>({
         sessionId: new StringColumn('session_id'),
         session: new StringColumn('session', {}, 4000),
         expires: new DateColumn('expires'),
         userEmail: new StringColumn('user_email'),
-    })
+    });
 };

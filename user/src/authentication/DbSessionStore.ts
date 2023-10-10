@@ -1,6 +1,6 @@
 import { Store } from 'express-session';
 import { Db } from '@proteinjs/db';
-import { SessionTable } from '../tables/SessionTable';
+import { tables } from '../tables/tables';
 import { destroySession } from './destroySession';
 
 export class DbSessionStore extends Store {
@@ -13,7 +13,7 @@ export class DbSessionStore extends Store {
 
 	get = (sessionId: string, cb: (error: any, session?: Express.SessionData|null) => void) => {
 		(async () => {
-            const result = await Db.get(SessionTable, { sessionId });
+            const result = await new Db().get(tables.Session, { sessionId });
             if (!result) {
                 cb(null);
                 return;
@@ -53,15 +53,15 @@ export class DbSessionStore extends Store {
             return;
         }
 
-        const sessionRecord = await Db.get(SessionTable, { sessionId });
+        const sessionRecord = await new Db().get(tables.Session, { sessionId });
         if (sessionRecord) {
             sessionRecord.session = JSON.stringify(session);
             sessionRecord.expires = (<Date>session.cookie.expires);
             sessionRecord.userEmail = session.passport?.user;
-            await Db.update(SessionTable, sessionRecord, { sessionId });
+            await new Db().update(tables.Session, sessionRecord, { sessionId });
         } else {
             try {
-                await Db.insert(SessionTable, {
+                await new Db().insert(tables.Session, {
                     sessionId,
                     session: JSON.stringify(session),
                     expires: (<Date>session.cookie.expires),
@@ -78,12 +78,12 @@ export class DbSessionStore extends Store {
     }
 
     private async sweep(): Promise<void> {
-        if (!await Db.tableExists(SessionTable))
+        if (!await new Db().tableExists(tables.Session))
             return;
 
         console.info(`Sweeping expired sessions`);
-        const expiredSessions = (await Db.query(SessionTable, [{ column: 'expires', operator: '<=', value: new Date() }])).length;
-        await Db.delete(SessionTable, [{ column: 'expires', operator: '<=', value: new Date() }]);
+        const expiredSessions = (await new Db().query(tables.Session, [{ column: 'expires', operator: '<=', value: new Date() }])).length;
+        await new Db().delete(tables.Session, [{ column: 'expires', operator: '<=', value: new Date() }]);
 		console.info(`Swept ${expiredSessions} expired sessions`);
 	}
 }

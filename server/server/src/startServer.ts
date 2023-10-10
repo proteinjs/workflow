@@ -26,7 +26,7 @@ export async function startServer(config: ServerConfig = {}) {
 }
 
 async function runStartupEvents(config: ServerConfig) {
-    await Db.init();
+    await new Db().init();
 
     if (config.onStartup)
         await config.onStartup();

@@ -13,7 +13,7 @@ export class ReferenceArray<T extends Record> {
   async get(): Promise<T[]> {
     if (!this.objects) {
       const table = tableByName(this.table);
-      this.objects = await Db.query(table, [{ column: 'id', operator: 'in', value: this.ids }]);
+      this.objects = await new Db().query(table, [{ column: 'id', operator: 'in', value: this.ids }]);
     }
 
     return this.objects;
