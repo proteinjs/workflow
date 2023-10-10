@@ -35,12 +35,15 @@ export async function createClassDeclaration(parserClassDeclaration: ParserClass
 
 	const directParentInterfaces: InterfaceDeclaration[] = [];
 	for (const parentInterface of parserClassDeclaration.implements) {
-		const typeParameters: string[] = [];
-		for (const typeParameter of parentInterface.typeParameters)
-			typeParameters.push(`${await packageNameFinder.getPackageName(typeParameter)}/${typeParameter}`);
+		const parsedInterfaceNames = parentInterface.name.split(',').map(name => name.trim());
+		for (let parentInterfaceName of parsedInterfaceNames) {
+			const typeParameters: string[] = [];
+			for (const typeParameter of parentInterface.typeParameters)
+				typeParameters.push(`${await packageNameFinder.getPackageName(typeParameter)}/${typeParameter}`);
 
-		const packageName = await packageNameFinder.getPackageName(parentInterface.name);
-		directParentInterfaces.push(new InterfaceDeclaration(packageName, parentInterface.name, [], [], typeParameters, []));
+			const packageName = await packageNameFinder.getPackageName(parentInterfaceName);
+			directParentInterfaces.push(new InterfaceDeclaration(packageName, parentInterfaceName, [], [], typeParameters, []));
+		}
 	}
 
 	const directParentClasses: ClassDeclaration[] = [];
