@@ -51,17 +51,21 @@ export class Db implements DbService {
 
     private async addDefaultFieldValues<T extends Record>(table: Table<T>, record: any) {
         for (let columnPropertyName in table.columns) {
-            const column = table.columns[columnPropertyName];
+            const column = (table.columns as any)[columnPropertyName];
             if (column.options?.defaultValue && typeof record[columnPropertyName] === 'undefined')
                 record[columnPropertyName] = await column.options.defaultValue();
         }
     }
 
-    async update<T extends Record>(table: Table<T>, record: T, query: Query<T>): Promise<void> {
+    async update<T extends Record>(table: Table<T>, record: Partial<T>, query?: Query<T>): Promise<void> {
+        if (!query && !record.id)
+            throw new Error(`Update must be called with either a query or a record with an id property`);
+
+        const resolvedQuery: Query<T> = query ? query : { id: record.id } as Query<T>;
         const recordSearializer = new RecordSerializer(table);
         const row = await recordSearializer.serialize(record);
         const querySerializer = new QuerySerializer(table);
-        const serializedQuery = querySerializer.serializeQuery(query);
+        const serializedQuery = querySerializer.serializeQuery(resolvedQuery);
         await Db.getDbDriver().update(table, row, serializedQuery);
     }
 
