@@ -16,7 +16,7 @@ export interface Service extends Loadable {
  * @param serviceInterfaceQualifiedName the package-qualified name of the service interface (ie. @my-package/MyService)
  * @returns a function that creates a Service
  */
-export const serviceFactory = (serviceInterfaceQualifiedName: string) => {
+export const serviceFactory = <T extends Service>(serviceInterfaceQualifiedName: string): () => T => {
   return () => {
     const service: any = {};
     const serviceInterface = SourceRepository.get().interface(serviceInterfaceQualifiedName);
