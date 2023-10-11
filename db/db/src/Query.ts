@@ -32,7 +32,7 @@ export class QuerySerializer<T extends Record> {
     
     const columnQuery: ColumnQuery = {};
     for (let prop in query) {
-      const column = this.table.columns[prop];
+      const column = (this.table.columns as any)[prop];
       if (!column)
         continue;
 
@@ -43,7 +43,7 @@ export class QuerySerializer<T extends Record> {
 
   private serializeQueryCondition(queryCondition: QueryCondition<T>): SerializedQueryCondition|void {
     const serializedQueryCondition: SerializedQueryCondition = { column: '', operator: queryCondition.operator, value: queryCondition.value };
-    const column = this.table.columns[queryCondition.column];
+    const column = (this.table.columns as any)[queryCondition.column];
     if (!column)
       return;
 

@@ -53,7 +53,7 @@ export class RecordSerializer<T extends Record> {
       }
 
       for (let columnPropertyName in this.table.columns) {
-        column = this.table.columns[columnPropertyName];
+        column = (this.table.columns as any)[columnPropertyName];
         if (column && columnName == column.name) {
           const value = row[columnName];
           await this.deserializeField(deserialized, column, columnPropertyName, value);

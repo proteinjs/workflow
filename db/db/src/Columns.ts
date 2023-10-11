@@ -95,7 +95,10 @@ export class DateTimeColumn implements Column<moment.Moment, Date> {
 		public options?: ColumnOptions
 	) {}
 
-	async serialize(fieldValue: moment.Moment, table: Table<any>, record: unknown, columnPropertyName: string): Promise<Date> {
+	async serialize(fieldValue: moment.Moment|undefined, table: Table<any>, record: unknown, columnPropertyName: string): Promise<Date|undefined> {
+		if (typeof fieldValue === 'undefined')
+			return;
+
 		if (typeof fieldValue.toDate === 'undefined')
 			return moment(fieldValue).toDate();
 
@@ -128,7 +131,10 @@ export class ObjectColumn<T> implements Column<T, string> {
 		this.type = largeObject ? 'longtext' : 'mediumtext';
 	}
 
-	async serialize(fieldValue: T, table: Table<any>, record: unknown, columnPropertyName: string): Promise<string> {
+	async serialize(fieldValue: T|undefined, table: Table<any>, record: unknown, columnPropertyName: string): Promise<string|undefined> {
+		if (typeof fieldValue === 'undefined')
+			return;
+		
 		return JSON.stringify(fieldValue);
 	}
 
@@ -163,7 +169,10 @@ export class ArrayColumn<T> implements Column<T[], string> {
 		return this.objectColumn.type;
 	}
 
-	async serialize(fieldValue: T[], table: Table<any>, record: unknown, columnPropertyName: string): Promise<string> {
+	async serialize(fieldValue: T[]|undefined, table: Table<any>, record: unknown, columnPropertyName: string): Promise<string|undefined> {
+		if (typeof fieldValue === 'undefined')
+			return;
+		
 		return await this.objectColumn.serialize(fieldValue, table, record, columnPropertyName);
 	}
 
@@ -188,7 +197,10 @@ export class ReferenceArrayColumn<T extends Record> implements Column<Promise<T[
 		return this.arrayColumn.type;
 	}
 
-	async serialize(fieldValue: Promise<T[]>, table: Table<any>, record: any, columnPropertyName: string): Promise<string> {
+	async serialize(fieldValue: Promise<T[]>|undefined, table: Table<any>, record: any, columnPropertyName: string): Promise<string|undefined> {
+		if (typeof fieldValue === 'undefined')
+			return;
+		
 		const ids = (await fieldValue).map(record => record.id);
 		return await this.arrayColumn.serialize(ids, table, record, columnPropertyName);
 	}

@@ -23,9 +23,19 @@ export abstract class Table<T extends Record> implements Loadable, CustomSeriali
 	public indexes: { columns: (keyof T)[], name?: string }[] = [];
 }
 
+type RequiredProps<T> = {
+	[P in keyof T]: T[P] extends undefined ? never : P
+}[keyof T]
+
+type OptionalProps<T> = {
+	[P in keyof T]: T[P] extends undefined ? P : never
+}[keyof T]
+
 export type Columns<T> = {
-	[P in keyof T]: Column<T[P], any>
-};
+	[P in RequiredProps<T>]: Column<T[P], any>
+} & {
+	[P in OptionalProps<T>]?: Column<T[P] | undefined, any>
+}
 
 export type Column<T, Serialized> = {
 	name: string,
@@ -37,7 +47,7 @@ export type Column<T, Serialized> = {
 	 */
 	oldName?: string,
 	options?: ColumnOptions,
-	serialize?: (fieldValue: T, table: Table<any>, record: any, columnPropertyName: string) => Promise<Serialized>,
+	serialize?: (fieldValue: T|undefined, table: Table<any>, record: any, columnPropertyName: string) => Promise<Serialized|undefined>,
 	deserialize?: (serializedField: Serialized, table: Table<any>, record: any, columnPropertyName: string) => Promise<T|void>
 }
 
