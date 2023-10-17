@@ -2,7 +2,7 @@ import { Serializer } from '@proteinjs/serializer';
 import { Logger } from '@brentbahry/util';
 
 export class ServiceClient {
-  private logger = new Logger(this.constructor.name, 'info', 1000);
+  private logger = new Logger(this.constructor.name, 'info', 2000);
 
   constructor(
     private servicePath: string,
@@ -28,12 +28,12 @@ export class ServiceClient {
 		});
     const response = await fetch(request);
     if (response.status != 200)
-      throw new Error(`Failed to login, error: ${response.statusText}`);
+      throw new Error(`Failed to process service request: ${absoluteUrl}, error: ${response.statusText}`);
     
     const body = await response.json();
     if (body.error)
         throw new Error(body.error);
     
-    return body;
+    return body.serializedReturn;
   }
 }

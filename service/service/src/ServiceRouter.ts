@@ -13,8 +13,9 @@ export class ServiceRouter implements Route {
   private getServiceExecutorMap() {
     if (!this.serviceExecutorMap) {
       this.serviceExecutorMap = {};
-      const serviceTypes = SourceRepository.get().baseChildren('@proteinjs/service/Service');
+      const serviceTypes = Object.values(SourceRepository.get().directChildren('@proteinjs/service/Service'));
       for (let serviceType of serviceTypes) {
+        this.logger.info(`Loading service: ${serviceType.qualifiedName}`);
         if (!(serviceType instanceof Interface))
           continue;
 
@@ -30,9 +31,9 @@ export class ServiceRouter implements Route {
   }
 
   async onRequest(request: any, response: any): Promise<any> {
-      const serviceExecutor = this.getServiceExecutorMap()[request.route];
+      const serviceExecutor = this.getServiceExecutorMap()[request.path];
       if (!serviceExecutor) {
-        const error = `Unable to find service matching path: ${request.route}`;
+        const error = `Unable to find service matching path: ${request.path}`;
         this.logger.error(error);
         response.send({ error });
         return;
@@ -40,9 +41,10 @@ export class ServiceRouter implements Route {
 
       try {
         const serializedReturn = await serviceExecutor.execute(request.body);
-        response.send(serializedReturn);
+        response.send({ serializedReturn });
       } catch (error: any) {
-        response.status(500).send(error.message);
+        this.logger.error(error);
+        response.send({ error: error.message });
       }
   }
 }

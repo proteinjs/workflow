@@ -14,12 +14,12 @@ export class ServiceExecutor {
   }
 
   async execute(requestBody: any): Promise<any> {
-    this.logger.info(`Executing request`);
+    this.logger.info(`Executing with args:\n${JSON.stringify(requestBody, null, 2)}`);
     const method = this.service[this.method.name].bind(this.service);
     const deserializedArgs = Serializer.deserialize(requestBody);
     const _return = await method(...deserializedArgs);
     const serializedReturn = Serializer.serialize(_return);
-    this.logger.info(`Returning response`);
+    this.logger.info(`Returning:\n${serializedReturn}`);
     return serializedReturn;
   }
 }

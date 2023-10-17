@@ -13,7 +13,7 @@ export interface Service extends Loadable {
 /**
  * Create a factory that creates an instance of the Service. The Service instance is a
  * ServiceClient wrapped in the interface's api.
- * @param serviceInterfaceQualifiedName the package-qualified name of the service interface (ie. @my-package/MyService)
+ * @param serviceInterfaceQualifiedName the package-qualified name of the service interface (ie. service-package-name/MyService)
  * @returns a function that creates a Service
  */
 export const serviceFactory = <T extends Service>(serviceInterfaceQualifiedName: string): () => T => {
@@ -21,7 +21,7 @@ export const serviceFactory = <T extends Service>(serviceInterfaceQualifiedName:
     const service: any = {};
     const serviceInterface = SourceRepository.get().interface(serviceInterfaceQualifiedName);
     for (let method of serviceInterface.methods) {
-      const servicePath = `service/${serviceInterface.qualifiedName}/${method.name}`;
+      const servicePath = `/service/${serviceInterface.qualifiedName}/${method.name}`;
       const serviceClient = new ServiceClient(servicePath);
       service[method.name] = serviceClient.send.bind(serviceClient);
     }
