@@ -1,25 +1,36 @@
+import { CustomSerializableObject } from '@proteinjs/serializer';
 import { Db } from './Db';
 import { Record } from './Record';
 import { tableByName } from './Table';
+import { ReferenceArraySerializerId } from './serializers/ReferenceArraySerializer';
 
-export class ReferenceArray<T extends Record> {
-  private objects: T[]|undefined;
+/**
+ * All instance members are internal state, made public for ReferenceArraySerializer.
+ * Only get() and set() should be used.
+ */
+export class ReferenceArray<T extends Record> implements CustomSerializableObject {
+  public __serializerId = ReferenceArraySerializerId;
 
   constructor(
-    private table: string,
-    private ids: string[],
+    public _table: string,
+    public _ids: string[],
+    public _objects?: T[],
   ) {}
 
   async get(): Promise<T[]> {
-    if (!this.objects) {
-      const table = tableByName(this.table);
-      this.objects = await new Db().query(table, [{ column: 'id', operator: 'in', value: this.ids }]);
+    if (!this._objects) {
+      if (this._ids.length < 1) {
+        this._objects = [];
+      } else {
+        const table = tableByName(this._table);
+        this._objects = await new Db().query(table, [{ column: 'id', operator: 'in', value: this._ids }]);
+      }
     }
 
-    return this.objects;
+    return this._objects;
   }
 
-  async set(objects: Promise<T[]>) {
-    this.objects = await objects;
+  set(objects: T[]) {
+    this._objects = objects;
   }
 }

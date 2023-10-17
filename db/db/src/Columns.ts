@@ -1,5 +1,5 @@
 import moment from 'moment';
-import uuid from 'uuid';
+import { v1 as uuidv1 } from 'uuid';
 import { Column, ColumnOptions, Table, ColumnType } from './Table';
 import { Record } from './Record';
 import { ReferenceArray } from './Reference';
@@ -138,7 +138,10 @@ export class ObjectColumn<T> implements Column<T, string> {
 		return JSON.stringify(fieldValue);
 	}
 
-	async deserialize(serializedField: string, table: Table<any>, record: unknown, columnPropertyName: string): Promise<T> {
+	async deserialize(serializedField: string, table: Table<any>, record: unknown, columnPropertyName: string): Promise<T|undefined> {
+		if (typeof serializedField === 'undefined')
+			return;
+		
 		return JSON.parse(serializedField);
 	}
 }
@@ -150,7 +153,7 @@ export class UuidColumn implements Column<string, string> {
 		public name: string,
 		public options?: ColumnOptions
 	) {
-		this.options = Object.assign({ defaultValue: async () => uuid.v1().split('-').join('') }, options);
+		this.options = Object.assign({ defaultValue: async () => uuidv1().split('-').join('') }, options);
 	}
 }
 
@@ -170,18 +173,15 @@ export class ArrayColumn<T> implements Column<T[], string> {
 	}
 
 	async serialize(fieldValue: T[]|undefined, table: Table<any>, record: unknown, columnPropertyName: string): Promise<string|undefined> {
-		if (typeof fieldValue === 'undefined')
-			return;
-		
 		return await this.objectColumn.serialize(fieldValue, table, record, columnPropertyName);
 	}
 
-	async deserialize(serializedField: string, table: Table<any>, record: unknown, columnPropertyName: string): Promise<T[]> {
+	async deserialize(serializedField: string, table: Table<any>, record: unknown, columnPropertyName: string): Promise<T[]|undefined> {
 		return await this.objectColumn.deserialize(serializedField, table, record, columnPropertyName);
 	}
 }
 
-export class ReferenceArrayColumn<T extends Record> implements Column<Promise<T[]>, string> {
+export class ReferenceArrayColumn<T extends Record> implements Column<ReferenceArray<T>, string> {
 	private arrayColumn: ArrayColumn<string>;
 	
 	constructor(
@@ -197,24 +197,19 @@ export class ReferenceArrayColumn<T extends Record> implements Column<Promise<T[
 		return this.arrayColumn.type;
 	}
 
-	async serialize(fieldValue: Promise<T[]>|undefined, table: Table<any>, record: any, columnPropertyName: string): Promise<string|undefined> {
+	async serialize(fieldValue: ReferenceArray<T>|undefined, table: Table<any>, record: any, columnPropertyName: string): Promise<string|undefined> {
 		if (typeof fieldValue === 'undefined')
 			return;
 		
-		const ids = (await fieldValue).map(record => record.id);
+		const ids = (await fieldValue.get()).map(record => record.id);
 		return await this.arrayColumn.serialize(ids, table, record, columnPropertyName);
 	}
 
-	async deserialize(serializedFieldValue: string, table: Table<any>, record: any, columnPropertyName: string): Promise<void> {
-		const ids = await this.arrayColumn.deserialize(serializedFieldValue, table, record, columnPropertyName);
-		const referenceArray = new ReferenceArray(this.referenceTable, ids);
-		Object.defineProperty(record, columnPropertyName, {
-			get() {
-				return referenceArray.get();
-			},
-			set(value) {
-				referenceArray.set(value);
-			}
-		});
+	async deserialize(serializedFieldValue: string, table: Table<any>, record: any, columnPropertyName: string): Promise<ReferenceArray<T>> {
+		let ids = await this.arrayColumn.deserialize(serializedFieldValue, table, record, columnPropertyName);
+		if (typeof ids === 'undefined')
+			ids = [];
+
+		return new ReferenceArray(this.referenceTable, ids);
 	}
 }
