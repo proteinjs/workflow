@@ -11,6 +11,7 @@ import {
     THEME_ID as MATERIAL_THEME_ID,
 } from '@mui/material/styles';
 import { CssVarsProvider as JoyCssVarsProvider } from '@mui/joy/styles';
+import { createUrlParams } from '../router/createUrlParams';
 
 const materialTheme = materialExtendTheme();
 const drawerWidth = 240;
@@ -55,6 +56,7 @@ export function PageContainer(props: PageContainerProps) {
             return;
 
         if (!auth?.isLoggedIn) {
+            console.log(`User not logged in, redirecting to login`);
             if (typeof auth?.login === 'string') {
                 const p = qualifiedPath(auth.login);
                 navigate(p);
@@ -228,7 +230,7 @@ export function PageContainer(props: PageContainerProps) {
 
     function Page() {
         if (auth?.canViewPage(page))
-            return <page.component />;
+            return <page.component urlParams={createUrlParams()} />;
 
         if (!auth?.isLoggedIn) {
             if (!loginClicked)

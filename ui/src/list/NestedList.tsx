@@ -1,18 +1,31 @@
 import React, { ReactElement } from 'react'
 import { Box } from '@mui/material'
 
-export type NestedDataTree<T> = T | Array<NestedDataTree<T>>
-export type NestedElements = NestedDataTree<ReactElement>
-type NestedListProps = { items: NestedElements[], level?: number }
+export type NestedListItem = { element: ReactElement, children?: NestedListItem[] }
+type NestedListProps = { items: NestedListItem[], level?: number, levelColors?: string[] }
 const blue = '#1976d2';
 const green = '#76d275';
 const orange = '#ffa726';
 const purple = '#ab47bc';
-const colors = [blue, green, orange, purple];
+const defaultLevelColors = [blue, green, orange, purple];
 
-export const NestedList = ({ items, level }: NestedListProps) => {
+export const NestedList = ({ items, level, levelColors }: NestedListProps) => {
   const isRoot = typeof level === 'undefined';
   const resolvedLevel = level ? level : 0;
+  const resolvedLevelColors = levelColors ? levelColors : defaultLevelColors;
+  const flattenedItems = flattenItems(items);
+
+  function flattenItems(items: NestedListItem[]): (NestedListItem|NestedListItem[])[] {
+    const flattened = [];
+    for (let item of items) {
+      flattened.push(item);
+      if (item.children)
+        flattened.push(item.children);
+    }
+
+    return flattened;
+  }
+
   return (
     <Box 
       component='ul' 
@@ -22,7 +35,7 @@ export const NestedList = ({ items, level }: NestedListProps) => {
       }}
     >
       {
-        items.map((item, index) => (Array.isArray(item)) ?
+        flattenedItems.map((item, index) => (Array.isArray(item)) ?
           <NestedList 
             key={index} 
             items={item} 
@@ -34,12 +47,12 @@ export const NestedList = ({ items, level }: NestedListProps) => {
             component='li'
             sx={(theme) => ({
               borderLeft: 3,
-              borderLeftColor: colors[resolvedLevel%colors.length],
+              borderLeftColor: resolvedLevelColors[resolvedLevel%resolvedLevelColors.length],
               listStyleType: 'none',
               paddingLeft: theme.spacing(1),
             })}
           >
-            {item}
+            {item.element}
           </Box>
         )
       }

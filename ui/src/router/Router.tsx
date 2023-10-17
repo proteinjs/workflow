@@ -4,6 +4,7 @@ import * as ReactDom from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
 import { CssBaseline } from '@mui/joy';
 import { Page, getPages } from './Page';
+import { createUrlParams } from './createUrlParams';
 
 export type AppOptions = {
     pageContainer?: React.ComponentType<{ page: Page }>,
@@ -47,7 +48,7 @@ export function Router(props: { pages: Page[], options: AppOptions }) {
         if (props.options.pageContainer && !props.page.noPageContainer)
             return ( <props.options.pageContainer page={props.page} /> );
         
-        return ( <props.page.component /> );
+        return ( <props.page.component urlParams={createUrlParams()} /> );
     }
 
     function PageNotFound(props: { pageNotFound: AppOptions['pageNotFound'] }) {

@@ -6,7 +6,7 @@ export const getPages = () => SourceRepository.get().objects<Page>('@proteinjs/u
 export interface Page extends Loadable {
     name: string;
     path: string|string[];
-    component: React.ComponentType;
+    component: React.ComponentType<{ urlParams: {[key: string]: string} }>;
     /** Render component on its own without any additional, top-level container */
     noPageContainer?: boolean;
     /** If true, page does not require user to be logged in or have any roles. If blank, defaults to false. */
