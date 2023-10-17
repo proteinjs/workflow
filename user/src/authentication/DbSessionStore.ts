@@ -69,7 +69,7 @@ export class DbSessionStore extends Store {
                 });
             } catch (error) {
                 // race condition on insert
-                // console.error('Failed to create session', error);
+                console.error('Failed to create session', error);
             }
         }
 
