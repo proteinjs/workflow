@@ -18,14 +18,14 @@ export function loadRoutes(routes: Route[], server: express.Express, config: Ser
             continue;
         }
 
-        server[route.method](getPath(route.path), wrapRoute(route.onRequest, config));
+        server[route.method](getPath(route.path), wrapRoute(route.onRequest.bind(route), config));
     }
 
     for (const wildcardRoute of wildcardRoutes)
-        server[wildcardRoute.method](getPath(wildcardRoute.path), wrapRoute(wildcardRoute.onRequest, config));
+        server[wildcardRoute.method](getPath(wildcardRoute.path), wrapRoute(wildcardRoute.onRequest.bind(wildcardRoute), config));
 
     if (starRoute)
-        server[starRoute.method](starRoute.path, wrapRoute(starRoute.onRequest, config));
+        server[starRoute.method](starRoute.path, wrapRoute(starRoute.onRequest.bind(starRoute), config));
 }
 
 export function loadDefaultStarRoute(routes: Route[], server: express.Express, config: ServerConfig) {
