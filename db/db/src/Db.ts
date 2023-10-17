@@ -36,7 +36,12 @@ export class Db implements DbService {
     }
 
     async get<T extends Record>(table: Table<T>, query: Query<T>): Promise<T> {
-        const row = await Db.getDbDriver().get(table, query);
+        const querySerializer = new QuerySerializer(table);
+        const serializedQuery = querySerializer.serializeQuery(query);
+        const row = await Db.getDbDriver().get(table, serializedQuery);
+        if (!row)
+            return row;
+        
         const recordSearializer = new RecordSerializer(table);
         return await recordSearializer.deserialize(row);
     }
