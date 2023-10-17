@@ -53,11 +53,14 @@ export class Serializer {
   }
 
   static serialize(serializable: any): string {
-    return JSON.stringify(Serializer._serialize(serializable));
+    return JSON.stringify(Serializer._serialize(serializable), null, 2);
   }
 
   private static _serialize(serializable: any) {
-    let serialized: any = null;
+    let serialized = serializable;
+    if (serializable == null)
+      return serializable;
+
     if (typeof serializable === 'object' && typeof serializable.__serializerId === 'string') {
       const serializer = Serializer.getCustomSerializerMap()[serializable.__serializerId];
       if (serializer)
@@ -87,7 +90,7 @@ export class Serializer {
   }
 
   static deserialize(serialized: string) {
-    if (serialized == 'undefined')
+    if (serialized == 'undefined' || typeof serialized === 'undefined')
       return undefined;
 
     let parsed = serialized;
@@ -103,7 +106,10 @@ export class Serializer {
   }
 
   private static _deserialize(parsed: any) {
-    let deserialized: any = null;
+    let deserialized = parsed;
+    if (parsed == null)
+      return parsed;
+
     if (typeof parsed === 'object' && typeof parsed.__serializerId === 'string') {
       const serializer = Serializer.getCustomSerializerMap()[parsed.__serializerId];
       if (serializer)
