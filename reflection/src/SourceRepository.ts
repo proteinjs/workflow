@@ -67,9 +67,9 @@ export class SourceRepository {
 
 	/**
 	 * @param extendingType a Type, Interface, or Class that the Class or Variable extends
-	 * @returns an array of base child types (vs the instantiated objects provided by the objects method) that extend `extendingType`
+	 * @returns a hashmap (key is qualified name) of base child types (vs the instantiated objects provided by the objects method) that extend `extendingType`
 	 */
-	baseChildren(extendingType: string): (Interface|TypeAlias|Class|Variable)[] {
+	baseChildren(extendingType: string): {[qualifiedName: string]: (Interface|TypeAlias|Class|Variable)} {
 		const _interface = SourceRepository.get().flattenedSourceGraph.interfaces[extendingType];
 		const typeAlias = SourceRepository.get().flattenedSourceGraph.typeAliases[extendingType];
 		const _class = SourceRepository.get().flattenedSourceGraph.classes[extendingType];
@@ -85,6 +85,28 @@ export class SourceRepository {
 		}
 
 		return baseChildren;
+	}
+
+	/**
+	 * @param extendingType a Type, Interface, or Class that the Class or Variable extends
+	 * @returns a hashmap (key is qualified name) of direct child types (vs the instantiated objects provided by the objects method) that extend `extendingType`
+	 */
+	directChildren(extendingType: string): {[qualifiedName: string]: (Interface|TypeAlias|Class|Variable)} {
+		const _interface = SourceRepository.get().flattenedSourceGraph.interfaces[extendingType];
+		const typeAlias = SourceRepository.get().flattenedSourceGraph.typeAliases[extendingType];
+		const _class = SourceRepository.get().flattenedSourceGraph.classes[extendingType];
+		let directChildren: any;
+		if (_interface)
+			directChildren = _interface.directChildren;
+		else if (typeAlias) {
+			directChildren = typeAlias.directChildren;
+		} else if (_class) {
+			directChildren = _class.directChildren;
+		} else {
+			throw new Error(`Unable to find type: ${extendingType}`);
+		}
+
+		return directChildren;
 	}
 
 	static merge(serializedSourceGraph: string, sourceLinks: { [qualifiedName: string]: any }) {
