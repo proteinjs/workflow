@@ -13,7 +13,7 @@ gulp.task('reflection-build', shell.task([
   `node ${path.resolve(__dirname, './runBuild.js')}`
 ]));
 
-gulp.task('compile', () => {
+gulp.task('tsc', () => {
   const tsProject = getTsProject();
   return tsProject.src()
     .pipe(tsProject())
@@ -24,7 +24,7 @@ gulp.task('compile', () => {
 });
 
 gulp.task('watch', () => {
-  gulp.watch([path.resolve(process.cwd(), 'src/**/*.ts'), path.resolve(process.cwd(), 'index.ts')], gulp.series('reflection-build', 'compile'));
+  gulp.watch([path.resolve(process.cwd(), 'src/**/*.ts'), path.resolve(process.cwd(), 'index.ts')], gulp.series('reflection-build', 'tsc'));
 });
 
-gulp.task('default', gulp.series('reflection-build', 'compile', 'watch'));  // run reflection-build and compile once at the start
+gulp.task('default', gulp.series('reflection-build', 'tsc', 'watch'));  // run reflection-build and tsc once at the start
