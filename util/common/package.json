@@ -15,7 +15,8 @@
     "author": "Brent Bahry",
     "license": "ISC",
     "scripts": {
-        "build": "tsc"
+        "build": "tsc",
+        "watch": "tsc -w -p ."
     },
     "dependencies": {
         "@dagrejs/graphlib": "2.1.4",
