@@ -89,5 +89,6 @@ export type ColumnOptions = {
 	 */
 	references?: { table: string, column: string },
 	nullable?: boolean,
-	defaultValue?: () => any
+	defaultValue?: () => Promise<any>,
+	updateValue?: () => Promise<any>,
 }

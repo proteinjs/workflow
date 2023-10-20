@@ -18,10 +18,5 @@
         "types": [
             "node", "jest"
         ]
-    },
-    "include": [
-        "./index.ts",
-		"./generated/index.ts",
-		"./test/**/*"
-    ]
+    }
 }

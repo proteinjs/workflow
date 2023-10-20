@@ -12,8 +12,5 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true
-    },
-    "include": [
-        "./generated/index.ts"
-    ]
+    }
 }

@@ -35,7 +35,7 @@ function testColumnTypesTable(): Table<any> {
 			bigInteger: new BigIntegerColumn('big_integer', { nullable: false }),
 			text: new TextColumn('text'),
 			string: new StringColumn('string', { references: { table: 'db_test_user', column: 'id' } }),
-			float: new FloatColumn('float', { defaultValue: () => 0.5 }),
+			float: new FloatColumn('float', { defaultValue: async () => 0.5 }),
 			decimal: new DecimalColumn('decimal'),
 			boolean: new BooleanColumn('boolean'),
 			date: new DateColumn('date'),
@@ -192,7 +192,7 @@ test('alter column types', async () => {
 	TestColumnTypesTable.columns.bigInteger = new IntegerColumn('big_integer', { nullable: false });
 	TestColumnTypesTable.columns.text = new StringColumn('text');
 	// TestColumnTypesTable.columns.string = new UuidColumn('string', { references: { table: 'user', column: 'id' } });
-	TestColumnTypesTable.columns.float = new DecimalColumn('float', { defaultValue: () => 0.5 });
+	TestColumnTypesTable.columns.float = new DecimalColumn('float', { defaultValue: async () => 0.5 });
 	TestColumnTypesTable.columns.decimal = new FloatColumn('decimal');
 	TestColumnTypesTable.columns.boolean = new IntegerColumn('boolean');
 	TestColumnTypesTable.columns.date = new DateTimeColumn('date');
@@ -231,7 +231,7 @@ test('alter column options', async () => {
 	const UserTable = userTable();
 	const TestColumnTypesTable = testColumnTypesTable();
 	await loadTable(UserTable);
-	TestColumnTypesTable.columns.text.options = { defaultValue: () => 'asdf' };
+	TestColumnTypesTable.columns.text.options = { defaultValue: async () => 'asdf' };
 	TestColumnTypesTable.columns['string2'] = new StringColumn('string2', { references: { table: 'user', column: 'id' } });
 	await loadTable(TestColumnTypesTable);
 	expect(await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
@@ -263,8 +263,8 @@ test('alter column options', async () => {
 	TestColumnTypesTable.columns.text = new TextColumn('text', { references: { table: UserTable.name, column: 'id' } });
 	delete TestColumnTypesTable.columns.string.options?.references;
 	(TestColumnTypesTable.columns.string2.options as any).references = { table: UserTable.name, column: 'name' };
-	TestColumnTypesTable.columns.float = new FloatColumn('float', { defaultValue: () => 1.5 });
-	TestColumnTypesTable.columns.decimal = new DecimalColumn('decimal', { defaultValue: () => 0 });
+	TestColumnTypesTable.columns.float = new FloatColumn('float', { defaultValue: async () => 1.5 });
+	TestColumnTypesTable.columns.decimal = new DecimalColumn('decimal', { defaultValue: async () => 0 });
 	TestColumnTypesTable.columns.uuid = new UuidColumn('uuid', { unique: { unique: false } });
 	await loadTable(TestColumnTypesTable);
 	columnMetadata = await getColumnMetadata(TestColumnTypesTable);

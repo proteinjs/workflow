@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "rootDir": "./",
         "target": "es5",
         "module": "commonjs",
         "declaration": true,
@@ -17,10 +18,5 @@
         "types": [
             "node", "jest"
         ]
-    },
-    "include": [
-        "./index.ts",
-		"./generated/index.ts",
-		"./test/**/*"
-    ]
+    }
 }

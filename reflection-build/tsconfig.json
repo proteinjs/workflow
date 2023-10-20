@@ -73,6 +73,7 @@
 	  "./src/tsconfig.json",
 		"./src/watch.ts",
 		"./src/runWatch.ts",
+		"./src/**/*",
 	  "./test/**/*"
 	]
   }

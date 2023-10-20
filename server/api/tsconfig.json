@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "rootDir": "./",
         "target": "es5",
         "module": "commonjs",
         "declaration": true,
@@ -11,8 +12,5 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true
-    },
-    "include": [
-        "./generated/index.ts"
-    ]
+    }
 }

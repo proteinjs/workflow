@@ -13,7 +13,8 @@
     "author": "Brent Bahry",
     "license": "ISC",
     "scripts": {
-        "build": "reflection-build && tsc"
+        "build": "reflection-build && tsc",
+        "watch": "reflection-watch"
     },
     "dependencies": {
         "@brentbahry/reflection": "file:../../reflection"
