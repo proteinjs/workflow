@@ -230,7 +230,7 @@ export function PageContainer(props: PageContainerProps) {
 
     function Page() {
         if (auth?.canViewPage(page))
-            return <page.component urlParams={createUrlParams()} />;
+            return <page.component urlParams={createUrlParams()} navigate={navigate} />;
 
         if (!auth?.isLoggedIn) {
             if (!loginClicked)

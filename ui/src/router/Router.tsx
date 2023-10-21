@@ -1,7 +1,7 @@
 import React from 'react';
 import { Route, Routes } from 'react-router';
 import * as ReactDom from 'react-dom';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, useNavigate, NavigateFunction } from 'react-router-dom';
 import { CssBaseline } from '@mui/joy';
 import { Page, getPages } from './Page';
 import { createUrlParams } from './createUrlParams';
@@ -21,34 +21,41 @@ export function Router(props: { pages: Page[], options: AppOptions }) {
         <div>
             <CssBaseline />
             <BrowserRouter>
-                <Routes>
-                    {
-                        (() => {
-                            const routes = [];
-                            let key = 0;
-                            for (const page of pages) {
-                                if (typeof page.path === 'string')
-                                    routes.push(<Route key={key++} path={getPath(page.path)} element={<ContainerizedComponent options={options} page={page} />} />);
-                                else {
-                                    const paths = page.path as string[];
-                                    for (const path of paths)
-                                        routes.push(<Route key={key++} path={getPath(path)} element={<ContainerizedComponent options={options} page={page} />} />);
-                                }
-                            }
-                            return routes;
-                        })()
-                    }
-                    <Route element={<PageNotFound pageNotFound={options.pageNotFound} />} />
-                </Routes>
+                <RoutesComponent />
             </BrowserRouter>
         </div>
     );
 
-    function ContainerizedComponent(props: { options: AppOptions, page: Page}) {
+    function RoutesComponent() {
+        const navigate = useNavigate();
+        return (
+            <Routes>
+                {
+                    (() => {
+                        const routes = [];
+                        let key = 0;
+                        for (const page of pages) {
+                            if (typeof page.path === 'string')
+                                routes.push(<Route key={key++} path={getPath(page.path)} element={<ContainerizedComponent options={options} page={page} navigate={navigate} />} />);
+                            else {
+                                const paths = page.path as string[];
+                                for (const path of paths)
+                                    routes.push(<Route key={key++} path={getPath(path)} element={<ContainerizedComponent options={options} page={page} navigate={navigate} />} />);
+                            }
+                        }
+                        return routes;
+                    })()
+                }
+                <Route element={<PageNotFound pageNotFound={options.pageNotFound} />} />
+            </Routes>
+        )
+    }
+
+    function ContainerizedComponent(props: { options: AppOptions, page: Page, navigate: NavigateFunction}) {
         if (props.options.pageContainer && !props.page.noPageContainer)
             return ( <props.options.pageContainer page={props.page} /> );
         
-        return ( <props.page.component urlParams={createUrlParams()} /> );
+        return ( <props.page.component urlParams={createUrlParams()} navigate={props.navigate} /> );
     }
 
     function PageNotFound(props: { pageNotFound: AppOptions['pageNotFound'] }) {
