@@ -24,7 +24,7 @@ gulp.task('tsc', () => {
 });
 
 gulp.task('watch', () => {
-  gulp.watch([path.resolve(process.cwd(), 'src/**/*.ts'), path.resolve(process.cwd(), 'test/**/*.ts'), path.resolve(process.cwd(), 'index.ts')], gulp.series('reflection-build', 'tsc'));
+  gulp.watch([path.resolve(process.cwd(), 'src/**/*'), path.resolve(process.cwd(), 'test/**/*'), path.resolve(process.cwd(), 'index.ts')], gulp.series('reflection-build', 'tsc'));
 });
 
 gulp.task('default', gulp.series('reflection-build', 'tsc', 'watch'));  // run reflection-build and tsc once at the start
