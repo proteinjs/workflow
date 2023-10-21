@@ -80,8 +80,8 @@ export class MysqlDriver implements DbDriver {
 		return (await this.query(table, query))[0];
 	}
 
-	async insert<T extends Record>(table: Table<T>, row: Row): Promise<Row> {
-		return await MysqlDriver.getKnex().withSchema(MysqlDriver.getDbName()).insert(row).into(table.name);
+	async insert<T extends Record>(table: Table<T>, row: Row): Promise<void> {
+		await MysqlDriver.getKnex().withSchema(MysqlDriver.getDbName()).insert(row).into(table.name).returning('*');
 	}
 
 	async update<T extends Record>(table: Table<T>, row: Row, query: SerializedQuery): Promise<void> {

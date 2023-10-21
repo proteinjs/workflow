@@ -11,7 +11,7 @@ export interface Record {
 export const recordColumns: Columns<Record> = {
   id: new UuidColumn('id'),
   created: new DateTimeColumn('created', { defaultValue: async () => moment() }),
-  updated: new DateTimeColumn('updated', { updateValue: async () => moment() }),
+  updated: new DateTimeColumn('updated', { defaultValue: async () => moment(), updateValue: async () => moment() }),
 }
 
 export function withRecordColumns<T extends Record>(columns: Columns<Omit<T, keyof Record>>): Columns<Record> & Columns<Omit<T, keyof Record>> {

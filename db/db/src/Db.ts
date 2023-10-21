@@ -8,7 +8,7 @@ export interface DbDriver extends Loadable {
     init(): Promise<void>;
     tableExists<T extends Record>(table: Table<T>): Promise<boolean>;
     get<T extends Record>(table: Table<T>, query: SerializedQuery): Promise<Row>;
-    insert<T extends Record>(table: Table<T>, row: Row): Promise<Row>;
+    insert<T extends Record>(table: Table<T>, row: Row): Promise<void>;
     update<T extends Record>(table: Table<T>, row: Row, query: SerializedQuery): Promise<void>;
     delete<T extends Record>(table: Table<T>, query: SerializedQuery): Promise<void>;
     query<T extends Record>(table: Table<T>, query: SerializedQuery): Promise<Row[]>;
@@ -50,8 +50,8 @@ export class Db implements DbService {
         await this.addDefaultFieldValues(table, record);
         const recordSearializer = new RecordSerializer(table);
         const row = await recordSearializer.serialize(record);
-        const rowWithId = await Db.getDbDriver().insert(table, row);
-        return await recordSearializer.deserialize(rowWithId);
+        await Db.getDbDriver().insert(table, row);
+        return record as T;
     }
 
     private async addDefaultFieldValues<T extends Record>(table: Table<T>, record: any) {

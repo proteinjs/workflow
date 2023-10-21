@@ -2,7 +2,7 @@ import moment from 'moment';
 import { v1 as uuidv1 } from 'uuid';
 import { Column, ColumnOptions, Table, ColumnType } from './Table';
 import { Record } from './Record';
-import { ReferenceArray } from './Reference';
+import { ReferenceArray } from './ReferenceArray';
 
 export class IntegerColumn implements Column<number, number> {
 	type: ColumnType = 'integer';
@@ -120,6 +120,17 @@ export class BinaryColumn implements Column<number, number> {
 	) {}
 }
 
+export class UuidColumn implements Column<string, string> {
+	type: ColumnType = 'uuid';
+	
+	constructor(
+		public name: string,
+		public options?: ColumnOptions
+	) {
+		this.options = Object.assign({ defaultValue: async () => uuidv1().split('-').join('') }, options);
+	}
+}
+
 export class ObjectColumn<T> implements Column<T, string> {
 	type: ColumnType = 'mediumtext';
 	
@@ -132,28 +143,17 @@ export class ObjectColumn<T> implements Column<T, string> {
 	}
 
 	async serialize(fieldValue: T|undefined, table: Table<any>, record: unknown, columnPropertyName: string): Promise<string|undefined> {
-		if (typeof fieldValue === 'undefined')
+		if (typeof fieldValue === 'undefined' || fieldValue == null)
 			return;
 		
 		return JSON.stringify(fieldValue);
 	}
 
 	async deserialize(serializedField: string, table: Table<any>, record: unknown, columnPropertyName: string): Promise<T|undefined> {
-		if (typeof serializedField === 'undefined')
+		if (typeof serializedField === 'undefined' || serializedField == null)
 			return;
 		
 		return JSON.parse(serializedField);
-	}
-}
-
-export class UuidColumn implements Column<string, string> {
-	type: ColumnType = 'uuid';
-	
-	constructor(
-		public name: string,
-		public options?: ColumnOptions
-	) {
-		this.options = Object.assign({ defaultValue: async () => uuidv1().split('-').join('') }, options);
 	}
 }
 
