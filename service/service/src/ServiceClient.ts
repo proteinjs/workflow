@@ -12,7 +12,7 @@ export class ServiceClient {
     const serializedArgs = Serializer.serialize(args);
     this.logger.info(`Sending service request: ${this.servicePath}, args:\n${serializedArgs}`);
     const _return = await this._send(this.servicePath, serializedArgs);
-    this.logger.info(`Received service response: ${this.servicePath}, return:\n${JSON.stringify(_return, null, 2)}`);
+    this.logger.info(`Received service response: ${this.servicePath}, return:\n${_return}`);
     return Serializer.deserialize(_return);
   }
 
