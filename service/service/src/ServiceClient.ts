@@ -11,9 +11,9 @@ export class ServiceClient {
   async send(...args: any[]): Promise<any> {
     const serializedArgs = Serializer.serialize(args);
     this.logger.info(`Sending service request: ${this.servicePath}, args:\n${serializedArgs}`);
-    const _return = await this._send(this.servicePath, serializedArgs);
-    this.logger.info(`Received service response: ${this.servicePath}, return:\n${_return}`);
-    return Serializer.deserialize(_return);
+    const serializedReturn = await this._send(this.servicePath, serializedArgs);
+    this.logger.info(`Received service response: ${this.servicePath}, return:\n${serializedReturn}`);
+    return Serializer.deserialize(serializedReturn);
   }
 
   private async _send(absoluteUrl: string, serializedArgs: string) {
