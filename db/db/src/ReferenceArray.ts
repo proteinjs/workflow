@@ -3,6 +3,7 @@ import { Db } from './Db';
 import { Record } from './Record';
 import { tableByName } from './Table';
 import { ReferenceArraySerializerId } from './serializers/ReferenceArraySerializer';
+import { getDbService } from './services/DbService';
 
 /**
  * All instance members are internal state, made public for ReferenceArraySerializer.
@@ -23,7 +24,8 @@ export class ReferenceArray<T extends Record> implements CustomSerializableObjec
         this._objects = [];
       } else {
         const table = tableByName(this._table);
-        this._objects = await new Db().query(table, [{ column: 'id', operator: 'in', value: this._ids }]);
+        const db = typeof self === 'undefined' ? new Db() : getDbService();
+        this._objects = await db.query(table, [{ column: 'id', operator: 'in', value: this._ids }]);
       }
     }
 
