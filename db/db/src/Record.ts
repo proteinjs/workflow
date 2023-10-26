@@ -14,6 +14,14 @@ export const recordColumns: Columns<Record> = {
   updated: new DateTimeColumn('updated', { defaultValue: async () => moment(), updateValue: async () => moment() }),
 }
 
+/**
+ * Wrapper function to add default Record columns to your table's columns (should always use).
+ * 
+ * Note: using this requires an explicit dependency on moment@2.29.4 in your package (since transient dependencies are brittle by typescript's standards)
+ * 
+ * @param columns your columns
+ * @returns recordColumns & your columns
+ */
 export function withRecordColumns<T extends Record>(columns: Columns<Omit<T, keyof Record>>): Columns<Record> & Columns<Omit<T, keyof Record>> {
   return Object.assign(Object.assign({}, recordColumns), columns);
 }

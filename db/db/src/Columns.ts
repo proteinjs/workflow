@@ -1,8 +1,9 @@
 import moment from 'moment';
 import { v1 as uuidv1 } from 'uuid';
-import { Column, ColumnOptions, Table, ColumnType } from './Table';
+import { Column, ColumnOptions, Table, ColumnType, tableByName } from './Table';
 import { Record } from './Record';
 import { ReferenceArray } from './ReferenceArray';
+import { Db } from './Db';
 
 export class IntegerColumn implements Column<number, number> {
 	type: ColumnType = 'integer';
@@ -184,11 +185,21 @@ export class ArrayColumn<T> implements Column<T[], string> {
 export class ReferenceArrayColumn<T extends Record> implements Column<ReferenceArray<T>, string> {
 	private arrayColumn: ArrayColumn<string>;
 	
+	/**
+	 * A column that stores an array of references to other records.
+	 * 
+	 * @param name name of column
+	 * @param referenceTable name of table that the reference records are in
+	 * @param cascadeDelete if true referenced records will be deleted when this record is deleted
+	 * @param options generic column options
+	 * @param largeObject if true store up to 4g, default (false) up to 16m; only record ids are stored
+	 */
 	constructor(
 		public name: string,
 		public referenceTable: string,
+		public cascadeDelete: boolean,
 		public options?: ColumnOptions,
-		public largeObject: boolean = false // up to 4g, default up to 16m
+		public largeObject: boolean = false
 	) {
 		this.arrayColumn = new ArrayColumn(name, options, largeObject);
 	}
@@ -211,5 +222,24 @@ export class ReferenceArrayColumn<T extends Record> implements Column<ReferenceA
 			ids = [];
 
 		return new ReferenceArray(this.referenceTable, ids);
+	}
+
+	async beforeDelete(table: Table<any>, columnPropertyName: string, records: any[]) {
+		if (!this.cascadeDelete)
+			return;
+
+		const recordIdsToDelete: string[] = [];
+		for (let record of records) {
+			const referenceArray = record[columnPropertyName] as ReferenceArray<Record>;
+			const referenceRecords = await referenceArray.get();
+			for (let referenceRecord of referenceRecords)
+				recordIdsToDelete.push(referenceRecord.id);
+		}
+
+		if (recordIdsToDelete.length < 1)
+			return;
+
+		const referenceTable = tableByName(this.referenceTable);
+		await new Db().delete(referenceTable, [{ column: 'id', operator: 'in', value: recordIdsToDelete }]);
 	}
 }

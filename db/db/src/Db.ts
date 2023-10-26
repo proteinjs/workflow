@@ -86,7 +86,17 @@ export class Db implements DbService {
     async delete<T extends Record>(table: Table<T>, query: Query<T>): Promise<void> {
         const querySerializer = new QuerySerializer(table);
         const serializedQuery = querySerializer.serializeQuery(query);
+        const recordsToDelete = await this.query(table, query);
+        await this.beforeDelete(table, recordsToDelete);
         await Db.getDbDriver().delete(table, serializedQuery);
+    }
+
+    private async beforeDelete(table: Table<any>, records: Record[]) {
+        for (let columnPropertyName in table.columns) {
+            const column = (table.columns as any)[columnPropertyName] as Column<any, any>;
+            if (typeof column.beforeDelete !== 'undefined')
+                await column.beforeDelete(table, columnPropertyName, records);
+        }
     }
 
     async query<T extends Record>(table: Table<T>, query: Query<T>): Promise<T[]> {
