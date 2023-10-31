@@ -1,4 +1,4 @@
-import { Package, PackageUtil } from '@brentbahry/util';
+import { Package, PackageUtil } from '@brentbahry/util-server';
 import { Function } from '../../Function';
 import { PackageModule } from './PackageModule';
 

@@ -1,5 +1,5 @@
 {
-  "name": "@brentbahry/db",
+  "name": "@brentbahry/table",
   "version": "0.1",
   "private": true,
   "main": "dist/index.js",
@@ -16,7 +16,8 @@
     "typescript": "5.2.2"
   },
   "dependencies": {
-    "@brentbahry/conversation": "../conversation",
+    "@brentbahry/conversation": "../../conversation",
+    "@brentbahry/db": "../db",
     "@google-cloud/bigquery": "7.2.0"
   }
 }

@@ -1,4 +1,4 @@
-import { Logger } from './Logger';
+import { Logger } from '@brentbahry/util';
 import { cmd } from './cmd';
 import ts from 'typescript';
 

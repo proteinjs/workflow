@@ -1,4 +1,4 @@
-import { gitFunctions } from '@brentbahry/util';
+import { gitFunctions } from '@brentbahry/util-server';
 import { ConversationModule, ConversationModuleFactory } from '../../ConversationModule';
 import { Function } from '../../Function';
 

@@ -1,4 +1,5 @@
-import { FileDescriptor, Fs, Logger, PackageUtil } from '@brentbahry/util';
+import { Logger } from '@brentbahry/util';
+import { FileDescriptor, Fs, PackageUtil } from '@brentbahry/util-server';
 import fs from 'fs/promises';
 import path from 'path';
 

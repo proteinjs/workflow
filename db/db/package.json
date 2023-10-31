@@ -20,7 +20,7 @@
     "dependencies": {
         "@brentbahry/reflection": "file:../../reflection",
         "@proteinjs/serializer": "file:../../serializer",
-        "@proteinjs/service": "file:../../service/service",
+        "@proteinjs/service": "file:../../service",
         "moment": "2.29.4",
         "uuid": "8.3.0"
     },

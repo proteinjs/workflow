@@ -1,4 +1,4 @@
-import { File, Fs } from '@brentbahry/util';
+import { File, Fs } from '@brentbahry/util-server';
 import { Function } from '../../Function';
 import { ConversationFsModule } from './ConversationFsModule';
 

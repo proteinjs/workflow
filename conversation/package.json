@@ -18,7 +18,8 @@
     "ts-jest": "^29.1.1"
   },
   "dependencies": {
-    "@brentbahry/util": "../util",
+    "@brentbahry/util": "file:../util/common",
+    "@brentbahry/util-server": "file:../util/server",
     "fs-extra": "11.1.1",
     "openai": "4.4.0",
     "readline-sync": "1.4.10",

@@ -1,4 +1,4 @@
-import { Fs } from '@brentbahry/util';
+import { Fs } from '@brentbahry/util-server';
 import { ConversationTemplate } from '../ConversationTemplate';
 import path from 'path';
 import tConfig from './tsconfig.json';

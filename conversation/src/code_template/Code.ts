@@ -1,4 +1,4 @@
-import { PackageUtil } from '@brentbahry/util';
+import { PackageUtil } from '@brentbahry/util-server';
 import { Conversation } from '../Conversation';
 import { Repo } from './Repo';
 

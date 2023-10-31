@@ -17,11 +17,11 @@
     "typescript": "5.2.2"
   },
   "dependencies": {
-    "@brentbahry/conversation": "../conversation",
+    "@brentbahry/conversation": "../../conversation",
     "@brentbahry/server": "../server",
     "@brentbahry/service": "../service",
     "@brentbahry/table": "../table",
     "@brentbahry/ts": "../ts",
-    "@brentbahry/util": "../util"
+    "@brentbahry/util": "../../util"
   }
 }

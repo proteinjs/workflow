@@ -1,7 +1,7 @@
 {
     "name": "@proteinjs/db-driver",
     "version": "1.0.0",
-    "description": "Db",
+    "description": "Db drvier",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/brentbahry/db.git"

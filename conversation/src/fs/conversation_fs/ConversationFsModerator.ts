@@ -1,4 +1,5 @@
-import { FileContentMap, LogLevel, Logger } from '@brentbahry/util';
+import { LogLevel, Logger } from '@brentbahry/util';
+import { FileContentMap } from '@brentbahry/util-server';
 import { ChatCompletionMessageParam } from 'openai/resources/chat';
 import { MessageModerator } from '../../history/MessageModerator';
 

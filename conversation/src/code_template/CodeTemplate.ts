@@ -1,4 +1,5 @@
-import { Logger, Fs, PackageUtil, Package } from '@brentbahry/util';
+import { Logger } from '@brentbahry/util';
+import { Fs, PackageUtil, Package } from '@brentbahry/util-server';
 import { SourceFile } from './Code';
 
 export type TemplateArgs = {

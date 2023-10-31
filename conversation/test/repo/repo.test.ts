@@ -1,7 +1,7 @@
 import { RepoFactory } from '../../src/code_template/Repo';
 // import { Table } from 'conversation/src/table';
 import { Conversation } from '../../src/Conversation';
-import { Fs } from '@brentbahry/util';
+import { Fs } from '@brentbahry/util-server';
 
 
 // test(`Return repo of the source files and the code they depend on`, async () => {
