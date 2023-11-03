@@ -77,6 +77,20 @@ export class BooleanColumn implements Column<boolean, boolean> {
 		public name: string,
 		public options?: ColumnOptions
 	) {}
+
+	async serialize(fieldValue: boolean|undefined, table: Table<any>, record: unknown, columnPropertyName: string): Promise<boolean> {
+		if (fieldValue)
+			return true;
+
+		return false;
+	}
+
+	async deserialize(serializedField: boolean, table: Table<any>, record: unknown, columnPropertyName: string): Promise<boolean> {
+		if (serializedField)
+			return true;
+
+		return false;
+	}
 }
 
 export class DateColumn implements Column<Date, Date> {

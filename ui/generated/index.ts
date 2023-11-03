@@ -7,6 +7,7 @@ import '@mui/icons-material';
 import '@mui/joy';
 import '@mui/material';
 import 'history';
+import 'moment';
 import 'query-string';
 import 'react';
 import 'react-dom';

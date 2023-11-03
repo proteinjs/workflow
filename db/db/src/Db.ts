@@ -11,7 +11,8 @@ export interface DbDriver extends Loadable {
     insert<T extends Record>(table: Table<T>, row: Row): Promise<void>;
     update<T extends Record>(table: Table<T>, row: Row, query: SerializedQuery): Promise<void>;
     delete<T extends Record>(table: Table<T>, query: SerializedQuery): Promise<void>;
-    query<T extends Record>(table: Table<T>, query: SerializedQuery): Promise<Row[]>;
+    query<T extends Record>(table: Table<T>, query: SerializedQuery, sort?: { column: string, desc?: boolean }[], window?: { start: number, end: number }): Promise<Row[]>;
+    getRowCount<T extends Record>(table: Table<T>): Promise<number>;
 }
 
 export class Db implements DbService {
@@ -99,11 +100,15 @@ export class Db implements DbService {
         }
     }
 
-    async query<T extends Record>(table: Table<T>, query: Query<T>): Promise<T[]> {
+    async query<T extends Record>(table: Table<T>, query: Query<T>, sort?: { column: keyof T, desc?: boolean }[], window?: { start: number, end: number }): Promise<T[]> {
         const querySerializer = new QuerySerializer(table);
         const serializedQuery = querySerializer.serializeQuery(query);
-        const rows = await Db.getDbDriver().query(table, serializedQuery);
+        const rows = await Db.getDbDriver().query(table, serializedQuery, sort?.map(sortCondition => ({ column: table.columns[sortCondition.column].name, desc: sortCondition.desc })), window);
         const recordSearializer = new RecordSerializer(table);
         return await Promise.all(rows.map(async (row) => recordSearializer.deserialize(row)));
+    }
+
+    async getRowCount<T extends Record>(table: Table<T>): Promise<number> {
+        return await Db.getDbDriver().getRowCount(table);
     }
 }

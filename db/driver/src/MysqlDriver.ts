@@ -94,8 +94,17 @@ export class MysqlDriver implements DbDriver {
 		await this.where(queryBuilder, query);
 	}
 
-	async query<T extends Record>(table: Table<T>, query: SerializedQuery): Promise<Row[]> {
-		return await this.where(this.select(table), query);
+	async query<T extends Record>(table: Table<T>, query: SerializedQuery, sort?: { column: string, desc?: boolean }[], window?: { start: number, end: number }): Promise<Row[]> {
+		const select = this.select(table);
+		if (sort)
+			select.orderBy(sort.map(sortCondition => ({ column: sortCondition.column, order: sortCondition.desc ? 'desc' : 'asc' })));
+
+		if (window) {
+			select.limit(window.end - window.start);
+			select.offset(window.start);
+		}
+
+		return await this.where(select, query);
 	}
 
 	private async where(knexQueryBulder: any, query: SerializedQuery) {
@@ -110,5 +119,9 @@ export class MysqlDriver implements DbDriver {
 		for (let queryCondition of queryConditions)
 			select = select.where(queryCondition.column, queryCondition.operator, queryCondition.value);
 		return await select;
+	}
+
+	async getRowCount<T extends Record>(table: Table<T>): Promise<number> {
+		return (await this.select(table).count('* as total'))[0].total;
 	}
 }
