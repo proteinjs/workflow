@@ -19,6 +19,7 @@
     },
     "dependencies": {
         "@brentbahry/reflection": "file:../../reflection",
+        "@brentbahry/util": "file:../../util/common",
         "@mui/icons-material": "5.14.11",
         "@mui/material": "5.14.11",
         "@proteinjs/db": "file:../db",

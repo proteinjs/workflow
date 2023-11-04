@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import S from 'string'
 import { TableContainer, Table as MuiTable, TableBody, TableCell, TableHead, TablePagination, TableRow, Typography, Checkbox } from '@mui/material'
 import moment from 'moment'
+import { StringUtil } from '@brentbahry/util'
 import { TableLoader } from './TableLoader'
 import { TableButton } from './TableButton'
 import { TableToolbar } from './TableToolbar'
@@ -131,7 +132,7 @@ export function Table<T>({ title, description, columns, tableLoader, rowOnClickR
                   key={index}
                 >
                   <Typography variant='h6'>
-                    { S(column).humanize().toString() }
+                    { StringUtil.humanizeCamel(column as string) }
                   </Typography>
                 </TableCell>
               ))}

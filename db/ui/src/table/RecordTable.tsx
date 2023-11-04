@@ -38,14 +38,14 @@ export function RecordTable<T extends Record>(props: RecordTableProps<T>) {
       columnProperties.push('name' as keyof T);
 
     for (let columnProperty of Object.keys(props.table.columns)) {
-      if (columnProperties.length >= 3)
+      if (columnProperties.length >= 5)
         break;
 
-      if (columnProperty == 'id' || columnProperty == 'created' || columnProperty == 'updated')
+      if (columnProperty == 'name' || columnProperty == 'id' || columnProperty == 'created' || columnProperty == 'updated' || columnProperty == 'password')
         continue;
 
       const column: Column<T, any> = (props.table.columns as any)[columnProperty];
-      if (column instanceof ReferenceArrayColumn)
+      if (column.type == 'longtext' || column instanceof ReferenceArrayColumn)
         continue;
 
       columnProperties.push(columnProperty as keyof T);

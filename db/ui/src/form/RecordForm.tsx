@@ -1,6 +1,7 @@
 import React from 'react'
 import S from 'string'
 import moment from 'moment'
+import { StringUtil } from '@brentbahry/util'
 import { Form, Fields, textField, FormButtons } from '@proteinjs/ui'
 import { Table, Record, Column, getDbService, DateTimeColumn, ReferenceArrayColumn, BooleanColumn } from '@proteinjs/db'
 import { recordTableLink } from '../pages/RecordTablePage'
@@ -53,9 +54,9 @@ export function RecordForm<T extends Record>({ table, record }: RecordFormProps<
     return () => {
       const fields: Fields = {};
       for (let columnPropertyName in getColumns()) {
-        const column = (table.columns as any)[columnPropertyName] as Column<T, any>;
         fields[columnPropertyName] = textField({
-          name: S(column.name).humanize().s,
+          name: columnPropertyName,
+          label: StringUtil.humanizeCamel(columnPropertyName), 
         });
       }
 
@@ -65,7 +66,7 @@ export function RecordForm<T extends Record>({ table, record }: RecordFormProps<
 
   function fieldLayout(): any {
     const columns = getColumns();
-    const layoutColumns = Object.entries(columns).length > 7 ? 2 : 1;
+    const layoutColumns = Object.entries(columns).length > 6 ? 2 : 1;
     if (layoutColumns > 1) {
       const layout: (keyof T)[][] = [];
       for (let columnPropertyName in columns) {
