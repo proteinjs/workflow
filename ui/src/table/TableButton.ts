@@ -1,4 +1,5 @@
 import React from 'react'
+import { NavigateFunction } from 'react-router'
 
 export type TableButton<T> = {
   name: string,
@@ -7,5 +8,5 @@ export type TableButton<T> = {
     showWhenRowsSelected: boolean,
     showWhenNoRowsSelected: boolean,
   },
-  onClick: (selectedRows: T[]) => Promise<void>,
+  onClick: (selectedRows: T[], navigate: NavigateFunction) => Promise<void>,
 }

@@ -1,6 +1,7 @@
 import React from 'react'
 import { TableButton } from './TableButton'
-import { IconButton, Toolbar, Tooltip, Typography, lighten } from '@mui/material';
+import { IconButton, Toolbar, Tooltip, Typography, lighten } from '@mui/material'
+import { useNavigate } from 'react-router'
 
 export type TableToolbarProps = {
   title?: string,
@@ -11,6 +12,7 @@ export type TableToolbarProps = {
 
 export const TableToolbar = (props : TableToolbarProps) => {
   const { title, selectedRows, buttons } = props;
+  const navigate = useNavigate();
   return (
     <Toolbar
       sx={(theme) => {
@@ -75,7 +77,7 @@ export const TableToolbar = (props : TableToolbarProps) => {
         <Tooltip key={index} title={button.name}>
           <IconButton 
             aria-label={button.name}
-            onClick={event => button.onClick(selectedRows)}
+            onClick={event => button.onClick(selectedRows, navigate)}
           >
             <button.icon />
           </IconButton>
@@ -87,7 +89,7 @@ export const TableToolbar = (props : TableToolbarProps) => {
       <Tooltip key={index} title={button.name}>
         <IconButton 
           aria-label={button.name}
-          onClick={event => button.onClick([])}
+          onClick={event => button.onClick([], navigate)}
         >
           <button.icon />
         </IconButton>

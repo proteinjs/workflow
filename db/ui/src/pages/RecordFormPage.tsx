@@ -17,6 +17,10 @@ export const recordFormLink = (tableName: string, recordId: string) => {
   return `/${recordFormPage.path}?table=${tableName}&record=${recordId}`;
 }
 
+export const newRecordFormLink = (tableName: string) => {
+  return `/${recordFormPage.path}?table=${tableName}`;
+}
+
 const DynamicRecordForm = ({ urlParams }: PageComponentProps) => {
   const [record, setRecord] = React.useState();
 

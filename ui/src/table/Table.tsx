@@ -147,7 +147,6 @@ export function Table<T>({ title, description, columns, tableLoader, rowOnClickR
                   role='checkbox' 
                   tabIndex={-1} 
                   key={index}
-                  onClick={(event: any) => handleRowOnClick(row)}
                   selected={typeof selectedRows[index] !== 'undefined'}
                 >
                   { buttons && buttons.length > 0 && 
@@ -164,7 +163,10 @@ export function Table<T>({ title, description, columns, tableLoader, rowOnClickR
                   { columns.map((column, index) => {
                     const cellValue = formatCellValue(row[column]);
                     return (
-                      <TableCell key={index}>
+                      <TableCell
+                        key={index}
+                        onClick={(event: any) => handleRowOnClick(row)}
+                      >
                         <Typography 
                           variant='subtitle1'
                         >

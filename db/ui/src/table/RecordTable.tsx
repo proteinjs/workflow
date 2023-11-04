@@ -1,10 +1,11 @@
 import React from 'react'
-import { Delete } from '@mui/icons-material'
+import { Delete, Add } from '@mui/icons-material'
 import S from 'string'
 import { TableButton, Table as TableComponent, TableLoader, TableProps } from '@proteinjs/ui'
 import { Column, Record, ReferenceArrayColumn, Table, getDbService } from '@proteinjs/db'
 import { QueryTableLoader } from './QueryTableLoader'
-import { recordFormLink } from '../pages/RecordFormPage'
+import { newRecordFormLink, recordFormLink } from '../pages/RecordFormPage'
+import { recordTableLink } from '../pages/RecordTablePage'
 
 export type RecordTableProps<T extends Record> = {
   table: Table<T>,
@@ -17,16 +18,31 @@ export type RecordTableProps<T extends Record> = {
   rowOnClickRedirectUrl?: TableProps<T>['rowOnClickRedirectUrl'],
 }
 
-function deleteButton<T extends Record>(table: Table<T>) {
+function deleteButton<T extends Record>(table: Table<T>): TableButton<T> {
   return {
-    name: 'Delete',
+    name: `Delete selected rows`,
     icon: Delete,
     visibility: {
       showWhenRowsSelected: true,
       showWhenNoRowsSelected: false,
     },
-    onClick: async (selectedRows: T[]) => {
+    onClick: async (selectedRows, navigate) => {
       await getDbService().delete(table, [{ column: 'id', operator: 'in', value: selectedRows.map(row => row.id) }]);
+      navigate(recordTableLink(table));
+    },
+  };
+}
+
+function createButton<T extends Record>(table: Table<T>): TableButton<T> {
+  return {
+    name: `Create ${S(table.name).humanize().s}`,
+    icon: Add,
+    visibility: {
+      showWhenRowsSelected: false,
+      showWhenNoRowsSelected: true,
+    },
+    onClick: async (selectedRows, navigate) => {
+      navigate(newRecordFormLink(table.name));
     },
   };
 }
@@ -71,6 +87,7 @@ export function RecordTable<T extends Record>(props: RecordTableProps<T>) {
       buttons.push(...props.buttons);
 
     buttons.push(deleteButton(props.table));
+    buttons.push(createButton(props.table));
 
     return buttons;
   }
