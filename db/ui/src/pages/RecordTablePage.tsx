@@ -1,7 +1,7 @@
 import React from 'react'
 import { FormPage, Page, PageComponentProps } from '@proteinjs/ui'
-import { tableByName, Table } from '@proteinjs/db';
-import { RecordTable } from '../table/RecordTable';
+import { tableByName, Table } from '@proteinjs/db'
+import { RecordTable } from '../table/RecordTable'
 
 export const recordTablePage: Page = {
   name: 'Record Table',
@@ -15,6 +15,10 @@ export const recordTablePage: Page = {
 
 export const recordTableLink = (table: Table<any>) => {
   return `/${recordTablePage.path}?name=${table.name}`;
+}
+
+export const recordTableLinkByName = (tableName: string) => {
+  return `/${recordTablePage.path}?name=${tableName}`;
 }
 
 const DynamicRecordTable = ({ urlParams }: PageComponentProps) => {
