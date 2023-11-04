@@ -17,12 +17,12 @@ export const TableToolbar = (props : TableToolbarProps) => {
         if (selectedRows.length > 0) {
           return theme.palette.mode === 'light'
           ? {
-            color: theme.palette.secondary.main,
-            backgroundColor: lighten(theme.palette.secondary.light, 0.85),
+            color: theme.palette.info.main,
+            backgroundColor: lighten(theme.palette.info.light, 0.85),
           }
           : {
-            color: theme.palette.text.primary,
-            backgroundColor: theme.palette.secondary.dark,
+            color: theme.palette.info.light,
+            backgroundColor: theme.palette.info.dark,
           };
         }
 

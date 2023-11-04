@@ -77,7 +77,7 @@ export function RecordTable<T extends Record>(props: RecordTableProps<T>) {
   
   return (
     <TableComponent
-      title={props.title ? props.title : `${S(props.table.name).humanize().toString()} table`}
+      title={props.title ? props.title : `${S(props.table.name).humanize().toString()} Table`}
       description={props.description}
       columns={props.columns ? props.columns : defaultColumns()}
       tableLoader={props.tableLoader ? props.tableLoader : defaultTableLoader()}
