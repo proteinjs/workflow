@@ -4,6 +4,7 @@ import S from 'string'
 import { TableButton, Table as TableComponent, TableLoader, TableProps } from '@proteinjs/ui'
 import { Column, Record, ReferenceArrayColumn, Table, getDbService } from '@proteinjs/db'
 import { QueryTableLoader } from './QueryTableLoader'
+import { recordFormLink } from '../pages/RecordFormPage'
 
 export type RecordTableProps<T extends Record> = {
   table: Table<T>,
@@ -61,7 +62,7 @@ export function RecordTable<T extends Record>(props: RecordTableProps<T>) {
   }
 
   async function defaultRowOnClickRedirectUrl(row: T) {
-    return '/';  // TODO redirect to record form
+    return recordFormLink(props.table.name, row.id);
   }
 
   function buttons() {
@@ -80,7 +81,7 @@ export function RecordTable<T extends Record>(props: RecordTableProps<T>) {
       description={props.description}
       columns={props.columns ? props.columns : defaultColumns()}
       tableLoader={props.tableLoader ? props.tableLoader : defaultTableLoader()}
-      rowOnClickRedirectUrl={props.rowOnClickRedirectUrl}
+      rowOnClickRedirectUrl={props.rowOnClickRedirectUrl ? props.rowOnClickRedirectUrl : defaultRowOnClickRedirectUrl}
       defaultRowsPerPage={props.defaultRowsPerPage}
       buttons={buttons()}
     />

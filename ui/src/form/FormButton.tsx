@@ -2,18 +2,18 @@ import React from 'react';
 import { Fields } from './Field';
 
 export type FormButton<F extends Fields> = {
-    name: string,
-    accessibility?: {
+  name: string,
+  accessibility?: {
 		disabled?: boolean,
 		hidden?: boolean,
-	};
+	},
 	style: {
 		color?: 'primary'|'neutral'|'danger'|'success'|'warning',
 		variant?: 'plain'|'outlined'|'soft'|'solid',
 		icon?: React.ComponentType,
-    };
-    clearFormOnClick?: boolean,
-    redirect?: { path: string, props?: { [key: string]: any } },
+	},
+	clearFormOnClick?: boolean,
+	redirect?: (fields: F, buttons: FormButtons<F>) => Promise<{ path: string, props?: { [key: string]: any } }>,
 	onClick?: (fields: F, buttons: FormButtons<F>) => Promise<string|void>,
 	progressMessage?: (fields: F) => string
 }

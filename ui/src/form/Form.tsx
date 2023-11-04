@@ -93,9 +93,10 @@ export class FormComponent<F extends Fields, B extends FormButtons<F>> extends R
         }
 
         if (button.redirect) {
-            let path = button.redirect.path;
-            if (button.redirect.props)
-                path += `?${queryString.stringify(button.redirect.props)}`;
+            const redirect = await button.redirect(this.state.fields, this.props.buttons);
+            let path = redirect.path;
+            if (redirect.props)
+                path += `?${queryString.stringify(redirect.props)}`;
             
             if (this.props.navigate)
                 this.props.navigate(path);
