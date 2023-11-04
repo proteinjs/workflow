@@ -8,7 +8,7 @@ export const getTables = () => SourceRepository.get().objects<Table<any>>('@prot
 export const tableByName = (name: string) => {
 	const tables = getTables();
 	for (let table of tables) {
-		if (table.name = name)
+		if (table.name == name)
 			return table;
 	}
 
