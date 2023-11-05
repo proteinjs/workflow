@@ -121,7 +121,11 @@ export class MysqlDriver implements DbDriver {
 		return await select;
 	}
 
-	async getRowCount<T extends Record>(table: Table<T>): Promise<number> {
-		return (await this.select(table).count('* as total'))[0].total;
+	async getRowCount<T extends Record>(table: Table<T>, query?: SerializedQuery): Promise<number> {
+		const selectCount = this.select(table).count('* as total');
+		if (query)
+			return (await this.where(selectCount, query))[0].total;		
+
+		return (await selectCount)[0].total;
 	}
 }

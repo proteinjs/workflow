@@ -12,7 +12,7 @@ export interface DbDriver extends Loadable {
     update<T extends Record>(table: Table<T>, row: Row, query: SerializedQuery): Promise<void>;
     delete<T extends Record>(table: Table<T>, query: SerializedQuery): Promise<void>;
     query<T extends Record>(table: Table<T>, query: SerializedQuery, sort?: { column: string, desc?: boolean }[], window?: { start: number, end: number }): Promise<Row[]>;
-    getRowCount<T extends Record>(table: Table<T>): Promise<number>;
+    getRowCount<T extends Record>(table: Table<T>, query?: SerializedQuery): Promise<number>;
 }
 
 export class Db implements DbService {
@@ -108,7 +108,13 @@ export class Db implements DbService {
         return await Promise.all(rows.map(async (row) => recordSearializer.deserialize(row)));
     }
 
-    async getRowCount<T extends Record>(table: Table<T>): Promise<number> {
-        return await Db.getDbDriver().getRowCount(table);
+    async getRowCount<T extends Record>(table: Table<T>, query?: Query<T>): Promise<number> {
+        let serializedQuery;
+        if (query) {
+            const querySerializer = new QuerySerializer(table);
+            serializedQuery = querySerializer.serializeQuery(query);
+        }
+
+        return await Db.getDbDriver().getRowCount(table, serializedQuery);
     }
 }

@@ -14,7 +14,7 @@ export class QueryTableLoader<T extends Record> implements TableLoader<T> {
     const sort: any = this.sort ? this.sort : [{ column: 'created', desc: true }];
     const window = { start: startIndex, end: endIndex };
     const queryPromise = dbService.query(this.table, query, sort, window);
-    const rowCountPromise = dbService.getRowCount(this.table);
+    const rowCountPromise = dbService.getRowCount(this.table, this.query);
     const [rows, totalCount] = await Promise.all([queryPromise, rowCountPromise]);
     return { rows, totalCount };
   }
