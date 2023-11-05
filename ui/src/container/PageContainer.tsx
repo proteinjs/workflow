@@ -1,9 +1,9 @@
 import React from 'react';
-import { Button, IconButton, Typography, Menu, MenuItem, Drawer, List, ListItem, Dropdown, MenuButton, ListItemButton } from '@mui/joy';
-import { AppBar, Toolbar, ListItemIcon, ListItemText } from '@mui/material';
+import { Button, IconButton, Typography, Menu, MenuItem, Dropdown, MenuButton } from '@mui/joy';
+import { AppBar, Toolbar } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { NavigateFunction, useNavigate } from 'react-router-dom';
 import { Page } from '../router/Page';
 import {
     experimental_extendTheme as materialExtendTheme,
@@ -12,22 +12,9 @@ import {
 } from '@mui/material/styles';
 import { CssVarsProvider as JoyCssVarsProvider } from '@mui/joy/styles';
 import { createUrlParams } from '../router/createUrlParams';
+import { LinkOrDialog, NavMenu, NavMenuItem } from './NavMenu';
 
 const materialTheme = materialExtendTheme();
-const drawerWidth = 240;
-
-/** Either a dialog component, or a path to be redirected to */
-export type LinkOrDialog = React.ComponentType<{onClose: () => void}>|string;
-
-export type NavMenuItems = { 
-    name: string, 
-    action: LinkOrDialog, 
-    icon?: React.ComponentType,
-    /** Use to make this item a divider */
-    // isDivider?: boolean, 
-    /** Use to make this item a nested menu */
-    // children?: NavMenuItems 
-}[];
 
 export type PageContainerProps = {
     appName: string,
@@ -41,8 +28,23 @@ export type PageContainerProps = {
         logout: () => Promise<string>
     },
     profileMenuItems?: { name: string, action: LinkOrDialog }[],
-    navMenuItems?: NavMenuItems
+    navMenuItems?: NavMenuItem[],
 }
+
+const Page = React.memo(({ auth, page, navigate, loginClicked, setLoginClicked }: { auth: PageContainerProps['auth'], page: PageContainerProps['page'], navigate: NavigateFunction, loginClicked: boolean, setLoginClicked: (loginClicked: boolean) => void }) => {
+    if (auth?.canViewPage(page))
+        return <page.component urlParams={createUrlParams()} navigate={navigate} />;
+
+    if (!auth?.isLoggedIn) {
+        if (!loginClicked)
+            setLoginClicked(true);
+        
+        return null;
+    }
+
+    navigate('/');
+    return null;
+});
 
 export function PageContainer(props: PageContainerProps) {
     const navigate = useNavigate();
@@ -50,7 +52,7 @@ export function PageContainer(props: PageContainerProps) {
     const [loginClicked, setLoginClicked] = React.useState(false);
     const [selectedProfileMenuItem, setSelectedProfileMenuItem] = React.useState<number>(-1);
     const [navMenuOpen, setNavMenuOpen] = React.useState(false);
-    const [selectedNavMenuItem, setSelectedNavMenuItem] = React.useState<number>(-1);
+    
     React.useEffect(() => {
         if (auth?.canViewPage(page))
             return;
@@ -73,12 +75,16 @@ export function PageContainer(props: PageContainerProps) {
                     <AppBar position='static'>
                         <Toolbar>
                             { navMenuItems && 
-                                <IconButton 
+                                <IconButton
+                                    aria-label='menu'
                                     onClick={event => setNavMenuOpen(!navMenuOpen)} 
                                     sx={(theme) => ({
                                         marginRight: theme.spacing(2),
+                                        '&:hover': {
+                                            color: '#fff',
+                                        },
                                     })} 
-                                    aria-label='menu'
+                                    style={{ backgroundColor: 'transparent' }}
                                 >
                                     <MenuIcon />
                                 </IconButton>
@@ -90,8 +96,8 @@ export function PageContainer(props: PageContainerProps) {
                             <AuthIconButton />
                         </Toolbar>
                     </AppBar>
-                    <NavMenu />
-                    <Page />
+                    <NavMenu navMenuItems={navMenuItems} navMenuOpen={navMenuOpen} setNavMenuOpen={setNavMenuOpen} />
+                    <Page auth={auth} page={page} navigate={navigate} loginClicked={loginClicked} setLoginClicked={setLoginClicked} />
                 </JoyCssVarsProvider>
             </MaterialCssVarsProvider>
         </div>
@@ -177,70 +183,6 @@ export function PageContainer(props: PageContainerProps) {
             return null;
 
         return <auth.login onClose={() => setLoginClicked(false)} />;
-    }
-
-    function NavMenu() {
-        if (!navMenuItems)
-            return null;
-
-        return (
-            <div>
-                <Drawer
-                    sx={{
-                        width: drawerWidth,
-                        flexShrink: 0,
-                    }}
-                    anchor='left'
-                    open={navMenuOpen}
-                >
-                    <Toolbar />
-                    <List>
-                    {navMenuItems.map((navMenuItem, index) => (
-                        <ListItem>
-                            <ListItemButton
-                                onClick={event => setSelectedNavMenuItem(index)} 
-                                key={navMenuItem.name}
-                            >
-                                { navMenuItem.icon && 
-                                    <ListItemIcon>
-                                        <navMenuItem.icon />
-                                    </ListItemIcon>
-                                }
-                                <ListItemText primary={navMenuItem.name} />
-                            </ListItemButton>
-                        </ListItem>
-                    ))}
-                    </List>
-                </Drawer>
-                <NavMenuItemAction />
-            </div>
-        );
-    }
-
-    function NavMenuItemAction() {
-        if (selectedNavMenuItem == -1 || !navMenuItems)
-            return null;
-
-        const menuItem = navMenuItems[selectedNavMenuItem];
-        if (typeof menuItem.action === 'string')
-            return <Navigate to={menuItem.action} />;
-
-        return <menuItem.action onClose={() => setSelectedNavMenuItem(-1)} />;
-    }
-
-    function Page() {
-        if (auth?.canViewPage(page))
-            return <page.component urlParams={createUrlParams()} navigate={navigate} />;
-
-        if (!auth?.isLoggedIn) {
-            if (!loginClicked)
-                setLoginClicked(true);
-            
-            return null;
-        }
-
-        navigate('/');
-        return null;
     }
 
     function qualifiedPath(path: string) {

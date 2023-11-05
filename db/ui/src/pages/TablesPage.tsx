@@ -35,9 +35,6 @@ class TableSummaryLoader implements TableLoader<TableSummary> {
 }
 
 const Tables = () => {
-  const tables = getTables();
-  for (let table of tables)
-    console.log(`[${table.name}] columns: ${Object.keys(table.columns)}`)
   return (
     <TableComponent
       title='Tables'
