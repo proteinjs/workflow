@@ -1,5 +1,5 @@
 import { CustomSerializer } from '@proteinjs/serializer';
-import { ReferenceArray } from '../ReferenceArray';
+import { ReferenceArray } from '../reference/ReferenceArray';
 
 type SerializedReferenceArray = {
   _table: string,

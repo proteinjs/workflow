@@ -1,9 +1,9 @@
 import { CustomSerializableObject } from '@proteinjs/serializer';
-import { Db } from './Db';
-import { Record } from './Record';
-import { tableByName } from './Table';
-import { ReferenceArraySerializerId } from './serializers/ReferenceArraySerializer';
-import { getDbService } from './services/DbService';
+import { Db } from '../Db';
+import { Record } from '../Record';
+import { tableByName } from '../Table';
+import { ReferenceArraySerializerId } from '../serializers/ReferenceArraySerializer';
+import { getDbService } from '../services/DbService';
 
 /**
  * The object returned by Db functions for each field of type ReferenceArrayColumn in a record.

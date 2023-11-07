@@ -2,8 +2,9 @@ import moment from 'moment';
 import { v1 as uuidv1 } from 'uuid';
 import { Column, ColumnOptions, Table, ColumnType, tableByName } from './Table';
 import { Record } from './Record';
-import { ReferenceArray } from './ReferenceArray';
+import { ReferenceArray } from './reference/ReferenceArray';
 import { Db } from './Db';
+import { Reference } from './reference/Reference';
 
 export class IntegerColumn implements Column<number, number> {
 	type: ColumnType = 'integer';
@@ -247,6 +248,65 @@ export class ReferenceArrayColumn<T extends Record> implements Column<ReferenceA
 			const referenceArray = record[columnPropertyName] as ReferenceArray<Record>;
 			const referenceRecords = await referenceArray.get();
 			for (let referenceRecord of referenceRecords)
+				recordIdsToDelete.push(referenceRecord.id);
+		}
+
+		if (recordIdsToDelete.length < 1)
+			return;
+
+		const referenceTable = tableByName(this.referenceTable);
+		await new Db().delete(referenceTable, [{ column: 'id', operator: 'in', value: recordIdsToDelete }]);
+	}
+}
+
+export class ReferenceColumn<T extends Record> implements Column<Reference<T>, string> {
+	private stringColumn: StringColumn;
+	
+	/**
+	 * A column that stores a reference (id) to another record.
+	 * 
+	 * @param name name of column
+	 * @param referenceTable name of table that the reference record is in
+	 * @param cascadeDelete if true referenced record will be deleted when this record is deleted
+	 * @param options generic column options
+	 */
+	constructor(
+		public name: string,
+		public referenceTable: string,
+		public cascadeDelete: boolean,
+		public options?: ColumnOptions
+	) {
+		this.stringColumn = new StringColumn(name, options);
+	}
+
+	get type() {
+		return this.stringColumn.type;
+	}
+
+	async serialize(fieldValue: Reference<T>|undefined, table: Table<any>, record: any, columnPropertyName: string): Promise<string|undefined> {
+		if (typeof fieldValue === 'undefined')
+			return;
+		
+		const reference = await fieldValue.get();
+		if (!reference)
+			return;
+
+		return reference.id;
+	}
+
+	async deserialize(serializedFieldValue: string, table: Table<any>, record: any, columnPropertyName: string): Promise<Reference<T>> {
+		return new Reference(this.referenceTable, serializedFieldValue);
+	}
+
+	async beforeDelete(table: Table<any>, columnPropertyName: string, records: any[]) {
+		if (!this.cascadeDelete)
+			return;
+
+		const recordIdsToDelete: string[] = [];
+		for (let record of records) {
+			const reference = record[columnPropertyName] as Reference<Record>;
+			const referenceRecord = await reference.get();
+			if (referenceRecord)
 				recordIdsToDelete.push(referenceRecord.id);
 		}
 
