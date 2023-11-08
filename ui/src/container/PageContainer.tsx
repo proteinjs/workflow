@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, IconButton, Typography, Menu, MenuItem, Dropdown, MenuButton } from '@mui/joy';
-import { AppBar, Toolbar } from '@mui/material';
+import { AppBar, Toolbar, Box } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { NavigateFunction, useNavigate } from 'react-router-dom';
@@ -67,8 +67,18 @@ export function PageContainer(props: PageContainerProps) {
     }, [page]);
 
     return (
-        <div style={{
-            flexGrow: 1,
+        <Box sx={(theme) => {
+            const defaultStyles = {};
+            if (!page.pageContainerSxProps)
+                return defaultStyles;
+
+            let resolvedStyles;
+            if (typeof page.pageContainerSxProps === 'function')
+                resolvedStyles = Object.assign(defaultStyles, page.pageContainerSxProps(theme));
+            else
+                resolvedStyles = Object.assign(defaultStyles, page.pageContainerSxProps);
+
+            return resolvedStyles;
         }}>
             <MaterialCssVarsProvider theme={{ [MATERIAL_THEME_ID]: materialTheme }}>
                 <JoyCssVarsProvider>
@@ -100,7 +110,7 @@ export function PageContainer(props: PageContainerProps) {
                     <Page auth={auth} page={page} navigate={navigate} loginClicked={loginClicked} setLoginClicked={setLoginClicked} />
                 </JoyCssVarsProvider>
             </MaterialCssVarsProvider>
-        </div>
+        </Box>
     );
 
     function AuthIconButton() {
