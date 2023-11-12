@@ -11,6 +11,6 @@ export interface DbService extends Service {
   insert<T extends Record>(table: Table<T>, record: Omit<T, keyof Record>): Promise<T>;
   update<T extends Record>(table: Table<T>, record: Partial<T>, query?: Query<T>): Promise<void>;
   delete<T extends Record>(table: Table<T>, query: Query<T>): Promise<void>;
-  query<T extends Record>(table: Table<T>, query: Query<T>, sort?: { column: keyof T, desc?: boolean }[], window?: { start: number, end: number }): Promise<T[]>;
+  query<T extends Record>(table: Table<T>, query: Query<T>, sort?: { column: keyof T, desc?: boolean, byValues?: string[] }[], window?: { start: number, end: number }): Promise<T[]>;
   getRowCount<T extends Record>(table: Table<T>, query?: Query<T>): Promise<number>;
 }

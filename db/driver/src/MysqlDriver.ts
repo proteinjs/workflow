@@ -94,10 +94,19 @@ export class MysqlDriver implements DbDriver {
 		await this.where(queryBuilder, query);
 	}
 
-	async query<T extends Record>(table: Table<T>, query: SerializedQuery, sort?: { column: string, desc?: boolean }[], window?: { start: number, end: number }): Promise<Row[]> {
+	async query<T extends Record>(table: Table<T>, query: SerializedQuery, sort?: { column: string, desc?: boolean, byValues?: string[] }[], window?: { start: number, end: number }): Promise<Row[]> {
 		const select = this.select(table);
-		if (sort)
-			select.orderBy(sort.map(sortCondition => ({ column: sortCondition.column, order: sortCondition.desc ? 'desc' : 'asc' })));
+		if (sort) {
+			for (let sortCondition of sort) {
+				if (sortCondition.byValues) {
+					const orderByValuesRaw = sortCondition.byValues.map(value => MysqlDriver.getKnex().raw('?', value)).join(', ');
+					select.orderByRaw(`FIELD(${sortCondition.column}, ${orderByValuesRaw})`);
+					continue;
+				}
+
+				select.orderBy(sortCondition.column, sortCondition.desc ? 'desc' : 'asc');
+			}
+		}
 
 		if (window) {
 			select.limit(window.end - window.start);

@@ -35,7 +35,7 @@ export class ReferenceArray<T extends Record> implements CustomSerializableObjec
       } else {
         const table = tableByName(this._table);
         const db = typeof self === 'undefined' ? new Db() : getDbService();
-        this._objects = await db.query(table, [{ column: 'id', operator: 'in', value: this._ids }]);
+        this._objects = await db.query(table, [{ column: 'id', operator: 'in', value: this._ids }], [{ column: 'id', byValues: this._ids }]);
       }
     }
 

@@ -10,7 +10,7 @@ export class ServiceExecutor {
     private _interface: Interface,
     private method: Method,
   ) {
-    this.logger = new Logger(`${_interface.name}.${method.name}`);
+    this.logger = new Logger(`${_interface.name}.${method.name}`, undefined, 2500);
   }
 
   async execute(requestBody: any): Promise<any> {
