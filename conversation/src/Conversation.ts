@@ -13,11 +13,12 @@ export type ConversationParams = {
   name: string,
   modules?: ConversationModule[];
   logLevel?: LogLevel;
+  maxMessagesInHistory?: number;
 }
 
 export class Conversation {
   private static TOKEN_LIMIT = 3000;
-  private history = new MessageHistory();
+  private history;
   private systemMessages: ChatCompletionMessageParam[] = [];
   private functions: Function[] = [];
   private messageModerators: MessageModerator[] = [];
@@ -28,6 +29,7 @@ export class Conversation {
 
   constructor(params: ConversationParams) {
     this.params = params;
+    this.history = new MessageHistory({ maxMessages: params.maxMessagesInHistory });
     this.logger = new Logger(params.name, params.logLevel);
     if (params.modules)
       this.addModules(params.modules);
@@ -100,18 +102,34 @@ export class Conversation {
     this.history.push(this.systemMessages);
   }
 
-  addSystemMessagesToHistory(messages: string[]) {
+  addSystemMessagesToHistory(messages: string[], unshift = false) {
     const chatCompletions: ChatCompletionMessageParam[] = messages.map(message => { return { role: 'system', content: message }});
-    this.history.push(chatCompletions);
-    this.systemMessages.push(...chatCompletions);
+    if (unshift) {
+      this.history.getMessages().unshift(...chatCompletions);
+      this.history.prune();
+      this.systemMessages.unshift(...chatCompletions);
+    } else {
+      this.history.push(chatCompletions);
+      this.systemMessages.push(...chatCompletions);
+    }
   }
 
-  addAssistantMessagesToHistory(messages: string[]) {
-    this.history.push(messages.map(message => { return { role: 'assistant', content: message }}));
+  addAssistantMessagesToHistory(messages: string[], unshift = false) {
+    const chatCompletions: ChatCompletionMessageParam[] = messages.map(message => { return { role: 'assistant', content: message }});
+    if (unshift) {
+      this.history.getMessages().unshift(...chatCompletions);
+      this.history.prune();
+    } else
+      this.history.push(chatCompletions);
   }
 
-  addUserMessagesToHistory(messages: string[]) {
-    this.history.push(messages.map(message => { return { role: 'user', content: message }}));
+  addUserMessagesToHistory(messages: string[], unshift = false) {
+    const chatCompletions: ChatCompletionMessageParam[] = messages.map(message => { return { role: 'user', content: message }});
+    if (unshift) {
+      this.history.getMessages().unshift(...chatCompletions);
+      this.history.prune();
+    } else
+      this.history.push(chatCompletions);
   }
 
   async generateResponse(messages: string[], model?: TiktokenModel) {

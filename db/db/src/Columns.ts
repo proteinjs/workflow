@@ -287,11 +287,10 @@ export class ReferenceColumn<T extends Record> implements Column<Reference<T>, s
 		if (typeof fieldValue === 'undefined')
 			return;
 		
-		const reference = await fieldValue.get();
-		if (!reference)
+		if (!fieldValue._id)
 			return;
 
-		return reference.id;
+		return fieldValue._id;
 	}
 
 	async deserialize(serializedFieldValue: string, table: Table<any>, record: any, columnPropertyName: string): Promise<Reference<T>> {
@@ -305,9 +304,8 @@ export class ReferenceColumn<T extends Record> implements Column<Reference<T>, s
 		const recordIdsToDelete: string[] = [];
 		for (let record of records) {
 			const reference = record[columnPropertyName] as Reference<Record>;
-			const referenceRecord = await reference.get();
-			if (referenceRecord)
-				recordIdsToDelete.push(referenceRecord.id);
+			if (reference && reference._id)
+				recordIdsToDelete.push(reference._id);
 		}
 
 		if (recordIdsToDelete.length < 1)

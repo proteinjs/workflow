@@ -34,7 +34,7 @@ export class MessageHistory {
     return this;
   }
 
-  private prune() {
+  prune() {
     let messageCount = 0;
     const messagesToRemoveIndexes: number[] = [];
     for (let i = this.messages.length - 1; i >= 0; i--) {

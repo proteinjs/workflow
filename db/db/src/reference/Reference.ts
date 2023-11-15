@@ -37,5 +37,6 @@ export class Reference<T extends Record> implements CustomSerializableObject {
 
   set(object: T) {
     this._object = object;
+    this._id = object.id;
   }
 }

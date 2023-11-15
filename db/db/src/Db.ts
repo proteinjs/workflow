@@ -1,8 +1,10 @@
-import { DbService } from './services/DbService';
+import { DbService, Sort, getDbService } from './services/DbService';
 import { Loadable, SourceRepository } from '@brentbahry/reflection';
 import { Column, Table } from './Table';
 import { Query, QuerySerializer, SerializedQuery } from './Query';
 import { Record, RecordSerializer, Row } from './Record';
+
+export const getDb = () => typeof self === 'undefined' ? new Db() : getDbService() as Db;
 
 export interface DbDriver extends Loadable {
     init(): Promise<void>;
@@ -100,10 +102,11 @@ export class Db implements DbService {
         }
     }
 
-    async query<T extends Record>(table: Table<T>, query: Query<T>, sort?: { column: keyof T, desc?: boolean, byValues?: string[] }[], window?: { start: number, end: number }): Promise<T[]> {
+    async query<T extends Record>(table: Table<T>, query: Query<T>, sort?: Sort<T>, window?: { start: number, end: number }): Promise<T[]> {
         const querySerializer = new QuerySerializer(table);
         const serializedQuery = querySerializer.serializeQuery(query);
-        const rows = await Db.getDbDriver().query(table, serializedQuery, sort?.map(sortCondition => ({ column: table.columns[sortCondition.column].name, desc: sortCondition.desc, byValues: sortCondition.byValues })), window);
+        const serializedSort = sort?.map(sortCondition => ({ column: table.columns[sortCondition.column].name, desc: sortCondition.desc, byValues: sortCondition.byValues }));
+        const rows = await Db.getDbDriver().query(table, serializedQuery, serializedSort, window);
         const recordSearializer = new RecordSerializer(table);
         return await Promise.all(rows.map(async (row) => recordSearializer.deserialize(row)));
     }
