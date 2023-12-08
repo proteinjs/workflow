@@ -14,10 +14,11 @@ export type ConversationParams = {
   modules?: ConversationModule[];
   logLevel?: LogLevel;
   maxMessagesInHistory?: number;
+  tokenLimit?: number;
 }
 
 export class Conversation {
-  private static TOKEN_LIMIT = 3000;
+  private tokenLimit = 3000;
   private history;
   private systemMessages: ChatCompletionMessageParam[] = [];
   private functions: Function[] = [];
@@ -31,6 +32,9 @@ export class Conversation {
     this.params = params;
     this.history = new MessageHistory({ maxMessages: params.maxMessagesInHistory });
     this.logger = new Logger(params.name, params.logLevel);
+    if (params.tokenLimit)
+      this.tokenLimit = params.tokenLimit;
+
     if (params.modules)
       this.addModules(params.modules);
 
@@ -83,7 +87,7 @@ export class Conversation {
     const conversation = this.history.toString() + messages.join('. ');
     const encoded = encoder.encode(conversation);
     console.log(`current tokens: ${encoded.length}`);
-    if (encoded.length < Conversation.TOKEN_LIMIT)
+    if (encoded.length < this.tokenLimit)
       return;
 
     const summarizeConversationRequest = `First, call the ${summarizeConversationHistoryFunctionName} function`;
