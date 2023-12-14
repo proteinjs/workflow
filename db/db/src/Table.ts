@@ -15,12 +15,23 @@ export const tableByName = (name: string) => {
 	throw new Error(`Unable to find table: ${name}`);
 }
 
+export const getColumnPropertyName = (table: Table<any>, columnName: string) => {
+	for (let columnPropertyName in table.columns) {
+		const column = table.columns[columnPropertyName];
+		if (column.name == columnName)
+			return columnPropertyName;
+	}
+
+	return null;
+}
+
 export abstract class Table<T extends Record> implements Loadable, CustomSerializableObject {
 	public __serializerId = TableSerializerId;
 	abstract name: string;
 	abstract columns: Columns<T>;
 	public primaryKey: (keyof T)[] = ['id'];
 	public indexes: { columns: (keyof T)[], name?: string }[] = [];
+	public cascadeDeleteReferences: () => { table: string, referenceColumn: string }[] = () => [];
 }
 
 type RequiredProps<T> = {

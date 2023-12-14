@@ -19,6 +19,7 @@
     },
     "dependencies": {
         "@brentbahry/reflection": "file:../../reflection",
+        "@brentbahry/util": "file:../../util/common",
         "@proteinjs/serializer": "file:../../serializer",
         "@proteinjs/service": "file:../../service",
         "moment": "2.29.4",

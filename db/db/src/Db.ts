@@ -1,8 +1,9 @@
 import { DbService, Sort, getDbService } from './services/DbService';
 import { Loadable, SourceRepository } from '@brentbahry/reflection';
-import { Column, Table } from './Table';
+import { Column, Table, getColumnPropertyName, tableByName } from './Table';
 import { Query, QuerySerializer, SerializedQuery } from './Query';
 import { Record, RecordSerializer, Row } from './Record';
+import { Logger } from '@brentbahry/util';
 
 export const getDb = () => typeof self === 'undefined' ? new Db() : getDbService() as Db;
 
@@ -19,6 +20,7 @@ export interface DbDriver extends Loadable {
 
 export class Db implements DbService {
     private static dbDriver: DbDriver;
+    private logger = new Logger(this.constructor.name);
 
     private static getDbDriver(): DbDriver {
         if (!Db.dbDriver) {
@@ -87,18 +89,31 @@ export class Db implements DbService {
     }
 
     async delete<T extends Record>(table: Table<T>, query: Query<T>): Promise<void> {
-        const querySerializer = new QuerySerializer(table);
-        const serializedQuery = querySerializer.serializeQuery(query);
         const recordsToDelete = await this.query(table, query);
+        const recordsToDeleteIds = recordsToDelete.map(record => record.id);
+        const deleteQuery = [{ column: 'id', operator: 'in', value: recordsToDeleteIds }];
         await this.beforeDelete(table, recordsToDelete);
-        await Db.getDbDriver().delete(table, serializedQuery);
+        await Db.getDbDriver().delete(table, deleteQuery);
+        await this.cascadeDeletions(table, recordsToDeleteIds);
     }
 
-    private async beforeDelete(table: Table<any>, records: Record[]) {
+    private async beforeDelete(table: Table<any>, recordsToDelete: Record[]) {
         for (let columnPropertyName in table.columns) {
             const column = (table.columns as any)[columnPropertyName] as Column<any, any>;
             if (typeof column.beforeDelete !== 'undefined')
-                await column.beforeDelete(table, columnPropertyName, records);
+                await column.beforeDelete(table, columnPropertyName, recordsToDelete);
+        }
+    }
+
+    private async cascadeDeletions(table: Table<any>, deletedRecordIds: string[]) {
+        if (table.cascadeDeleteReferences().length < 1)
+            return;
+
+        for (let cascadeDeleteReference of table.cascadeDeleteReferences()) {
+            const referenceTable = tableByName(cascadeDeleteReference.table);
+            const referenceColumnPropertyName = getColumnPropertyName(referenceTable, cascadeDeleteReference.referenceColumn);
+            this.logger.info(`Executing cascade delete for table: ${table.name}, referenceTable: ${referenceTable.name}, referenceColumnPropertyName: ${referenceColumnPropertyName}, deletedRecordIds: ${JSON.stringify(deletedRecordIds)}`);
+            await this.delete(referenceTable, [{ column: referenceColumnPropertyName, operator: 'in', value: deletedRecordIds }]);
         }
     }
 
