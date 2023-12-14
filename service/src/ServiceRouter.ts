@@ -43,7 +43,7 @@ export class ServiceRouter implements Route {
         const serializedReturn = await serviceExecutor.execute(request.body);
         response.send({ serializedReturn });
       } catch (error: any) {
-        this.logger.error(error);
+        this.logger.error(error.stack);
         response.send({ error: error.message });
       }
   }
