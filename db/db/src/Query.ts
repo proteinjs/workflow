@@ -20,13 +20,9 @@ export class QuerySerializer<T extends Record> {
   serializeQuery(query: Query<T>) {
     if (Array.isArray(query)) {
       const serializedQueryConditions = [];
-      for (let queryCondition of query) {
-        const serializedQueryCondition = this.serializeQueryCondition(queryCondition);
-        if (!serializedQueryCondition)
-          continue;
+      for (let queryCondition of query)
+        serializedQueryConditions.push(this.serializeQueryCondition(queryCondition));
 
-        serializedQueryConditions.push(serializedQueryCondition);
-      }
       return serializedQueryConditions;
     }
     
@@ -34,7 +30,7 @@ export class QuerySerializer<T extends Record> {
     for (let prop in query) {
       const column = (this.table.columns as any)[prop];
       if (!column)
-        continue;
+        throw new Error(`Failed to serialize columnQuery, column does not exist: ${prop}`);
 
       columnQuery[column.name] = query[prop];
     }
@@ -45,7 +41,7 @@ export class QuerySerializer<T extends Record> {
     const serializedQueryCondition: SerializedQueryCondition = { column: '', operator: queryCondition.operator, value: queryCondition.value };
     const column = (this.table.columns as any)[queryCondition.column];
     if (!column)
-      return;
+      throw new Error(`Failed to serialize queryCondition, column does not exist: ${queryCondition.column as string}`);
 
     serializedQueryCondition.column = column.name;
     return serializedQueryCondition;
