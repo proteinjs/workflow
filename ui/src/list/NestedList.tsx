@@ -49,7 +49,6 @@ export const NestedList = ({ items, level, levelColors }: NestedListProps) => {
               borderLeft: 3,
               borderLeftColor: resolvedLevelColors[resolvedLevel%resolvedLevelColors.length],
               listStyleType: 'none',
-              paddingLeft: theme.spacing(1),
               marginTop: !(isRoot && index == 0) ? theme.spacing(1) : undefined,
             })}
           >
