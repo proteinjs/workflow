@@ -8,7 +8,7 @@ export interface Record {
 	updated: moment.Moment;
 }
 
-export const recordColumns: Columns<Record> = {
+const recordColumns: Columns<Record> = {
   id: new UuidColumn('id'),
   created: new DateTimeColumn('created', { defaultValue: async () => moment() }),
   updated: new DateTimeColumn('updated', { defaultValue: async () => moment(), updateValue: async () => moment() }),

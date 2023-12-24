@@ -6,5 +6,6 @@ export * from './src/Record';
 export * from './src/reference/ReferenceArray';
 export * from './src/reference/Reference';
 export * from './src/RecordIterator';
+export * from './src/source/SourceRecord';
 
 export * from './src/services/DbService';

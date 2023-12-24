@@ -4,6 +4,7 @@ import { Column, Table, getColumnPropertyName, tableByName } from './Table';
 import { Query, QuerySerializer, SerializedQuery } from './Query';
 import { Record, RecordSerializer, Row } from './Record';
 import { Logger } from '@brentbahry/util';
+import { loadSourceRecords } from './source/loadSourceRecords';
 
 export const getDb = () => typeof self === 'undefined' ? new Db() : getDbService() as Db;
 
@@ -34,6 +35,7 @@ export class Db implements DbService {
 
     async init(): Promise<void> {
         await Db.getDbDriver().init();
+        await loadSourceRecords();
     }
 
     async tableExists<T extends Record>(table: Table<T>): Promise<boolean> {

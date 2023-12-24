@@ -32,6 +32,7 @@ export abstract class Table<T extends Record> implements Loadable, CustomSeriali
 	public primaryKey: (keyof T)[] = ['id'];
 	public indexes: { columns: (keyof T)[], name?: string }[] = [];
 	public cascadeDeleteReferences: () => { table: string, referenceColumn: string }[] = () => [];
+	public loadRecordsFromSource = false;
 }
 
 type RequiredProps<T> = {
