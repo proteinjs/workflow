@@ -1,0 +1,24 @@
+{
+    "name": "@proteinjs/workflow-common",
+    "version": "0.1",
+    "main": "./dist/generated/index.js",
+    "scripts": {
+        "test": "jest",
+        "build": "reflection-build && tsc",
+        "watch": "reflection-watch"
+    },
+    "devDependencies": {
+        "@brentbahry/reflection-build": "file:../../reflection-build",
+        "@types/jest": "^26.0.24",
+        "jest": "^26.6.3",
+        "ts-jest": "^26.5.6",
+        "typescript": "5.2.2"
+    },
+    "dependencies": {
+        "@brentbahry/reflection": "file:../../reflection",
+        "@proteinjs/db": "file:../../db/db",
+        "@proteinjs/service": "file:../../service",
+        "moment": "2.29.4"
+    },
+    "types": "./dist/generated/index.d.ts"
+}
