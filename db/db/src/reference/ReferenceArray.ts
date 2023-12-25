@@ -28,6 +28,11 @@ export class ReferenceArray<T extends Record> implements CustomSerializableObjec
     public _objects?: T[],
   ) {}
 
+  static fromObjects<T extends Record>(table: string, objects: (T|Omit<T, 'created'|'updated'>)[]) {
+    const ids = objects.map(object => object.id);
+    return new ReferenceArray<T>(table, ids, objects as T[]);
+  }
+
   async get(): Promise<T[]> {
     if (!this._objects) {
       if (this._ids.length < 1) {

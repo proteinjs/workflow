@@ -25,6 +25,10 @@ export class Reference<T extends Record> implements CustomSerializableObject {
     public _object?: T,
   ) {}
 
+  static fromObject<T extends Record>(table: string, object: T|Omit<T, 'created'|'updated'>) {
+    return new Reference<T>(table, object.id, object as T);
+  }
+
   async get(): Promise<T|undefined> {
     if (!this._object && this._id) {
       const table = tableByName(this._table);
