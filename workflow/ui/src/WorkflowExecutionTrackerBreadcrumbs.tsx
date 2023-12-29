@@ -6,11 +6,11 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Workflow, WorkflowExecution, WorkflowStep, tables } from '@proteinjs/workflow-common';
 import { getDb } from '@proteinjs/db';
 
-export type WorkflowExecutionTrackerProps = {
+export type WorkflowExecutionTrackerBreadcrumbsProps = {
   workflowExecutionOrId: WorkflowExecution|string,
 }
 
-export function WorkflowExecutionTracker({ workflowExecutionOrId }: WorkflowExecutionTrackerProps) {
+export function WorkflowExecutionTrackerBreadcrumbs({ workflowExecutionOrId }: WorkflowExecutionTrackerBreadcrumbsProps) {
   const [workflowExecution, setWorkflowExecution] = React.useState<WorkflowExecution>();
   const [workflow, setWorkflow] = React.useState<Workflow>();
   const [steps, setSteps] = React.useState<WorkflowStep[]>();
