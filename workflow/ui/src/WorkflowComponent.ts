@@ -1,15 +1,15 @@
-import * as React from 'react'
+import React, { ReactElement } from 'react'
 import { Loadable, SourceRepository } from '@brentbahry/reflection'
 import { Workflow, WorkflowExecution, WorkflowStep } from '@proteinjs/workflow-common';
 import { PageComponentProps } from '@proteinjs/ui';
 
 export interface WorkflowComponentProps extends PageComponentProps {
-  workflowHeader: React.ReactNode;
+  workflowHeader?: ReactElement;
   workflow: Workflow;
   workflowExecution: WorkflowExecution;
   steps: WorkflowStep[];
   currentStep: WorkflowStep;
-  setCurrentStep: React.Dispatch<React.SetStateAction<WorkflowStep|undefined>>;
+  updateCurrentStep: (step: WorkflowStep) => Promise<void>;
 }
 
 export interface WorkflowComponent extends Loadable {

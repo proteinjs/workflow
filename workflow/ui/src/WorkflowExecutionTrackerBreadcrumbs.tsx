@@ -1,8 +1,6 @@
 import * as React from 'react';
-import { emphasize, styled } from '@mui/material/styles';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Chip from '@mui/material/Chip';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Workflow, WorkflowExecution, WorkflowStep } from '@proteinjs/workflow-common';
 
 export type WorkflowExecutionTrackerBreadcrumbsProps = {
@@ -10,68 +8,76 @@ export type WorkflowExecutionTrackerBreadcrumbsProps = {
   workflowExecution: WorkflowExecution,
   steps: WorkflowStep[],
   currentStep: WorkflowStep,
-  setCurrentStep: React.Dispatch<React.SetStateAction<WorkflowStep | undefined>>,
+  updateCurrentStep: (step: WorkflowStep) => Promise<void>,
 }
 
 export const WorkflowExecutionTrackerBreadcrumbs = ({
-  workflow, workflowExecution, steps, currentStep, setCurrentStep,
+  workflow, workflowExecution, steps, currentStep, updateCurrentStep,
 }: WorkflowExecutionTrackerBreadcrumbsProps) => {
-  function handleClick(event: React.MouseEvent<Element, MouseEvent>) {
+
+  function stepsToDisplay() {
+    const maxStepsToDisplay = 3;
+    const currentStepIndex = indexOfCurrentStep();
+    const displaySteps = [];
+    const startIndex = currentStepIndex == 0 ?
+      0
+      :
+      currentStepIndex == steps.length - 1 ?
+        currentStepIndex - 2
+        : 
+        currentStepIndex - 1
+    ;
+    const endIndex = (startIndex + (maxStepsToDisplay - 1)) < steps.length ? startIndex + (maxStepsToDisplay - 1) : steps.length - 1;
+    for (let i = startIndex; i <= endIndex; i++)
+      displaySteps.push(steps[i]);
+    
+    return displaySteps;
+  }
+
+  function indexOfCurrentStep() {
+    for (let i = 0; i < steps.length; i++) {
+      if (steps[i].id == currentStep.id)
+        return i;
+    }
+
+    throw new Error(`Can't fint currentStep in steps`);
+  }
+
+  async function handleStepClick(event: React.MouseEvent<Element, MouseEvent>, step: WorkflowStep) {
     event.preventDefault();
-    console.info('You clicked a breadcrumb.');
+    event.stopPropagation();
+    await updateCurrentStep(step);
   }
 
   return (
     <>
-    { workflowExecution && steps &&
+    { workflowExecution && steps && currentStep &&
       <Breadcrumbs aria-label='breadcrumb' separator='›'>
-        {steps.map((step, index) => {
+        {stepsToDisplay().map((step, index) => {
           const isCurrentStep = step.id == currentStep?.id;
 
           return isCurrentStep ? (
-            <StyledBreadcrumb
+            <Chip
               key={index}
-              component='a'
-              href='#'
               label={step.name}
-              clickable
               color='primary'
+              sx={(theme) =>({
+                height: theme.spacing(3)
+              })}
             />
           ) : (
-            <StyledBreadcrumb
+            <Chip
               key={index}
-              component='a'
-              href='#'
               label={step.name}
-              onClick={handleClick}
+              sx={(theme) =>({
+                height: theme.spacing(3)
+              })}
+              onClick={event => handleStepClick(event, step)}
             />
           );
         })}
-        <StyledBreadcrumb
-          label='Steps'
-          deleteIcon={<ExpandMoreIcon />}
-          onDelete={handleClick}
-        />
       </Breadcrumbs>
     }
     </>
   );
 }
-
-const StyledBreadcrumb = styled(Chip)(({ theme }) => {
-  const backgroundColor =
-    theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[800];
-  return {
-    backgroundColor,
-    height: theme.spacing(3),
-    color: theme.palette.text.primary,
-    fontWeight: theme.typography.fontWeightRegular,
-    '&:hover, &:focus': {
-      backgroundColor: emphasize(backgroundColor, 0.06),
-    },
-    '&:active': {
-      boxShadow: theme.shadows[1],
-      backgroundColor: emphasize(backgroundColor, 0.12),
-    },
-  };
-}) as typeof Chip;

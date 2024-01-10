@@ -4,7 +4,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { WorkflowComponentProps } from './WorkflowComponent';
 import { WorkflowExecutionTrackerBreadcrumbs } from './WorkflowExecutionTrackerBreadcrumbs';
 
-export const WorkflowHeader = ({ workflow, workflowExecution, steps, currentStep, setCurrentStep }: Omit<WorkflowComponentProps, 'workflowHeader'>) => {
+export const WorkflowHeader = ({ workflow, workflowExecution, steps, currentStep, updateCurrentStep }: Omit<WorkflowComponentProps, 'workflowHeader'>) => {
   const [workflowAccordionOpen, setWorkflowAccordionOpen] = React.useState(false);
   
   return (
@@ -23,7 +23,7 @@ export const WorkflowHeader = ({ workflow, workflowExecution, steps, currentStep
             workflowExecution={workflowExecution}
             steps={steps}
             currentStep={currentStep}
-            setCurrentStep={setCurrentStep}
+            updateCurrentStep={updateCurrentStep}
           />
         }
       </AccordionSummary>

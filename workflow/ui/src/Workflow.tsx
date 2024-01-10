@@ -1,21 +1,22 @@
 import * as React from 'react';
 import { Workflow as WorkflowRecord, WorkflowExecution, WorkflowStep, tables } from '@proteinjs/workflow-common';
 import { Reference, getDb } from '@proteinjs/db';
-import { WorkflowComponentProps, WorkflowComponentRepo } from './WorkflowComponent';
+import { WorkflowComponentRepo } from './WorkflowComponent';
 import { WorkflowHeader } from './WorkflowHeader';
 import { PageComponentProps } from '@proteinjs/ui';
+import { workflowLink } from './pages/WorkflowPage';
 
 export type WorkflowProps = PageComponentProps & {
   workflowId: string,
   workflowExecutionId?: string,
 }
 
-export const Workflow = ({ workflowId, workflowExecutionId, ...props }: WorkflowProps) => {
+export const Workflow = ({ workflowId, workflowExecutionId, navigate, ...props }: WorkflowProps) => {
   const [workflowExecution, setWorkflowExecution] = React.useState<WorkflowExecution>();
   const [workflow, setWorkflow] = React.useState<WorkflowRecord>();
   const [steps, setSteps] = React.useState<WorkflowStep[]>();
   const [currentStep, setCurrentStep] = React.useState<WorkflowStep>();
-  const [WorkflowComponent, setWorkflowComponent] = React.useState<React.ComponentType<WorkflowComponentProps>>();
+  const WorkflowComponent = WorkflowComponentRepo.getComponent(workflowId);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -24,12 +25,10 @@ export const Workflow = ({ workflowId, workflowExecutionId, ...props }: Workflow
       const fetchedWorkflowExecution = await getOrCreateWorkflowExecution(fetchedWorkflow);
       const fetchedSteps = await fetchedWorkflow?.steps.get();
       const fetchedCurrentStep = await fetchedWorkflowExecution.currentStep.get();
-      const newWorkflowComponent = WorkflowComponentRepo.getComponent(workflowId);
       setWorkflowExecution(fetchedWorkflowExecution);
       setWorkflow(fetchedWorkflow);
       setSteps(fetchedSteps);
       setCurrentStep(fetchedCurrentStep);
-      setWorkflowComponent(newWorkflowComponent);
     };
 
     fetchData();
@@ -40,11 +39,22 @@ export const Workflow = ({ workflowId, workflowExecutionId, ...props }: Workflow
     if (workflowExecutionId)
       return await db.get(tables.WorkflowExecution, { id: workflowExecutionId });
 
-    return await db.insert(tables.WorkflowExecution, {
+    const newWorkflowExecution = await db.insert(tables.WorkflowExecution, {
       workflow: Reference.fromObject(tables.Workflow.name, workflowRecord),
       currentStep: Reference.fromObject(tables.WorkflowStep.name, (await workflowRecord.steps.get())[0]),
       status: 'active',
     });
+    navigate(workflowLink(workflowId, newWorkflowExecution.id), { replace: true });
+    return newWorkflowExecution;
+  }
+
+  async function updateCurrentStep(step: WorkflowStep) {
+    if (!workflowExecution)
+      return;
+
+    workflowExecution.currentStep = Reference.fromObject(tables.WorkflowStep.name, step);
+    await getDb().update(tables.WorkflowExecution, workflowExecution);
+    setCurrentStep(step);
   }
 
   if (!WorkflowComponent || !workflow || !workflowExecution || !steps || !currentStep)
@@ -58,7 +68,8 @@ export const Workflow = ({ workflowId, workflowExecutionId, ...props }: Workflow
           workflowExecution={workflowExecution}
           steps={steps}
           currentStep={currentStep}
-          setCurrentStep={setCurrentStep}
+          updateCurrentStep={updateCurrentStep}
+          navigate={navigate}
           {...props}
         />
       }
@@ -66,7 +77,8 @@ export const Workflow = ({ workflowId, workflowExecutionId, ...props }: Workflow
       workflowExecution={workflowExecution}
       steps={steps}
       currentStep={currentStep}
-      setCurrentStep={setCurrentStep}
+      updateCurrentStep={updateCurrentStep}
+      navigate={navigate}
       {...props}
     />
   );
