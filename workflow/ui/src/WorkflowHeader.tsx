@@ -4,11 +4,16 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { WorkflowComponentProps } from './WorkflowComponent';
 import { WorkflowExecutionTrackerBreadcrumbs } from './WorkflowExecutionTrackerBreadcrumbs';
 
-export const WorkflowHeader = ({ workflow, workflowExecution, steps, currentStep, updateCurrentStep }: Omit<WorkflowComponentProps, 'workflowHeader'>) => {
-  const [workflowAccordionOpen, setWorkflowAccordionOpen] = React.useState(false);
-  
+export const WorkflowHeader = ({ workflow, workflowExecution, steps, currentStep, updateCurrentStep }: Omit<WorkflowComponentProps, 'workflowHeader'>) => {  
   return (
-    <Accordion expanded={workflowAccordionOpen} onChange={() => setWorkflowAccordionOpen(!workflowAccordionOpen)}>
+    <Accordion
+      sx={{ 
+        borderRadius: '0px !important',
+        '&:first-of-type': {
+          borderRadius: '0px !important',
+        },
+      }}
+    >
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls='workflow-accordion'
