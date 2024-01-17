@@ -2,11 +2,13 @@ import knex from 'knex';
 import { DbDriver, Record, Table, Row, SerializedQueryCondition, SerializedQuery } from '@proteinjs/db';
 import { loadTables } from './loadTables';
 import { getMysqlConfig } from './MysqlConfig';
+import { Logger } from '@brentbahry/util';
 
 export class MysqlDriver implements DbDriver {
 	private static CONFIG: any;
 	private static DB_NAME: string;
 	private static knex: knex;
+	private static logger = new Logger('MysqlDriver');
 
 	private static getConfig() {
 		if (!MysqlDriver.CONFIG) {
@@ -73,7 +75,7 @@ export class MysqlDriver implements DbDriver {
 		await MysqlDriver.getKnex().raw('SET GLOBAL max_allowed_packet=1073741824;');
 		await MysqlDriver.getKnex().destroy();
 		MysqlDriver.knex = knex(MysqlDriver.CONFIG);
-		console.info('Set global max_allowed_packet size to 1gb');
+		MysqlDriver.logger.info('Set global max_allowed_packet size to 1gb');
 	}
 
 	async get<T extends Record>(table: Table<T>, query: SerializedQuery): Promise<Row> {

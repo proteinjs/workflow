@@ -1,6 +1,7 @@
 /** Load Dependency Source Graphs */
 
 import '@brentbahry/reflection';
+import '@brentbahry/util';
 import '@proteinjs/db';
 import '@proteinjs/server-api';
 import 'body-parser';

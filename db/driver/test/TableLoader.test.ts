@@ -22,7 +22,11 @@ function userTable(): Table<User> {
 		indexes: [
 			{ columns: ['email'] },
 			{ columns: ['active', 'email'] }
-		]
+		],
+		cascadeDeleteReferences() {
+			return [];
+		},
+		loadRecordsFromSource: false,
 	}
 };
 
@@ -46,6 +50,10 @@ function testColumnTypesTable(): Table<any> {
 		},
 		primaryKey: ['uuid'],
 		indexes: [],
+		cascadeDeleteReferences() {
+			return [];
+		},
+		loadRecordsFromSource: false,
 	}
 };
 

@@ -8,6 +8,7 @@ import passportLocal from 'passport-local';
 import { Db } from '@proteinjs/db';
 import { ServerConfig, getRoutes } from '@proteinjs/server-api';
 import { loadRoutes, loadDefaultStarRoute } from './loadRoutes';
+import { Logger } from '@brentbahry/util';
 
 export async function startServer(config: ServerConfig = {}) {
     const routes = getRoutes();
@@ -44,24 +45,26 @@ function configureRequests(server: express.Express) {
 }
 
 function configureHttps(server: express.Express) {
+    const logger = new Logger('configureHttps');
     server.use((request: express.Request, response: express.Response, next: express.NextFunction) => {
         if (request.protocol == 'https' || response.headersSent || process.env.DEVELOPMENT) {
             next();
             return;
         }
 
-        console.debug(`Redirecting to https: ${request.headers.host + request.url}`);
+        logger.debug(`Redirecting to https: ${request.headers.host + request.url}`);
         response.redirect('https://' + request.headers.host + request.url);
     });
 }
 
 function configureStaticContentRouter(server: express.Express, config: ServerConfig) {
+    const logger = new Logger('configureStaticContentRouter');
     if (!config.staticContent?.staticContentDir)
         return;
 
     const staticContentPath = '/static/';
 	server.use(staticContentPath, express.static(config.staticContent.staticContentDir));
-	console.info(`Serving static content on path: ${staticContentPath}, serving from directory: ${config.staticContent.staticContentDir}`);
+	logger.info(`Serving static content on path: ${staticContentPath}, serving from directory: ${config.staticContent.staticContentDir}`);
 }
 
 function configureSession(server: express.Express, config: ServerConfig) {
@@ -94,8 +97,9 @@ function configureSession(server: express.Express, config: ServerConfig) {
 }
 
 function initializeAuthentication(authenticate: (username: string, password: string) => Promise<true | string>) {
+    const logger = new Logger('initializeAuthentication');
     passport.use(new passportLocal.Strategy(async function (username, password, done) {
-        console.info(`Authenticating`);
+        logger.info(`Authenticating`);
         const result = await authenticate(username, password);
         if (result === true)
             return done(null, { username });
@@ -113,6 +117,7 @@ function initializeAuthentication(authenticate: (username: string, password: str
 }
 
 function beforeRequest(server: express.Express, config: ServerConfig) {
+    const logger = new Logger('beforeRequest');
     let requestCounter: number = 0;
     if (config.request?.disableRequestLogging == false || typeof config.request?.disableRequestLogging === 'undefined') {
         server.use((request: express.Request, response: express.Response, next: express.NextFunction) => {
@@ -122,7 +127,7 @@ function beforeRequest(server: express.Express, config: ServerConfig) {
             }
 
             const requestNumber = ++requestCounter;
-            console.info(`[#${requestNumber}] Started ${request.originalUrl}`);
+            logger.info(`[#${requestNumber}] Started ${request.originalUrl}`);
             response.locals = { requestNumber };
             next();
         });
@@ -133,6 +138,7 @@ function beforeRequest(server: express.Express, config: ServerConfig) {
 }
 
 function afterRequest(server: express.Express, config: ServerConfig) {
+    const logger = new Logger('afterRequest');
     if (config.request?.afterRequest)
         server.use(config.request.afterRequest);
 
@@ -143,18 +149,19 @@ function afterRequest(server: express.Express, config: ServerConfig) {
                 return;
             }
             
-            console.info(`[#${response.locals.requestNumber}] Finished ${request.originalUrl}`);
+            logger.info(`[#${response.locals.requestNumber}] Finished ${request.originalUrl}`);
             next();
         });
     }
 }
 
 function start(server: express.Express, config: ServerConfig) {
+    const logger = new Logger('start');
     const port = config.port ? config.port : 8080;
     server.listen(port, () => {
         if (process.env.DEVELOPMENT)
-            console.info(`Starting in development mode`);
+            logger.info(`Starting in development mode`);
 
-        console.info(`Server listening on port: ${port}`);
+        logger.info(`Server listening on port: ${port}`);
     });
 }

@@ -19,6 +19,7 @@
     },
     "dependencies": {
         "@brentbahry/reflection": "file:../../reflection",
+        "@brentbahry/util": "file:../../util/common",
         "@proteinjs/db": "file:../../db/db",
         "@proteinjs/server-api": "file:../api",
         "body-parser": "1.19.0",

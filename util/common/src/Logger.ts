@@ -45,8 +45,8 @@ export class Logger {
     console.warn(`${this.prefix()} ${this.limitMessageLength(message, limit)}`);
   }
 
-  error(message: string, limit?: number) {
-    console.error(`${this.prefix()} ${message}`);
+  error(message: string, error?: Error) {
+    console.error(`${this.prefix()} ${message}`, error);
   }
 
   private limitMessageLength(message: string, limit?: number) {

@@ -2,12 +2,14 @@ import express from 'express';
 import passport from 'passport';
 import { ServerConfig, Route, getRequestListeners, Session, SessionData, getSessionDataCaches } from '@proteinjs/server-api';
 import { createReactApp } from './routes/reactApp';
+import { Logger } from '@brentbahry/util';
 
 export function loadRoutes(routes: Route[], server: express.Express, config: ServerConfig) {
+    const logger = new Logger('loadRoutes');
     let starRoute: Route|null = null;
     const wildcardRoutes: Route[] = [];
     for (const route of routes) {
-        console.info(`Loading route: ${route.path}`);
+        logger.info(`Loading route: ${route.path}`);
         if (route.path == '*') {
             starRoute = route;
             continue;
@@ -49,6 +51,7 @@ function getPath(path: string) {
 
 function wrapRoute(route: (request: express.Request, response: express.Response) => Promise<void>, config: ServerConfig) {
     return async function (request: express.Request, response: express.Response, next: express.NextFunction) {
+        const logger = new Logger('wrapRoute');
         if (response.locals['responseHandled']) {
             next();
             return;
@@ -77,8 +80,8 @@ function wrapRoute(route: (request: express.Request, response: express.Response)
 
             try {
                 await listener.beforeRequest(request, response);
-            } catch(error) {
-                console.error(`Caught error when running listener before request`, error);
+            } catch (error: any) {
+                logger.error(`Caught error when running listener before request`, error);
             }
         }
 
@@ -86,9 +89,9 @@ function wrapRoute(route: (request: express.Request, response: express.Response)
         const timeout = typeof config.request?.timeoutMs !== 'undefined' ? config.request.timeoutMs : sixtyMinutes;
         request.setTimeout(timeout, () => {
             if (response.locals.requestNumber)
-                console.warn(`[#${response.locals.requestNumber}] Timed out ${request.originalUrl}`);
+                logger.warn(`[#${response.locals.requestNumber}] Timed out ${request.originalUrl}`);
             else
-                console.warn(`Timed out ${request.originalUrl}`);
+                logger.warn(`Timed out ${request.originalUrl}`);
         });
 
         try {
@@ -104,8 +107,8 @@ function wrapRoute(route: (request: express.Request, response: express.Response)
 
             try {
                 await listener.afterRequest(request, response);
-            } catch(error) {
-                console.error(`Caught error when running listener after request`, error);
+            } catch (error: any) {
+                logger.error(`Caught error when running listener after request`, error);
             }
         }
 

@@ -2,6 +2,7 @@ import * as knex from 'knex';
 import { Table, Column, mysqlColumnTypeMap, getTables } from '@proteinjs/db';
 import { MysqlDriver } from './MysqlDriver';
 import { getColumnFactory } from './getColumnFactory';
+import { Logger } from '@brentbahry/util';
 
 export async function loadTables(): Promise<void> {
 	const tables = getTables();
@@ -24,28 +25,29 @@ async function createTable(table: Table<any>) {
 		reject = rj;
 	});
 
-	console.info(`Creating table: ${table.name}`);
+	const logger = new Logger('createTable');
+	logger.info(`Creating table: ${table.name}`);
 	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).createTable(table.name, (tableBuilder: any) => {
 		for (const columnPropertyName in table.columns) {
 			const column = table.columns[columnPropertyName];
 			createColumn(column, tableBuilder as any, table);
-			console.info(`[${table.name}] Created column: ${column.name}`);
+			logger.info(`[${table.name}] Created column: ${column.name}`);
 		}
 
 		if (table.primaryKey) {
 			tableBuilder.primary(table.primaryKey as string[]);
-			console.info(`[${table.name}] Created primary key: ${table.primaryKey}`);
+			logger.info(`[${table.name}] Created primary key: ${table.primaryKey}`);
 		}
 
 		if (table.indexes) {
 			for (const index of table.indexes) {
 				const columnNames = index.columns.map((columnPropertyName) => table.columns[columnPropertyName as string].name)
 				tableBuilder.index(columnNames, index.name);
-				console.info(`[${table.name}] Created index: ${columnNames}`);
+				logger.info(`[${table.name}] Created index: ${columnNames}`);
 			}
 		}
 
-		console.info(`Finished creating table: ${table.name}`);
+		logger.info(`Finished creating table: ${table.name}`);
 		resolve();
 	}).catch((reason: any) => {
 		reject(`Failed to create table: ${table.name}. reason: ${reason}`);
@@ -62,6 +64,7 @@ async function alterTable(table: Table<any>) {
 		reject = rj;
 	});
 
+	const logger = new Logger('alterTable');
 	const columnsToCreate: string[] = [];
 	const columnsToRename: string[] = [];
 	const columnsToAlter: string[] = [];
@@ -158,33 +161,33 @@ async function alterTable(table: Table<any>) {
 	)
 		return;
 		
-	console.info(`Altering table: ${table.name}`);
+	logger.info(`Altering table: ${table.name}`);
 	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).table(table.name, (tableBuilder: knex.TableBuilder) => {
 		for (const columnPropertyName of columnsToCreate) {
 			const column = table.columns[columnPropertyName];
 			createColumn(column, tableBuilder as any, table);
-			console.info(`[${table.name}] Created column: ${column.name}`);
+			logger.info(`[${table.name}] Created column: ${column.name}`);
 		}
 
 		for (const column of columnsWithUniqeConstraintToDrop) {
 			tableBuilder.dropUnique([column]);
-			console.info(`[${table.name}.${column}] Dropped unique constraint`);
+			logger.info(`[${table.name}.${column}] Dropped unique constraint`);
 		}
 
 		for (const column of columnsWithForeignKeysToDrop) {
 			tableBuilder.dropForeign([column]);
-			console.info(`[${table.name}.${column}] Dropped foreign key`);
+			logger.info(`[${table.name}.${column}] Dropped foreign key`);
 		}
 
 		for (const index of indexesToDrop) {
 			tableBuilder.dropIndex(index);
-			console.info(`[${table.name}] Dropped index: ${index}`);
+			logger.info(`[${table.name}] Dropped index: ${index}`);
 		}
 
 		for (const columnPropertyName of columnsToAlter) {
 			const column = table.columns[columnPropertyName];
 			createColumn(column, tableBuilder as any, table).alter();
-			console.info(`[${table.name}.${column.name}] Altered column, type: ${column.type}`);
+			logger.info(`[${table.name}.${column.name}] Altered column, type: ${column.type}`);
 		}
 
 		for (const columnPropertyName of columnsToRename) {
@@ -193,25 +196,25 @@ async function alterTable(table: Table<any>) {
 				continue;
 
 			tableBuilder.renameColumn(column.oldName, column.name);
-			console.info(`[${table.name}] Renamed column: ${column.oldName} -> ${column.name}`);
+			logger.info(`[${table.name}] Renamed column: ${column.oldName} -> ${column.name}`);
 		}
 
 		if (dropExistingPrimaryKey) {
 			tableBuilder.dropPrimary();
-			console.info(`[${table.name}] Dropped primary key: ${existingPrimaryKey}`);
+			logger.info(`[${table.name}] Dropped primary key: ${existingPrimaryKey}`);
 		}
 
 		if (createPrimaryKey) {
 			tableBuilder.primary(table.primaryKey as string[]);
-			console.info(`[${table.name}] Created primary key: ${table.primaryKey}`);
+			logger.info(`[${table.name}] Created primary key: ${table.primaryKey}`);
 		}
 
 		for (const index of indexesToCreate) {
 			tableBuilder.index(index);
-			console.info(`[${table.name}] Created index: ${index}`);
+			logger.info(`[${table.name}] Created index: ${index}`);
 		}
 
-		console.info(`Finished altering table: ${table.name}`);
+		logger.info(`Finished altering table: ${table.name}`);
 		resolve();
 		return;
 	}).catch((reason: any) => {
@@ -260,16 +263,17 @@ export async function columnExists(tableName: string, columnName: string): Promi
 }
 
 function createColumn(column: Column<any, any>, tableBuilder: knex.TableBuilder, table: Table<any>) {
+	const logger = new Logger('createColumn');
 	const columnFactory = getColumnFactory(column);
 	const columnBuilder = columnFactory.create(column, tableBuilder);
 	if (column.options?.unique?.unique) {
 		columnBuilder.unique(column.options.unique.indexName);
-		console.info(`[${table.name}.${column.name}] Added unique constraint`);
+		logger.info(`[${table.name}.${column.name}] Added unique constraint`);
 	}
 
 	if (column.options?.references) {
 		columnBuilder.references(column.options.references.column).inTable(`${MysqlDriver.getDbName()}.${column.options.references.table}`);
-		console.info(`[${table.name}.${column.name}] Added foreign key -> ${column.options.references.table}.${column.options.references.column}`);
+		logger.info(`[${table.name}.${column.name}] Added foreign key -> ${column.options.references.table}.${column.options.references.column}`);
 	}
 
 	if (typeof column.options?.nullable !== 'undefined') {
@@ -278,7 +282,7 @@ function createColumn(column: Column<any, any>, tableBuilder: knex.TableBuilder,
 		else
 			columnBuilder.notNullable();
 
-		console.info(`[${table.name}.${column.name}] Added constraint nullable: ${column.options?.nullable}`);
+		logger.info(`[${table.name}.${column.name}] Added constraint nullable: ${column.options?.nullable}`);
 	}
 
 	return columnBuilder;
