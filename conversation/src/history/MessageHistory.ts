@@ -2,6 +2,7 @@ import { ChatCompletionMessageParam } from 'openai/resources/chat';
 import { Logger } from '@brentbahry/util';
 
 export interface MessageHistoryParams {
+  enforceMessageLimit?: boolean;
   maxMessages: number; // max number of non-system messages to retain, fifo
 }
 
@@ -35,6 +36,9 @@ export class MessageHistory {
   }
 
   prune() {
+    if (this.params.enforceMessageLimit === false)
+      return;
+
     let messageCount = 0;
     const messagesToRemoveIndexes: number[] = [];
     for (let i = this.messages.length - 1; i >= 0; i--) {

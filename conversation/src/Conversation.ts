@@ -13,8 +13,11 @@ export type ConversationParams = {
   name: string,
   modules?: ConversationModule[];
   logLevel?: LogLevel;
-  maxMessagesInHistory?: number;
-  tokenLimit?: number;
+  limits?: {
+    enforceLimits?: boolean;
+    maxMessagesInHistory?: number;
+    tokenLimit?: number;
+  };
 }
 
 export class Conversation {
@@ -30,17 +33,20 @@ export class Conversation {
 
   constructor(params: ConversationParams) {
     this.params = params;
-    this.history = new MessageHistory({ maxMessages: params.maxMessagesInHistory });
+    this.history = new MessageHistory({ maxMessages: params.limits?.maxMessagesInHistory, enforceMessageLimit: params.limits?.enforceLimits });
     this.logger = new Logger(params.name, params.logLevel);
-    if (params.tokenLimit)
-      this.tokenLimit = params.tokenLimit;
 
     if (params.modules)
       this.addModules(params.modules);
 
-    this.addFunctions('Conversation', [
-      summarizeConversationHistoryFunction(this),
-    ]);
+    if (typeof params.limits?.enforceLimits === 'undefined' || params.limits.enforceLimits) {
+      this.addFunctions('Conversation', [
+        summarizeConversationHistoryFunction(this),
+      ]);
+    }
+
+    if (params.limits?.tokenLimit)
+      this.tokenLimit = params.limits.tokenLimit;
   }
 
   private addModules(modules: ConversationModule[]) {
@@ -82,6 +88,9 @@ export class Conversation {
   }
 
   private async enforceTokenLimit(messages: string[], model?: TiktokenModel) {
+    if (this.params.limits?.enforceLimits === false)
+      return;
+    
     const resolvedModel = model ? model : DEFAULT_MODEL;
     const encoder = encoding_for_model(resolvedModel);
     const conversation = this.history.toString() + messages.join('. ');
