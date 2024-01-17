@@ -10,6 +10,7 @@ export interface WorkflowComponentProps extends PageComponentProps {
   steps: WorkflowStep[];
   currentStep: WorkflowStep;
   updateCurrentStep: (step: WorkflowStep) => Promise<void>;
+  setWorkflowExecutionAndCurrentStep: (workflowExecution: WorkflowExecution) => Promise<void>;
 }
 
 export interface WorkflowComponent extends Loadable {

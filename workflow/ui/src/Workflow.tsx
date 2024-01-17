@@ -57,6 +57,15 @@ export const Workflow = ({ workflowId, workflowExecutionId, navigate, ...props }
     setCurrentStep(step);
   }
 
+  async function setWorkflowExecutionAndCurrentStep(workflowExecution: WorkflowExecution) {
+    if (workflowExecution.currentStep._id != currentStep?.id) {
+      const newCurrentStep = await workflowExecution.currentStep.get();
+      setCurrentStep(newCurrentStep);
+    }
+
+    setWorkflowExecution(workflowExecution);
+  }
+
   if (!WorkflowComponent || !workflow || !workflowExecution || !steps || !currentStep)
     return null;
   
@@ -69,6 +78,7 @@ export const Workflow = ({ workflowId, workflowExecutionId, navigate, ...props }
           steps={steps}
           currentStep={currentStep}
           updateCurrentStep={updateCurrentStep}
+          setWorkflowExecutionAndCurrentStep={setWorkflowExecutionAndCurrentStep}
           navigate={navigate}
           {...props}
         />
@@ -78,6 +88,7 @@ export const Workflow = ({ workflowId, workflowExecutionId, navigate, ...props }
       steps={steps}
       currentStep={currentStep}
       updateCurrentStep={updateCurrentStep}
+      setWorkflowExecutionAndCurrentStep={setWorkflowExecutionAndCurrentStep}
       navigate={navigate}
       {...props}
     />
