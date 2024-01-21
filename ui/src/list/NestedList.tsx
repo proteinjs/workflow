@@ -1,7 +1,7 @@
 import React, { ReactElement } from 'react'
 import { Box } from '@mui/material'
 
-export type NestedListItem = { element: ReactElement, children?: NestedListItem[] }
+export type NestedListItem = { element: ReactElement, children?: NestedListItem[], renderChildren?: boolean }
 type NestedListProps = { items: NestedListItem[], level?: number, levelColors?: string[] }
 const blue = '#1976d2';
 const green = '#76d275';
@@ -19,7 +19,7 @@ export const NestedList = ({ items, level, levelColors }: NestedListProps) => {
     const flattened = [];
     for (let item of items) {
       flattened.push(item);
-      if (item.children)
+      if (item.children && (item.renderChildren || typeof item.renderChildren === 'undefined'))
         flattened.push(item.children);
     }
 
