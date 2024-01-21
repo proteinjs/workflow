@@ -86,14 +86,14 @@ export class MysqlDriver implements DbDriver {
 		await MysqlDriver.getKnex().withSchema(MysqlDriver.getDbName()).insert(row).into(table.name).returning('*');
 	}
 
-	async update<T extends Record>(table: Table<T>, row: Row, query: SerializedQuery): Promise<void> {
+	async update<T extends Record>(table: Table<T>, row: Row, query: SerializedQuery): Promise<number> {
 		let queryBuilder = MysqlDriver.getKnex().withSchema(MysqlDriver.getDbName()).update(row).into(table.name);
-		await this.where(queryBuilder, query);
+		return await this.where(queryBuilder, query);
 	}
 
-	async delete<T extends Record>(table: Table<T>, query: SerializedQuery): Promise<void> {
+	async delete<T extends Record>(table: Table<T>, query: SerializedQuery): Promise<number> {
 		let queryBuilder = MysqlDriver.getKnex().withSchema(MysqlDriver.getDbName()).delete().from(table.name);
-		await this.where(queryBuilder, query);
+		return await this.where(queryBuilder, query);
 	}
 
 	async query<T extends Record>(table: Table<T>, query: SerializedQuery, sort?: { column: string, desc?: boolean, byValues?: string[] }[], window?: { start: number, end: number }): Promise<Row[]> {

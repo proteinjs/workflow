@@ -13,8 +13,8 @@ export interface DbDriver extends Loadable {
     tableExists<T extends Record>(table: Table<T>): Promise<boolean>;
     get<T extends Record>(table: Table<T>, query: SerializedQuery): Promise<Row>;
     insert<T extends Record>(table: Table<T>, row: Row): Promise<void>;
-    update<T extends Record>(table: Table<T>, row: Row, query: SerializedQuery): Promise<void>;
-    delete<T extends Record>(table: Table<T>, query: SerializedQuery): Promise<void>;
+    update<T extends Record>(table: Table<T>, row: Row, query: SerializedQuery): Promise<number>;
+    delete<T extends Record>(table: Table<T>, query: SerializedQuery): Promise<number>;
     query<T extends Record>(table: Table<T>, query: SerializedQuery, sort?: { column: string, desc?: boolean, byValues?: string[] }[], window?: { start: number, end: number }): Promise<Row[]>;
     getRowCount<T extends Record>(table: Table<T>, query?: SerializedQuery): Promise<number>;
 }
@@ -69,7 +69,7 @@ export class Db implements DbService {
         }
     }
 
-    async update<T extends Record>(table: Table<T>, record: Partial<T>, query?: Query<T>): Promise<void> {
+    async update<T extends Record>(table: Table<T>, record: Partial<T>, query?: Query<T>): Promise<number> {
         if (!query && !record.id)
             throw new Error(`Update must be called with either a query or a record with an id property`);
 
@@ -79,7 +79,7 @@ export class Db implements DbService {
         const row = await recordSearializer.serialize(record);
         const querySerializer = new QuerySerializer(table);
         const serializedQuery = querySerializer.serializeQuery(resolvedQuery);
-        await Db.getDbDriver().update(table, row, serializedQuery);
+        return await Db.getDbDriver().update(table, row, serializedQuery);
     }
 
     private async addUpdateFieldValues<T extends Record>(table: Table<T>, record: any) {
@@ -90,13 +90,14 @@ export class Db implements DbService {
         }
     }
 
-    async delete<T extends Record>(table: Table<T>, query: Query<T>): Promise<void> {
+    async delete<T extends Record>(table: Table<T>, query: Query<T>): Promise<number> {
         const recordsToDelete = await this.query(table, query);
         const recordsToDeleteIds = recordsToDelete.map(record => record.id);
         const deleteQuery = [{ column: 'id', operator: 'in', value: recordsToDeleteIds }];
         await this.beforeDelete(table, recordsToDelete);
-        await Db.getDbDriver().delete(table, deleteQuery);
+        const deletedRowCount = await Db.getDbDriver().delete(table, deleteQuery);
         await this.cascadeDeletions(table, recordsToDeleteIds);
+        return deletedRowCount;
     }
 
     private async beforeDelete(table: Table<any>, recordsToDelete: Record[]) {
