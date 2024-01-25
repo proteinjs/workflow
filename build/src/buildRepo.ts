@@ -9,9 +9,10 @@ export const buildRepo = async () => {
   const repoPath = path.resolve(__dirname, '../../..'); // __dirname: build/dist/src/
   logger.debug(`repoPath: ${repoPath}`);
   const packageMap = await PackageUtil.getLocalPackageMap(repoPath, ['**/test/**']);
+  logger.debug(`packageMap:\n${JSON.stringify(packageMap, null, 2), true}`);
   const packageGraph = await PackageUtil.getPackageDependencyGraph(Object.values(packageMap).map(localPackage => localPackage.packageJson));
   const sortedPackageNames: string[] = graphlib.alg.topsort(packageGraph).reverse();
-  logger.debug(JSON.stringify(sortedPackageNames, null, 2), true);
+  logger.debug(`sortedPackageNames:\n${JSON.stringify(sortedPackageNames, null, 2), true}`);
 
   logger.info(`> Installing packages`);
   for (let packageName of sortedPackageNames) {
