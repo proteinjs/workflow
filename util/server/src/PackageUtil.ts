@@ -157,9 +157,9 @@ export class PackageUtil {
    * @param globIgnorePatterns already includes: ['**\/node_modules/**', '**\/dist/**']
    * @returns {[packageName: string]: LocalPackage}
    */
-  static async getLocalPackageMap(dir: string, globIgnorePatterns?: string[]) {
+  static async getLocalPackageMap(dir: string, globIgnorePatterns: string[] = []) {
     const packageMap: {[packageName: string]: LocalPackage} = {};
-    const filePaths = await Fs.getFilePathsMatchingGlob(dir, '**/package.json', ['**/node_modules/**', '**/dist/**']);
+    const filePaths = await Fs.getFilePathsMatchingGlob(dir, '**/package.json', ['**/node_modules/**', '**/dist/**', ...globIgnorePatterns]);
     for (let filePath of filePaths) {
       const packageJson = JSON.parse(await Fs.readFile(filePath));
       const name = packageJson['name'];
