@@ -9,15 +9,15 @@ export const buildRepo = async () => {
   logger.info(`> Building proteinjs workspace`);
   const repoPath = path.resolve(__dirname, '../../..'); // __dirname: build/dist/src/
   logger.debug(`repoPath: ${repoPath}`);
-  const paths = await globby(repoPath + '/' + '**/package.json', {
-    ignore: ['**/node_modules/**', '**/dist/**']
-  });
-  logger.debug(`paths:\n${JSON.stringify(paths, null, 2)}`, true);
-  // const packageMap = await PackageUtil.getLocalPackageMap(repoPath, ['**/test/**']);
-  // logger.debug(`packageMap:\n${JSON.stringify(packageMap, null, 2)}`, true);
-  // const packageGraph = await PackageUtil.getPackageDependencyGraph(Object.values(packageMap).map(localPackage => localPackage.packageJson));
-  // const sortedPackageNames: string[] = graphlib.alg.topsort(packageGraph).reverse();
-  // logger.debug(`sortedPackageNames:\n${JSON.stringify(sortedPackageNames, null, 2)}`, true);
+  // const paths = await globby(repoPath + '/' + '**/package.json', {
+  //   ignore: ['**/node_modules/**', '**/dist/**']
+  // });
+  // logger.debug(`paths:\n${JSON.stringify(paths, null, 2)}`, true);
+  const packageMap = await PackageUtil.getLocalPackageMap(repoPath, ['**/reflection-build/test/**']);
+  logger.debug(`packageMap:\n${JSON.stringify(packageMap, null, 2)}`, true);
+  const packageGraph = await PackageUtil.getPackageDependencyGraph(Object.values(packageMap).map(localPackage => localPackage.packageJson));
+  const sortedPackageNames: string[] = graphlib.alg.topsort(packageGraph).reverse();
+  logger.debug(`sortedPackageNames:\n${JSON.stringify(sortedPackageNames, null, 2)}`, true);
 
   // logger.info(`> Installing packages`);
   // for (let packageName of sortedPackageNames) {
