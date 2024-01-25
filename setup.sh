@@ -1,6 +1,9 @@
 #!/bin/bash
 
-cd util/common
+cd node-typescript-parser
+npm i
+npm run build
+cd ../util/common
 npm i
 npm run build
 cd ../server
