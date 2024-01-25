@@ -1,6 +1,8 @@
-import { Logger } from '@brentbahry/util';
-import { cmd } from './cmd';
 import ts from 'typescript';
+import { Logger } from '@brentbahry/util';
+const graphlib = require('@dagrejs/graphlib');
+import { cmd } from './cmd';
+import { Fs } from './Fs';
 
 export type Package = { 
   name: string, 
@@ -9,10 +11,17 @@ export type Package = {
   development?: boolean 
 }
 
+export type LocalPackage = {
+  filePath: string, 
+  packageJson: any
+};
+
 export class PackageUtil {
   private static LOGGER = new Logger('PackageUtil');
 
   /**
+   * Add package dependencies
+   * 
    * @param packages packages to install
    * @param cwdPath directory to execute the command from
    */
@@ -36,6 +45,12 @@ export class PackageUtil {
     }
   }
 
+  /**
+   * Remove package dependencies
+   * 
+   * @param packageNames 
+   * @param cwdPath 
+   */
   static async uninstallPackages(packageNames: string[], cwdPath?: string) {
     const packageNamesStr = packageNames.join(' ');
     const args = [
@@ -65,6 +80,10 @@ export class PackageUtil {
     PackageUtil.LOGGER.info(`Ran command: ${command}`);
   }
 
+  /**
+   * Install package in directory
+   * @param cwd directory of package
+   */
   static async npmInstall(cwd: string) {
     const args = ['i'];
     const command = 'npm ' + args.join(' ');
@@ -76,6 +95,11 @@ export class PackageUtil {
     PackageUtil.LOGGER.info(`Ran command: ${command}`);
   }
 
+  /**
+   * Get typescript declarations for ts files by path
+   * @param params 
+   * @returns a map of typescript file path to typscript declaration
+   */
   static generateTypescriptDeclarations(params: { tsFilePaths: string[], includeDependencyDeclarations?: boolean }): {[tsFilePath: string]: string} {
     // declarations for this file and its local dependencies
     const declarations: {[filePath: string]: string} = {};
@@ -123,6 +147,48 @@ export class PackageUtil {
           console.error(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
         }
       });
+    }
+  }
+
+  static async getLocalPackageMap(dir: string) {
+    const packageMap: {[packageName: string]: LocalPackage} = {};
+    const filePaths = await Fs.getFilePathsMatchingGlob(dir, '**/package.json', ['**/node_modules/**', '**/dist/**']);
+    for (let filePath of filePaths) {
+      const packageJson = JSON.parse(await Fs.readFile(filePath));
+      const name = packageJson['name'];
+      packageMap[name] = { filePath, packageJson };
+    }
+
+    return packageMap;
+  }
+
+  static async getPackageDependencyGraph(packageJsons: any[]) {
+    const graph = new graphlib.Graph();
+    for (let packageJson of packageJsons) {
+      const packageName = packageJson['name'];
+      if (!graph.hasNode(packageName))
+        graph.setNode(packageName);
+
+      PackageUtil.addDependencies(packageName, packageJson['dependencies'], graph);
+      PackageUtil.addDependencies(packageName, packageJson['devDependencies'], graph);
+    }
+
+    return graph;
+  }
+
+  private static addDependencies(sourcePackageName: string, dependencies: any, graph: any) {
+    if (!dependencies)
+      return;
+
+    for (let dependencyPackageName of Object.keys(dependencies)) {
+      const dependencyPackageVersion = dependencies[dependencyPackageName] as string;
+      if (!(dependencyPackageVersion.startsWith('file:') || dependencyPackageVersion.startsWith('.')))
+        continue;
+
+      if (!graph.hasNode(dependencyPackageName))
+        graph.setNode(dependencyPackageName);
+
+      graph.setEdge(sourcePackageName, dependencyPackageName);
     }
   }
 }
