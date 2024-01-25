@@ -1,6 +1,7 @@
 import * as path from 'path'
 const graphlib = require('@dagrejs/graphlib')
-import { PackageUtil, cmd } from '@brentbahry/util-server'
+import { PackageUtil } from './PackageUtil'
+import { cmd } from './cmd'
 import { Logger } from '@brentbahry/util'
 
 export const buildRepo = async () => {
