@@ -16,15 +16,12 @@
         "watch": "tsc -w -p .",
         "build": "tsc",
         "test": "jest",
-        "build-dist": "tsc && webpack --mode production",
-        "build-repo": "node ./dist/src/runBuildRepo.js"
+        "build-dist": "tsc && webpack --mode production"
     },
     "dependencies": {
-        "@brentbahry/reflection-build": "file:../reflection-build",
         "@brentbahry/util": "file:../util/common",
         "@brentbahry/util-server": "file:../util/server",
-        "@dagrejs/graphlib": "2.1.4",
-        "globby": "11.0.1"
+        "@dagrejs/graphlib": "2.1.4"
     },
     "devDependencies": {
         "@babel/core": "7.23.7",
