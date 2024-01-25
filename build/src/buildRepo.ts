@@ -6,7 +6,7 @@ import { Logger } from '@brentbahry/util'
 export const buildRepo = async () => {
   const logger = new Logger('buildRepo', 'debug');
   logger.info(`> Building proteinjs workspace`);
-  const repoPath = path.resolve(__dirname, '..'); // __dirname: /build
+  const repoPath = path.resolve(__dirname, '../../..'); // __dirname: build/dist/src/
   logger.debug(`repoPath: ${repoPath}`);
   const packageMap = await PackageUtil.getLocalPackageMap(repoPath, ['**/test/**']);
   const packageGraph = await PackageUtil.getPackageDependencyGraph(Object.values(packageMap).map(localPackage => localPackage.packageJson));
