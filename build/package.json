@@ -16,7 +16,8 @@
         "watch": "tsc -w -p .",
         "build": "tsc",
         "test": "jest",
-        "build-dist": "tsc && webpack --mode production"
+        "build-dist": "tsc && webpack --mode production",
+        "build-repo": "node ./dist/src/runBuildRepo.js"
     },
     "dependencies": {
         "@brentbahry/reflection-build": "file:../reflection-build",
