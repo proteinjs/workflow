@@ -150,7 +150,14 @@ export class PackageUtil {
     }
   }
 
-  static async getLocalPackageMap(dir: string) {
+  /**
+   * Get map of local packages within repo specified by directory path
+   * 
+   * @param dir dir path that contains local packages
+   * @param globIgnorePatterns already includes: ['**\/node_modules/**', '**\/dist/**']
+   * @returns {[packageName: string]: LocalPackage}
+   */
+  static async getLocalPackageMap(dir: string, globIgnorePatterns?: string[]) {
     const packageMap: {[packageName: string]: LocalPackage} = {};
     const filePaths = await Fs.getFilePathsMatchingGlob(dir, '**/package.json', ['**/node_modules/**', '**/dist/**']);
     for (let filePath of filePaths) {
@@ -162,6 +169,17 @@ export class PackageUtil {
     return packageMap;
   }
 
+  /**
+   * Generate a dependency graph of package names. 
+   * It will crawl through dependencies and devDependencies in the provided packageJsons. 
+   * If packagea depends on packageb, nodes with ids packagea and packageb will be added to the graph. 
+   * An edge from packagea -> packageb will be added to the graph as well.
+   * 
+   * You can get dependency order of packages by calling: @dagrejs/graphlib.alg.topsort(graph).reverse()
+   * 
+   * @param packageJsons an array of package.json objects
+   * @returns a @dagrejs/graphlib.Graph
+   */
   static async getPackageDependencyGraph(packageJsons: any[]) {
     const graph = new graphlib.Graph();
     for (let packageJson of packageJsons) {
