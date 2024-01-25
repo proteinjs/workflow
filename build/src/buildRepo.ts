@@ -4,9 +4,10 @@ import { PackageUtil, cmd } from '@brentbahry/util-server'
 import { Logger } from '@brentbahry/util'
 
 export const buildRepo = async () => {
-  const logger = new Logger('buildRepo');
+  const logger = new Logger('buildRepo', 'debug');
   logger.info(`> Building proteinjs workspace`);
   const repoPath = path.resolve(__dirname, '..'); // __dirname: /build
+  logger.debug(`repoPath: ${repoPath}`);
   const packageMap = await PackageUtil.getLocalPackageMap(repoPath, ['**/test/**']);
   const packageGraph = await PackageUtil.getPackageDependencyGraph(Object.values(packageMap).map(localPackage => localPackage.packageJson));
   const sortedPackageNames: string[] = graphlib.alg.topsort(packageGraph).reverse();
