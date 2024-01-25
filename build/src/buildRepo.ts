@@ -34,4 +34,6 @@ export const buildRepo = async () => {
     await cmd('npm', ['run', 'build'], { cwd: packageDir });
     logger.info(`Built ${packageName}`);
   }
+
+  logger.info(`> Built proteinjs workspace (${repoPath})`);
 }
