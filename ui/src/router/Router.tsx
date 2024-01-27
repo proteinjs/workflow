@@ -1,6 +1,6 @@
 import React from 'react';
 import { Route, Routes } from 'react-router';
-import * as ReactDom from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { BrowserRouter, useNavigate, NavigateFunction } from 'react-router-dom';
 import { CssBaseline } from '@mui/joy';
 import { Page, getPages } from './Page';
@@ -12,7 +12,9 @@ export type AppOptions = {
 }
 
 export function loadApp(options: AppOptions = {}) {
-    ReactDom.render(<Router pages={getPages()} options={options} />, document.getElementById('app'));
+    const container = document.getElementById('app');
+    const root = createRoot(container!);
+    root.render(<Router pages={getPages()} options={options} />);
 }
 
 export function Router(props: { pages: Page[], options: AppOptions }) {
