@@ -13,6 +13,9 @@ import 'passport';
 import 'passport-local';
 import 'react';
 import 'react-helmet';
+import 'webpack';
+import 'webpack-dev-middleware';
+import 'webpack-hot-middleware';
 
 
 /** Generate Source Graph */

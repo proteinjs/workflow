@@ -11,7 +11,11 @@ export interface ServerConfig {
         bundlePaths?: string[];
         /** Relative from `staticContentDir` */
         faviconPath?: string;
+        /** Used for hot reloading of bundle assets */
+        appEntryPath?: string;
     };
+    /** disables webpack builds on server-side, will instead serve bundle from staticContent.bundlePaths (prod behavior) */
+    disableHotClientBuilds?: boolean;
     port?: number;
     request?: {
         disableRequestLogging?: boolean;

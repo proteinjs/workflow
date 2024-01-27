@@ -5,16 +5,23 @@ import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import passportLocal from 'passport-local';
+import webpack from 'webpack';
+import webpackDevMiddleware from 'webpack-dev-middleware';
+import webpackHotMiddleware from 'webpack-hot-middleware';
 import { Db } from '@proteinjs/db';
 import { ServerConfig, getRoutes } from '@proteinjs/server-api';
 import { loadRoutes, loadDefaultStarRoute } from './loadRoutes';
 import { Logger } from '@brentbahry/util';
+
+const webpackConfig = require('../webpack.config');
+const staticContentPath = '/static/';
 
 export async function startServer(config: ServerConfig = {}) {
     const routes = getRoutes();
     await runStartupEvents(config);
     const server = express();
     configureRequests(server);
+    initializeHotReloading(server, config);
     beforeRequest(server, config);
     loadRoutes(routes.filter(route => route.useHttp), server, config);
     configureHttps(server);  // registering here forces static content to be redirected to https
@@ -44,6 +51,21 @@ function configureRequests(server: express.Express) {
     server.disable('x-powered-by');
 }
 
+function initializeHotReloading(server: express.Express, config: ServerConfig) {
+    if (!process.env.DEVELOPMENT || config.disableHotClientBuilds || !config.staticContent?.staticContentDir || !config.staticContent?.appEntryPath)
+        return;
+
+    let wpConfig = Object.assign({}, webpackConfig);
+    wpConfig['entry'] = { app: ['webpack-hot-middleware/client', config.staticContent.appEntryPath] };
+    wpConfig['output']['path'] = config.staticContent.staticContentDir;
+    wpConfig['output']['publicPath'] = staticContentPath;
+    const webpackCompiler = webpack(wpConfig);
+    server.use(webpackDevMiddleware(webpackCompiler, {
+        publicPath: staticContentPath,
+    }));
+    server.use(webpackHotMiddleware(webpackCompiler));
+}
+
 function configureHttps(server: express.Express) {
     const logger = new Logger('configureHttps');
     server.use((request: express.Request, response: express.Response, next: express.NextFunction) => {
@@ -62,7 +84,6 @@ function configureStaticContentRouter(server: express.Express, config: ServerCon
     if (!config.staticContent?.staticContentDir)
         return;
 
-    const staticContentPath = '/static/';
 	server.use(staticContentPath, express.static(config.staticContent.staticContentDir));
 	logger.info(`Serving static content on path: ${staticContentPath}, serving from directory: ${config.staticContent.staticContentDir}`);
 }
