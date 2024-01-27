@@ -2,6 +2,8 @@
 
 import '@brentbahry/reflection';
 import '@brentbahry/util';
+import '@emotion/react';
+import '@emotion/styled';
 import '@mui/icons-material';
 import '@mui/material';
 import '@proteinjs/db';
