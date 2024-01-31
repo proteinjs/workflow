@@ -13,7 +13,7 @@ export const buildRepo = async () => {
   const sortedPackageNames: string[] = graphlib.alg.topsort(packageGraph).reverse();
   logger.debug(`sortedPackageNames:\n${JSON.stringify(sortedPackageNames, null, 2)}`, true);
 
-  logger.info(`> Installing packages`);
+  logger.info(`> Installing and building packages`);
   for (let packageName of sortedPackageNames) {
     const localPackage = packageMap[packageName];
     if (!localPackage)
@@ -22,15 +22,6 @@ export const buildRepo = async () => {
     const packageDir = path.dirname(localPackage.filePath);
     await cmd('npm', ['install'], { cwd: packageDir });
     logger.info(`Installed ${packageName}`);
-  }
-
-  logger.info(`> Building packages`);
-  for (let packageName of sortedPackageNames) {
-    const localPackage = packageMap[packageName];
-    if (!localPackage)
-      continue;
-
-    const packageDir = path.dirname(localPackage.filePath);
     await cmd('npm', ['run', 'build'], { cwd: packageDir });
     logger.info(`Built ${packageName}`);
   }
