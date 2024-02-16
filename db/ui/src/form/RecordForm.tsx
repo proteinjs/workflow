@@ -91,8 +91,8 @@ export function RecordForm<T extends Record>({ table, record }: RecordFormProps<
           hidden: isNewRecord,
         },
         style: {
-          color: 'neutral',
-          variant: 'plain',
+          color: 'primary',
+          variant: 'text',
         },
         redirect: async (fields: Fields, buttons: FormButtons<Fields>) => {
           return { path: recordTableLink(table) };
@@ -113,7 +113,7 @@ export function RecordForm<T extends Record>({ table, record }: RecordFormProps<
         },
         style: {
           color: 'primary',
-          variant: 'solid',
+          variant: 'contained',
         },
         onClick: async (fields: Fields, buttons: FormButtons<Fields>) => {
           if (!record || !record.id)
@@ -136,7 +136,7 @@ export function RecordForm<T extends Record>({ table, record }: RecordFormProps<
         },
         style: {
           color: 'primary',
-          variant: 'solid',
+          variant: 'contained',
         },
         redirect: async (fields: Fields, buttons: FormButtons<Fields>) => {
           return { path: recordFormLink(table.name, newRecord.id) };

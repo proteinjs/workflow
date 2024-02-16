@@ -2,7 +2,7 @@ import React from 'react';
 import { Route, Routes } from 'react-router';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, useNavigate, NavigateFunction } from 'react-router-dom';
-import { CssBaseline } from '@mui/joy';
+import { CssBaseline } from '@mui/material';
 import { Page, getPages } from './Page';
 import { createUrlParams } from './createUrlParams';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Container, Grid, IconButton, Typography, LinearProgress, Sheet } from '@mui/joy';
+import { Button, Container, Grid, IconButton, Typography, LinearProgress } from '@mui/material';
 import queryString from 'query-string';
 import { Field, FieldComponent, Fields } from './Field';
 import { FormButton, FormButtons } from './FormButton';
@@ -161,21 +161,19 @@ export class FormComponent<F extends Fields, B extends FormButtons<F>> extends R
         return (
             <Grid 
                 container 
-                spacing={2} 
                 xs={12} 
                 justifyContent='flex-start' 
                 alignItems='flex-start'
                 sx={(theme) => ({
+                    marginTop: theme.spacing(1),
                     marginBottom: theme.spacing(3),
                 })}
             >
-                <Sheet>
-                    <Typography 
-                        level='h3'
-                    >
-                        {this.props.name}
-                    </Typography>
-                </Sheet>
+                <Typography 
+                    variant='h5'
+                >
+                    {this.props.name}
+                </Typography>
             </Grid>
         );
     }
@@ -191,9 +189,9 @@ export class FormComponent<F extends Fields, B extends FormButtons<F>> extends R
                 justifyContent='flex-start' 
                 alignItems='flex-start'
             >
-                <Sheet>
+                <Container>
                     <this.props.documentation />
-                </Sheet>
+                </Container>
             </Grid>
         );
     }
@@ -207,18 +205,18 @@ export class FormComponent<F extends Fields, B extends FormButtons<F>> extends R
                 container
                 xs={12}
             >
-                <Sheet
+                <Container
                     sx={(theme) => ({
                         marginBottom: theme.spacing(1),
                     })}
                 >
                     <Typography
-                        level='body-sm'
-                        color={this.state.status.isError ? 'danger' : 'primary'}
+                        variant='subtitle1'
+                        color={this.state.status.isError ? 'error' : 'primary'}
                     >
                         {this.state.status.message}
                     </Typography>
-                </Sheet>
+                </Container>
             </Grid>
         );
     }
@@ -253,7 +251,7 @@ export class FormComponent<F extends Fields, B extends FormButtons<F>> extends R
                                 
                                         return true;
                                     }).map((fieldComponent) => (
-                                        <Grid xs key={fieldComponent.field.name}>
+                                        <Grid item xs key={fieldComponent.field.name}>
                                             <fieldComponent.component
                                                 field={fieldComponent.field}
                                                 onChange={this.onChange.bind(this)}
@@ -343,9 +341,9 @@ export class FormComponent<F extends Fields, B extends FormButtons<F>> extends R
                 alignItems='center' 
                 spacing={2}
             >
-                <Sheet>
-                    <LinearProgress determinate={false} color='primary' />
-                </Sheet>
+                <Container>
+                    <LinearProgress variant='indeterminate' color='primary' />
+                </Container>
             </Grid>
         );
     }
@@ -371,7 +369,7 @@ export class FormComponent<F extends Fields, B extends FormButtons<F>> extends R
                         return true;
                     }).map((button, key) => {
                         return (
-                            <Sheet 
+                            <Grid 
                                 key={key} 
                                 sx={(theme) => ({
                                     marginLeft: theme.spacing(1),
@@ -387,14 +385,14 @@ export class FormComponent<F extends Fields, B extends FormButtons<F>> extends R
                                     :
                                     <Button
                                         color={button.style.color}
-                                        variant={button.style.variant ? button.style.variant : 'solid'}
+                                        variant={button.style.variant ? button.style.variant : 'contained'}
                                         disabled={button.accessibility?.disabled}
-                                        onClick={(event: any) => this.onClick(button)}
+                                        onClick={event => this.onClick(button)}
                                     >
                                         {button.name}
                                     </Button>
                                 }
-                            </Sheet>
+                            </Grid>
                         )
                     })
                 }

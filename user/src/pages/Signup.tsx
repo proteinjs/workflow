@@ -48,7 +48,7 @@ const buttons: FormButtons<SignupFields> = {
 		name: 'Sign up',
 		style: {
 			color: 'primary',
-			variant: 'solid'
+			variant: 'contained',
 		},
 		onClick: async (fields: SignupFields, buttons: FormButtons<SignupFields>) => {
 			const response = await fetch(createUser.path, {

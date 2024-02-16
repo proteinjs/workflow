@@ -1,6 +1,5 @@
 import React from 'react';
-import { IconButton } from '@mui/joy';
-import { InputAdornment, TextField as MuiTextField } from '@mui/material';
+import { InputAdornment, TextField as MuiTextField, IconButton } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { Field, FieldComponent, FieldComponentProps, fieldDisplayValue, fieldLabel, Fields } from '../Field';
 

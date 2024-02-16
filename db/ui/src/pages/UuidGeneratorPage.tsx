@@ -28,7 +28,7 @@ const buttons: FormButtons<UuidFields> = {
 		name: 'Generate',
 		style: {
 			color: 'primary',
-			variant: 'solid'
+			variant: 'contained',
 		},
 		onClick: async (fields: UuidFields, buttons: FormButtons<UuidFields>) => {
 			fields.uuid.field.value = uuidv1().split('-').join('');

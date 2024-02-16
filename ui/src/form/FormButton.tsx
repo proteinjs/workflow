@@ -8,8 +8,8 @@ export type FormButton<F extends Fields> = {
 		hidden?: boolean,
 	},
 	style: {
-		color?: 'primary'|'neutral'|'danger'|'success'|'warning',
-		variant?: 'plain'|'outlined'|'soft'|'solid',
+		color?: 'inherit'|'primary'|'success'|'warning'|'secondary'|'error'|'info',
+		variant?: 'text'|'outlined'|'contained',
 		icon?: React.ComponentType,
 	},
 	clearFormOnClick?: boolean,
@@ -23,8 +23,8 @@ export abstract class FormButtons<F extends Fields> { [name: string]: FormButton
 export const clearButton: FormButton<any> = {
 	name: 'Clear',
 	style: {
-		color: 'neutral',
-		variant: 'plain',
+		color: 'primary',
+		variant: 'text',
 	},
 	clearFormOnClick: true
 };

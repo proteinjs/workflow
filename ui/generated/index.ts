@@ -5,7 +5,6 @@ import '@brentbahry/util';
 import '@emotion/react';
 import '@emotion/styled';
 import '@mui/icons-material';
-import '@mui/joy';
 import '@mui/material';
 import 'history';
 import 'moment';

@@ -1,6 +1,5 @@
 import React from 'react';
-import { Grid, Sheet } from '@mui/joy';
-import { PaperProps } from '@mui/material'
+import { Grid, PaperProps } from '@mui/material';
 import { FormPaper } from './FormPaper';
 
 export function FormPage(props: PaperProps) {
@@ -14,11 +13,11 @@ export function FormPage(props: PaperProps) {
             justifyContent='center'
             alignItems='center'
         >
-            <Sheet>
+            <Grid item>
                 <FormPaper {...props}>
                     {props.children}
                 </FormPaper>
-            </Sheet>
+            </Grid>
         </Grid>
     );
 }

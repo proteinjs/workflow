@@ -40,7 +40,7 @@ const buttons: FormButtons<LoginFields> = {
 		name: 'Login',
 		style: {
 			color: 'primary',
-			variant: 'solid'
+			variant: 'contained',
 		},
 		onClick: async (fields: LoginFields, buttons: FormButtons<LoginFields>) => {
 			const response = await fetch(login.path, {
