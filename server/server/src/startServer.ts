@@ -52,7 +52,7 @@ function configureRequests(server: express.Express) {
 }
 
 function initializeHotReloading(server: express.Express, config: ServerConfig) {
-    if (!process.env.DEVELOPMENT || config.disableHotClientBuilds || !config.staticContent?.staticContentDir || !config.staticContent?.appEntryPath)
+    if (!process.env.DEVELOPMENT || process.env.DISABLE_HOT_CLIENT_BUILDS || config.disableHotClientBuilds || !config.staticContent?.staticContentDir || !config.staticContent?.appEntryPath)
         return;
 
     let wpConfig = Object.assign({}, webpackConfig);
