@@ -1,8 +1,8 @@
 const graphlib = require('@dagrejs/graphlib');
 
-type LogicalOperator = 'AND' | 'OR';
-type Operator = '=' | '<>' | '!=' | '>' | '<' | '>=' | '<=' | 'IN' | 'LIKE' | 'BETWEEN' | 'IS NULL' | 'IS NOT NULL' | 'NOT';
-type AggregateFunction = 'COUNT' | 'SUM' | 'AVG' | 'MIN' | 'MAX';
+export type LogicalOperator = 'AND' | 'OR';
+export type Operator = '=' | '<>' | '!=' | '>' | '<' | '>=' | '<=' | 'IN' | 'LIKE' | 'BETWEEN' | 'IS NULL' | 'IS NOT NULL' | 'NOT';
+export type AggregateFunction = 'COUNT' | 'SUM' | 'AVG' | 'MIN' | 'MAX';
 
 interface LogicalGroup<T> {
   operator: LogicalOperator;
@@ -18,6 +18,20 @@ interface Condition<T> {
 interface Aggregate<T> {
   function: AggregateFunction;
   field: keyof T;
+}
+
+interface ParameterizationConfig {
+  useParams?: boolean; // Enable parameterization
+  useNamedParams?: boolean; // Use named parameters (for Spanner), otherwise use '?' (for Knex)
+}
+
+interface Query {
+  sql: string;
+  params?: any[]; // For Knex
+  namedParams?: { // For Spanner
+    params: Record<string, any>;
+    types: Record<string, string>;
+  };
 }
 
 export class QueryBuilder<T> {
@@ -75,27 +89,55 @@ export class QueryBuilder<T> {
     return this;
   }
 
-  toSql(): string {
-    let query = 'SELECT ';
+  toSql(config?: ParameterizationConfig): Query {
+    let sql = 'SELECT ';
     const aggregates: string[] = [];
     let groupBys: string[] = [];
-  
+    const params: any[] = [];
+    const namedParams: Query['namedParams'] = {
+      params: {},
+      types: {}
+    };
+    let paramCounter = 0; // Counter for parameter names
+
+    // Function to process and parameterize values
+    const parameterizeValue = (value: any, valueType: string): string => {
+      if (config?.useParams) {
+        if (config.useNamedParams) {
+          const paramName = `param${paramCounter++}`;
+          namedParams.params[paramName] = value;
+          namedParams.types[paramName] = valueType;
+          return `@${paramName}`;
+        } else {
+          params.push(value);
+          return '?';
+        }
+      } else {
+        return typeof value === 'string' ? `'${value}'` : String(value);
+      }
+    };
+
     // Define a recursive function to process nodes and build condition strings
     const processNode = (nodeId: string): string => {
-      const node: any = this.graph.node(nodeId); // Assuming node has a specific structure based on the node type. Replace 'any' with the actual node type if defined.
+      const node: any = this.graph.node(nodeId); // Assuming node has a specific structure based on the node type
       switch (node.type) {
         case 'CONDITION':
-          if (node.operator === 'IS NULL' || node.operator === 'IS NOT NULL') {
+          if (node.operator === 'IN') {
+            let valuesStr = Array.isArray(node.value) ? node.value.map((val: any) => parameterizeValue(val, typeof val)).join(', ') : parameterizeValue(node.value, typeof node.value);
+            return `${node.field} ${node.operator} (${valuesStr})`;
+          } else if (node.operator === 'BETWEEN') {
+            // Ensure BETWEEN values are provided as an array of two elements
+            let valuesStr = Array.isArray(node.value) ? node.value.map((val: any) => parameterizeValue(val, typeof val)).join(' AND ') : parameterizeValue(node.value, typeof node.value);
+            return `${node.field} ${node.operator} ${valuesStr}`;
+          } else if (node.operator === 'IS NULL' || node.operator === 'IS NOT NULL') {
             return `${node.field} ${node.operator}`;
           } else {
-            const conditionValue: string = node.value instanceof QueryBuilder ? `(${node.value.toSql()})` :
-              Array.isArray(node.value) ? `(${node.value.join(', ')})` :
-              typeof node.value === 'string' ? `'${node.value}'` : `${node.value}`;
+            const conditionValue = parameterizeValue(node.value, typeof node.value);
             return `${node.field} ${node.operator} ${conditionValue}`;
           }
         case 'LOGICAL':
           const childIds: string[] = this.graph.successors(nodeId);
-          const childConditions: string[] = childIds.map((childId: string) => processNode(childId)).filter((cond: string) => cond !== '');
+          const childConditions: string[] = childIds.map(processNode).filter(cond => cond !== '');
           const combinedConditions = childConditions.join(` ${node.operator} `);
           return combinedConditions ? `(${combinedConditions})` : '';
         case 'AGGREGATE':
@@ -108,20 +150,30 @@ export class QueryBuilder<T> {
           return '';
       }
     };
-  
-    // Process each node connected to the root
+
+    // Start processing from the root node
     const rootChildren: string[] = this.graph.successors(this.rootId);
-    const whereClauses: string[] = rootChildren.map((childId: string) => processNode(childId)).filter((clause: string) => clause !== '');
+    const whereClauses: string[] = rootChildren.map(processNode).filter(clause => clause !== '');
     const whereClause: string = whereClauses.length > 0 ? ` WHERE ${whereClauses.join(' AND ')}` : '';
-  
-    query += aggregates.length > 0 ? aggregates.join(', ') : '*';
-    query += ` FROM ${this.tableName}`;
-    query += whereClause;
-  
+
+    sql += aggregates.length > 0 ? aggregates.join(', ') : '*';
+    sql += ` FROM ${this.tableName}`;
+    sql += whereClause;
+
     if (groupBys.length > 0) {
-      query += ` GROUP BY ${groupBys.join(', ')}`;
+      sql += ` GROUP BY ${groupBys.join(', ')}`;
     }
-  
-    return query.trim() + ';';
-  }  
+
+    sql = sql.trim() + ';';
+    
+    if (config?.useParams) {
+      if (config.useNamedParams) {
+        return { sql, namedParams };
+      } else {
+        return { sql, params };
+      }
+    }
+    
+    return { sql };
+  }
 }

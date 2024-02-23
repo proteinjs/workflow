@@ -1,58 +1,161 @@
 import { QueryBuilder } from '../src/QueryBuilder';
 
 describe('QueryBuilder - Aggregate Support', () => {
-  interface TestEntity {
+  interface Employee {
     id: number;
     name: string;
     age: number;
     salary: number;
   }
 
-  const tableName = 'TestEntity';
+  const tableName = 'Employee';
 
   test('COUNT aggregate function', () => {
-    const qb = new QueryBuilder<TestEntity>(tableName).addAggregate({ function: 'COUNT', field: 'id' });
-    expect(qb.toSql()).toBe('SELECT COUNT(id) FROM TestEntity;');
+    const qb = new QueryBuilder<Employee>(tableName).addAggregate({ function: 'COUNT', field: 'id' });
+
+    // Standard SQL output
+    let result = qb.toSql();
+    expect(result.sql).toBe('SELECT COUNT(id) FROM Employee;');
+
+    // SQL output with positional parameters
+    result = qb.toSql({ useParams: true });
+    expect(result.sql).toBe('SELECT COUNT(id) FROM Employee;');
+    expect(result.params).toEqual([]);
+
+    // SQL output with named parameters and types
+    result = qb.toSql({ useParams: true, useNamedParams: true });
+    expect(result.sql).toBe('SELECT COUNT(id) FROM Employee;');
+    expect(result.namedParams?.params).toEqual({});
+    expect(result.namedParams?.types).toEqual({});
   });
 
   test('SUM aggregate function', () => {
-    const qb = new QueryBuilder<TestEntity>(tableName).addAggregate({ function: 'SUM', field: 'salary' });
-    expect(qb.toSql()).toBe('SELECT SUM(salary) FROM TestEntity;');
+    const qb = new QueryBuilder<Employee>(tableName).addAggregate({ function: 'SUM', field: 'salary' });
+
+    let result = qb.toSql();
+    expect(result.sql).toBe('SELECT SUM(salary) FROM Employee;');
+
+    result = qb.toSql({ useParams: true });
+    expect(result.sql).toBe('SELECT SUM(salary) FROM Employee;');
+    expect(result.params).toEqual([]);
+
+    result = qb.toSql({ useParams: true, useNamedParams: true });
+    expect(result.sql).toBe('SELECT SUM(salary) FROM Employee;');
+    expect(result.namedParams?.params).toEqual({});
+    expect(result.namedParams?.types).toEqual({});
   });
 
   test('AVG aggregate function', () => {
-    const qb = new QueryBuilder<TestEntity>(tableName).addAggregate({ function: 'AVG', field: 'age' });
-    expect(qb.toSql()).toBe('SELECT AVG(age) FROM TestEntity;');
+    const qb = new QueryBuilder<Employee>(tableName).addAggregate({ function: 'AVG', field: 'age' });
+
+    let result = qb.toSql();
+    expect(result.sql).toBe('SELECT AVG(age) FROM Employee;');
+
+    result = qb.toSql({ useParams: true });
+    expect(result.sql).toBe('SELECT AVG(age) FROM Employee;');
+    expect(result.params).toEqual([]);
+
+    result = qb.toSql({ useParams: true, useNamedParams: true });
+    expect(result.sql).toBe('SELECT AVG(age) FROM Employee;');
+    expect(result.namedParams?.params).toEqual({});
+    expect(result.namedParams?.types).toEqual({});
   });
 
   test('MIN aggregate function', () => {
-    const qb = new QueryBuilder<TestEntity>(tableName).addAggregate({ function: 'MIN', field: 'age' });
-    expect(qb.toSql()).toBe('SELECT MIN(age) FROM TestEntity;');
+    const qb = new QueryBuilder<Employee>(tableName).addAggregate({ function: 'MIN', field: 'age' });
+
+    let result = qb.toSql();
+    expect(result.sql).toBe('SELECT MIN(age) FROM Employee;');
+
+    result = qb.toSql({ useParams: true });
+    expect(result.sql).toBe('SELECT MIN(age) FROM Employee;');
+    expect(result.params).toEqual([]);
+
+    result = qb.toSql({ useParams: true, useNamedParams: true });
+    expect(result.sql).toBe('SELECT MIN(age) FROM Employee;');
+    expect(result.namedParams?.params).toEqual({});
+    expect(result.namedParams?.types).toEqual({});
   });
 
   test('MAX aggregate function', () => {
-    const qb = new QueryBuilder<TestEntity>(tableName).addAggregate({ function: 'MAX', field: 'age' });
-    expect(qb.toSql()).toBe('SELECT MAX(age) FROM TestEntity;');
+    const qb = new QueryBuilder<Employee>(tableName).addAggregate({ function: 'MAX', field: 'age' });
+
+    // Standard SQL output
+    let result = qb.toSql();
+    expect(result.sql).toBe('SELECT MAX(age) FROM Employee;');
+
+    // SQL output with positional parameters
+    result = qb.toSql({ useParams: true });
+    expect(result.sql).toBe('SELECT MAX(age) FROM Employee;');
+    expect(result.params).toEqual([]);
+
+    // SQL output with named parameters and types
+    result = qb.toSql({ useParams: true, useNamedParams: true });
+    expect(result.sql).toBe('SELECT MAX(age) FROM Employee;');
+    expect(result.namedParams?.params).toEqual({});
+    expect(result.namedParams?.types).toEqual({});
   });
 
   test('Multiple aggregate functions', () => {
-    const qb = new QueryBuilder<TestEntity>(tableName)
+    const qb = new QueryBuilder<Employee>(tableName)
       .addAggregate({ function: 'COUNT', field: 'id' })
       .addAggregate({ function: 'AVG', field: 'age' });
-    expect(qb.toSql()).toBe('SELECT COUNT(id), AVG(age) FROM TestEntity;');
+
+    // Standard SQL output
+    let result = qb.toSql();
+    expect(result.sql).toBe('SELECT COUNT(id), AVG(age) FROM Employee;');
+
+    // SQL output with positional parameters
+    result = qb.toSql({ useParams: true });
+    expect(result.sql).toBe('SELECT COUNT(id), AVG(age) FROM Employee;');
+    expect(result.params).toEqual([]);
+
+    // SQL output with named parameters and types
+    result = qb.toSql({ useParams: true, useNamedParams: true });
+    expect(result.sql).toBe('SELECT COUNT(id), AVG(age) FROM Employee;');
+    expect(result.namedParams?.params).toEqual({});
+    expect(result.namedParams?.types).toEqual({});
   });
 
   test('Aggregate function with condition', () => {
-    const qb = new QueryBuilder<TestEntity>(tableName)
+    const qb = new QueryBuilder<Employee>(tableName)
       .addCondition({ field: 'age', operator: '>', value: 30 })
       .addAggregate({ function: 'AVG', field: 'salary' });
-    expect(qb.toSql()).toBe("SELECT AVG(salary) FROM TestEntity WHERE age > 30;");
+
+    // Standard SQL output
+    let result = qb.toSql();
+    expect(result.sql).toBe("SELECT AVG(salary) FROM Employee WHERE age > 30;");
+
+    // SQL output with positional parameters
+    result = qb.toSql({ useParams: true });
+    expect(result.sql).toContain("SELECT AVG(salary) FROM Employee WHERE age > ?;");
+    expect(result.params).toEqual([30]);
+
+    // SQL output with named parameters and types
+    result = qb.toSql({ useParams: true, useNamedParams: true });
+    expect(result.sql).toContain("SELECT AVG(salary) FROM Employee WHERE age > @param0;");
+    expect(result.namedParams?.params).toEqual({ param0: 30 });
+    expect(result.namedParams?.types).toEqual({ param0: 'number' });
   });
 
   test('Aggregate function with GROUP BY', () => {
-    const qb = new QueryBuilder<TestEntity>(tableName)
+    const qb = new QueryBuilder<Employee>(tableName)
       .addAggregate({ function: 'SUM', field: 'salary' })
       .addGroupBy(['age']);
-    expect(qb.toSql()).toBe("SELECT SUM(salary) FROM TestEntity GROUP BY age;");
+
+    // Standard SQL output
+    let result = qb.toSql();
+    expect(result.sql).toBe("SELECT SUM(salary) FROM Employee GROUP BY age;");
+
+    // SQL output with positional parameters
+    result = qb.toSql({ useParams: true });
+    expect(result.sql).toBe("SELECT SUM(salary) FROM Employee GROUP BY age;");
+    expect(result.params).toEqual([]);
+
+    // SQL output with named parameters and types
+    result = qb.toSql({ useParams: true, useNamedParams: true });
+    expect(result.sql).toBe("SELECT SUM(salary) FROM Employee GROUP BY age;");
+    expect(result.namedParams?.params).toEqual({});
+    expect(result.namedParams?.types).toEqual({});
   });
 });
