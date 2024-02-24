@@ -41,6 +41,7 @@ export class QueryBuilder<T> {
   private idCounter: number = 0;
   private rootId: string = 'root';
   private currentContextIds: string[] = [];
+  private debugLogicalGrouping = false;
 
   constructor(private tableName?: string) {
     this.graph = new graphlib.Graph({ directed: true });
@@ -77,10 +78,10 @@ export class QueryBuilder<T> {
    * @returns The instance of the QueryBuilder for chaining.
    */
   logicalGroup(operator: LogicalOperator, elements: Array<Condition<T>|LogicalGroup<T>|QueryBuilder<T>>, parentId?: string): this {
-    const logger = new Logger(`${this.constructor.name}.logicalGroup`);
+    const logger = new Logger(`${this.constructor.name}.logicalGroup`, this.debugLogicalGrouping ? 'debug' : 'info');
     const groupId = this.generateId();
     this.graph.setNode(groupId, { type: 'LOGICAL', operator });
-    logger.debug(`Created node: ${operator} - ${groupId}`)
+    logger.debug(`Created node: ${operator} (${groupId})`)
     if (parentId) {
       this.graph.setEdge(parentId, groupId);
       logger.debug(`Set edge: ${parentId} -> ${groupId}`)
@@ -89,18 +90,13 @@ export class QueryBuilder<T> {
       logger.debug(`Set edge: ${this.rootId} -> ${groupId}`)
     }
   
+    const childIds: string[] = [];
     // Process each element in the provided array.
     elements.forEach((element) => {
       if (element instanceof QueryBuilder) {
         // Handling of QueryBuilder instances, assuming it's the same instance.
         if (this.currentContextIds.length > 0) {
-          const childGroupId = this.currentContextIds.shift();
-          this.graph.setEdge(groupId, childGroupId);
-          logger.debug(`Set edge: ${groupId} -> ${childGroupId}`)
-          if (this.graph.hasEdge(this.rootId, childGroupId)) {
-            this.graph.removeEdge(this.rootId, childGroupId);
-            logger.debug(`Removed edge: ${this.rootId} -> ${childGroupId}`)
-          }
+          childIds.unshift(this.currentContextIds.pop() as string);
         }
       } else if ('operator' in element && 'children' in element) {
         // Recursively handle nested logical groups
@@ -110,15 +106,34 @@ export class QueryBuilder<T> {
         this.condition(element as Condition<T>, groupId);
       }
     });
+
+    // Process linking child QueryBuilder nodes
+    for (let childId of childIds) {
+      this.graph.setEdge(groupId, childId);
+      logger.debug(`Set edge: ${groupId} -> ${childId}`)
+      if (this.graph.hasEdge(this.rootId, childId)) {
+        this.graph.removeEdge(this.rootId, childId);
+        logger.debug(`Removed edge: ${this.rootId} -> ${childId}`)
+      }
+    }
   
     this.currentContextIds.push(groupId);
     return this;
   }  
 
-  condition(condition: Condition<T>, parentId: string = this.rootId): this {
+  condition(condition: Condition<T>, parentId?: string): this {
+    const logger = new Logger(`${this.constructor.name}.condition`, this.debugLogicalGrouping ? 'debug' : 'info');
     const conditionId = this.generateId();
     this.graph.setNode(conditionId, { ...condition, type: 'CONDITION' });
-    this.graph.setEdge(parentId, conditionId);
+    logger.debug(`Created node: CONDITION(${JSON.stringify(condition)}) (${conditionId})`)
+    if (parentId) {
+      this.graph.setEdge(parentId, conditionId);
+      logger.debug(`Set edge: ${parentId} -> ${conditionId}`)
+    } else {
+      this.graph.setEdge(this.rootId, conditionId);
+      logger.debug(`Set edge: ${this.rootId} -> ${conditionId}`)
+      this.currentContextIds.push(conditionId);
+    }
     return this;
   }
 
