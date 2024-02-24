@@ -1,18 +1,20 @@
+import { Logger } from '@brentbahry/util';
+
 const graphlib = require('@dagrejs/graphlib');
 
-export type LogicalOperator = 'AND' | 'OR';
-export type Operator = '=' | '<>' | '!=' | '>' | '<' | '>=' | '<=' | 'IN' | 'LIKE' | 'BETWEEN' | 'IS NULL' | 'IS NOT NULL' | 'NOT';
-export type AggregateFunction = 'COUNT' | 'SUM' | 'AVG' | 'MIN' | 'MAX';
+export type LogicalOperator = 'AND'|'OR';
+export type Operator = '='|'<>'|'!='|'>'|'<'|'>='|'<='|'IN'|'LIKE'|'BETWEEN'|'IS NULL'|'IS NOT NULL'|'NOT';
+export type AggregateFunction = 'COUNT'|'SUM'|'AVG'|'MIN'|'MAX';
 
 interface LogicalGroup<T> {
   operator: LogicalOperator;
-  children: Array<Condition<T> | LogicalGroup<T>>;
+  children: Array<Condition<T>|LogicalGroup<T>>;
 }
 
 interface Condition<T> {
   field: keyof T;
   operator: Operator;
-  value: T[keyof T] | T[keyof T][] | QueryBuilder<T> | null;
+  value: T[keyof T]|T[keyof T][]|QueryBuilder<T>|null;
 }
 
 interface Aggregate<T> {
@@ -25,7 +27,7 @@ interface ParameterizationConfig {
   useNamedParams?: boolean; // Use named parameters (for Spanner), otherwise use '?' (for Knex)
 }
 
-interface Query {
+export interface Query {
   sql: string;
   params?: any[]; // For Knex
   namedParams?: { // For Spanner
@@ -38,6 +40,7 @@ export class QueryBuilder<T> {
   private graph: any;
   private idCounter: number = 0;
   private rootId: string = 'root';
+  private currentContextIds: string[] = [];
 
   constructor(private tableName?: string) {
     this.graph = new graphlib.Graph({ directed: true });
@@ -48,41 +51,85 @@ export class QueryBuilder<T> {
     return `node_${this.idCounter++}`;
   }
 
-  addLogicalGroup(operator: LogicalOperator, elements: Array<Condition<T> | LogicalGroup<T>>, parentId: string = this.rootId): this {
+  /**
+   * Adds a group of conditions or nested groups combined with the AND logical operator.
+   * @param elements Array of Condition<T> or LogicalGroup<T> to be combined with AND.
+   * @returns The instance of the QueryBuilder for chaining.
+   */
+  and(elements: Array<Condition<T>|LogicalGroup<T>|QueryBuilder<T>>): this {
+    return this.logicalGroup('AND', elements);
+  }
+
+  /**
+   * Adds a group of conditions or nested groups combined with the OR logical operator.
+   * @param elements Array of Condition<T> or LogicalGroup<T> to be combined with OR.
+   * @returns The instance of the QueryBuilder for chaining.
+   */
+  or(elements: Array<Condition<T>|LogicalGroup<T>|QueryBuilder<T>>): this {
+    return this.logicalGroup('OR', elements);
+  }
+
+  /**
+   * Adds a logical group of conditions or nested groups.
+   * @param operator LogicalOperator ('AND' or 'OR').
+   * @param elements Array of Condition<T> or LogicalGroup<T>.
+   * @param parentId The ID of the parent node to attach the logical group to.
+   * @returns The instance of the QueryBuilder for chaining.
+   */
+  logicalGroup(operator: LogicalOperator, elements: Array<Condition<T>|LogicalGroup<T>|QueryBuilder<T>>, parentId?: string): this {
+    const logger = new Logger(`${this.constructor.name}.logicalGroup`);
     const groupId = this.generateId();
-    this.graph.setNode(groupId, { type: 'LOGICAL', operator, children: [] });
-    this.graph.setEdge(parentId, groupId);
+    this.graph.setNode(groupId, { type: 'LOGICAL', operator });
+    logger.debug(`Created node: ${operator} - ${groupId}`)
+    if (parentId) {
+      this.graph.setEdge(parentId, groupId);
+      logger.debug(`Set edge: ${parentId} -> ${groupId}`)
+    } else {
+      this.graph.setEdge(this.rootId, groupId);
+      logger.debug(`Set edge: ${this.rootId} -> ${groupId}`)
+    }
   
+    // Process each element in the provided array.
     elements.forEach((element) => {
-      if ('operator' in element && 'children' in element) {
-        // Handle nested logical group
-        this.addLogicalGroup(element.operator, element.children, groupId);
+      if (element instanceof QueryBuilder) {
+        // Handling of QueryBuilder instances, assuming it's the same instance.
+        if (this.currentContextIds.length > 0) {
+          const childGroupId = this.currentContextIds.shift();
+          this.graph.setEdge(groupId, childGroupId);
+          logger.debug(`Set edge: ${groupId} -> ${childGroupId}`)
+          if (this.graph.hasEdge(this.rootId, childGroupId)) {
+            this.graph.removeEdge(this.rootId, childGroupId);
+            logger.debug(`Removed edge: ${this.rootId} -> ${childGroupId}`)
+          }
+        }
+      } else if ('operator' in element && 'children' in element) {
+        // Recursively handle nested logical groups
+        this.logicalGroup(element.operator, element.children, groupId);
       } else {
-        // Handle condition
-        const conditionId = this.generateId();
-        this.graph.setNode(conditionId, { ...element, type: 'CONDITION' });
-        this.graph.setEdge(groupId, conditionId);
+        // Handle adding a condition
+        this.condition(element as Condition<T>, groupId);
       }
     });
   
+    this.currentContextIds.push(groupId);
     return this;
   }  
 
-  addCondition(condition: Condition<T>, parentId: string = this.rootId): this {
+  condition(condition: Condition<T>, parentId: string = this.rootId): this {
     const conditionId = this.generateId();
     this.graph.setNode(conditionId, { ...condition, type: 'CONDITION' });
     this.graph.setEdge(parentId, conditionId);
     return this;
   }
 
-  addAggregate(aggregate: Aggregate<T>): this {
+  aggregate(aggregate: Aggregate<T>): this {
     const id = this.generateId();
     this.graph.setNode(id, { ...aggregate, type: 'AGGREGATE' });
     this.graph.setEdge(this.rootId, id);
     return this;
   }
 
-  addGroupBy(fields: (keyof T)[]): this {
+  groupBy(fields: (keyof T)[]): this {
     const id = this.generateId();
     this.graph.setNode(id, { type: 'GROUP_BY', fields });
     this.graph.setEdge(this.rootId, id);
@@ -119,7 +166,7 @@ export class QueryBuilder<T> {
 
     // Define a recursive function to process nodes and build condition strings
     const processNode = (nodeId: string): string => {
-      const node: any = this.graph.node(nodeId); // Assuming node has a specific structure based on the node type
+      const node: any = this.graph.node(nodeId);
       switch (node.type) {
         case 'CONDITION':
           if (node.operator === 'IN') {

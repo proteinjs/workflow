@@ -11,7 +11,7 @@ describe('QueryBuilder - Basic Operator Support', () => {
   const tableName = 'Employee';
 
   test('= operator', () => {
-    const qb = new QueryBuilder<Employee>(tableName).addCondition({ field: 'id', operator: '=', value: 1 });
+    const qb = new QueryBuilder<Employee>(tableName).condition({ field: 'id', operator: '=', value: 1 });
     
     // Standard SQL output
     let result = qb.toSql();
@@ -32,7 +32,7 @@ describe('QueryBuilder - Basic Operator Support', () => {
   ['<>', '!='].forEach(operator => {
     test(`${operator} operator`, () => {
       const value = 'John';
-      const qb = new QueryBuilder<Employee>(tableName).addCondition({ field: 'name', operator: operator as Operator, value });
+      const qb = new QueryBuilder<Employee>(tableName).condition({ field: 'name', operator: operator as Operator, value });
 
       // Standard SQL output
       let result = qb.toSql();
@@ -53,7 +53,7 @@ describe('QueryBuilder - Basic Operator Support', () => {
 
   [['>', 18], ['<', 65], ['>=', 18], ['<=', 65]].forEach(([operator, value]) => {
     test(`${operator} operator`, () => {
-      const qb = new QueryBuilder<Employee>(tableName).addCondition({ field: 'age', operator: operator as Operator, value });
+      const qb = new QueryBuilder<Employee>(tableName).condition({ field: 'age', operator: operator as Operator, value });
       
       // Standard SQL output
       let result = qb.toSql();
@@ -73,7 +73,7 @@ describe('QueryBuilder - Basic Operator Support', () => {
   });
 
   test('IN operator', () => {
-    const qb = new QueryBuilder<Employee>(tableName).addCondition({ field: 'id', operator: 'IN', value: [1, 2, 3] });
+    const qb = new QueryBuilder<Employee>(tableName).condition({ field: 'id', operator: 'IN', value: [1, 2, 3] });
     
     // Standard SQL output
     let result = qb.toSql();
@@ -92,7 +92,7 @@ describe('QueryBuilder - Basic Operator Support', () => {
   });
 
   test('LIKE operator', () => {
-    const qb = new QueryBuilder<Employee>(tableName).addCondition({ field: 'name', operator: 'LIKE', value: '%John%' });
+    const qb = new QueryBuilder<Employee>(tableName).condition({ field: 'name', operator: 'LIKE', value: '%John%' });
     
     // Standard SQL output
     let result = qb.toSql();
@@ -111,7 +111,7 @@ describe('QueryBuilder - Basic Operator Support', () => {
   });
 
   test('BETWEEN operator', () => {
-    const qb = new QueryBuilder<Employee>(tableName).addCondition({ field: 'age', operator: 'BETWEEN', value: [18, 30] });
+    const qb = new QueryBuilder<Employee>(tableName).condition({ field: 'age', operator: 'BETWEEN', value: [18, 30] });
   
     // Standard SQL output
     let result = qb.toSql();
@@ -130,7 +130,7 @@ describe('QueryBuilder - Basic Operator Support', () => {
   });
   
   test('IS NULL operator', () => {
-    const qb = new QueryBuilder<Employee>(tableName).addCondition({ field: 'country', operator: 'IS NULL', value: null });
+    const qb = new QueryBuilder<Employee>(tableName).condition({ field: 'country', operator: 'IS NULL', value: null });
   
     // Standard SQL output
     let result = qb.toSql();
@@ -150,7 +150,7 @@ describe('QueryBuilder - Basic Operator Support', () => {
   });
   
   test('IS NOT NULL operator', () => {
-    const qb = new QueryBuilder<Employee>(tableName).addCondition({ field: 'country', operator: 'IS NOT NULL', value: null });
+    const qb = new QueryBuilder<Employee>(tableName).condition({ field: 'country', operator: 'IS NOT NULL', value: null });
   
     // Standard SQL output
     let result = qb.toSql();

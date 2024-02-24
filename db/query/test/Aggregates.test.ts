@@ -11,7 +11,7 @@ describe('QueryBuilder - Aggregate Support', () => {
   const tableName = 'Employee';
 
   test('COUNT aggregate function', () => {
-    const qb = new QueryBuilder<Employee>(tableName).addAggregate({ function: 'COUNT', field: 'id' });
+    const qb = new QueryBuilder<Employee>(tableName).aggregate({ function: 'COUNT', field: 'id' });
 
     // Standard SQL output
     let result = qb.toSql();
@@ -30,7 +30,7 @@ describe('QueryBuilder - Aggregate Support', () => {
   });
 
   test('SUM aggregate function', () => {
-    const qb = new QueryBuilder<Employee>(tableName).addAggregate({ function: 'SUM', field: 'salary' });
+    const qb = new QueryBuilder<Employee>(tableName).aggregate({ function: 'SUM', field: 'salary' });
 
     let result = qb.toSql();
     expect(result.sql).toBe('SELECT SUM(salary) FROM Employee;');
@@ -46,7 +46,7 @@ describe('QueryBuilder - Aggregate Support', () => {
   });
 
   test('AVG aggregate function', () => {
-    const qb = new QueryBuilder<Employee>(tableName).addAggregate({ function: 'AVG', field: 'age' });
+    const qb = new QueryBuilder<Employee>(tableName).aggregate({ function: 'AVG', field: 'age' });
 
     let result = qb.toSql();
     expect(result.sql).toBe('SELECT AVG(age) FROM Employee;');
@@ -62,7 +62,7 @@ describe('QueryBuilder - Aggregate Support', () => {
   });
 
   test('MIN aggregate function', () => {
-    const qb = new QueryBuilder<Employee>(tableName).addAggregate({ function: 'MIN', field: 'age' });
+    const qb = new QueryBuilder<Employee>(tableName).aggregate({ function: 'MIN', field: 'age' });
 
     let result = qb.toSql();
     expect(result.sql).toBe('SELECT MIN(age) FROM Employee;');
@@ -78,7 +78,7 @@ describe('QueryBuilder - Aggregate Support', () => {
   });
 
   test('MAX aggregate function', () => {
-    const qb = new QueryBuilder<Employee>(tableName).addAggregate({ function: 'MAX', field: 'age' });
+    const qb = new QueryBuilder<Employee>(tableName).aggregate({ function: 'MAX', field: 'age' });
 
     // Standard SQL output
     let result = qb.toSql();
@@ -98,8 +98,8 @@ describe('QueryBuilder - Aggregate Support', () => {
 
   test('Multiple aggregate functions', () => {
     const qb = new QueryBuilder<Employee>(tableName)
-      .addAggregate({ function: 'COUNT', field: 'id' })
-      .addAggregate({ function: 'AVG', field: 'age' });
+      .aggregate({ function: 'COUNT', field: 'id' })
+      .aggregate({ function: 'AVG', field: 'age' });
 
     // Standard SQL output
     let result = qb.toSql();
@@ -119,8 +119,8 @@ describe('QueryBuilder - Aggregate Support', () => {
 
   test('Aggregate function with condition', () => {
     const qb = new QueryBuilder<Employee>(tableName)
-      .addCondition({ field: 'age', operator: '>', value: 30 })
-      .addAggregate({ function: 'AVG', field: 'salary' });
+      .condition({ field: 'age', operator: '>', value: 30 })
+      .aggregate({ function: 'AVG', field: 'salary' });
 
     // Standard SQL output
     let result = qb.toSql();
@@ -140,8 +140,8 @@ describe('QueryBuilder - Aggregate Support', () => {
 
   test('Aggregate function with GROUP BY', () => {
     const qb = new QueryBuilder<Employee>(tableName)
-      .addAggregate({ function: 'SUM', field: 'salary' })
-      .addGroupBy(['age']);
+      .aggregate({ function: 'SUM', field: 'salary' })
+      .groupBy(['age']);
 
     // Standard SQL output
     let result = qb.toSql();

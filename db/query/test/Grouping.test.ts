@@ -13,7 +13,7 @@ describe('QueryBuilder - GROUP BY Support', () => {
   const tableName = 'Employee';
 
   test('Basic GROUP BY', () => {
-    const qb = new QueryBuilder<Employee>(tableName).addGroupBy(['department']);
+    const qb = new QueryBuilder<Employee>(tableName).groupBy(['department']);
 
     // Standard SQL output
     let result = qb.toSql();
@@ -34,8 +34,8 @@ describe('QueryBuilder - GROUP BY Support', () => {
 
   test('GROUP BY with condition', () => {
     const qb = new QueryBuilder<Employee>(tableName)
-      .addCondition({ field: 'age', operator: '>', value: 30 })
-      .addGroupBy(['department']);
+      .condition({ field: 'age', operator: '>', value: 30 })
+      .groupBy(['department']);
 
     // Standard SQL output
     let result = qb.toSql();
@@ -55,8 +55,8 @@ describe('QueryBuilder - GROUP BY Support', () => {
 
   test('GROUP BY with aggregate function', () => {
     const qb = new QueryBuilder<Employee>(tableName)
-      .addAggregate({ function: 'AVG', field: 'salary' })
-      .addGroupBy(['department']);
+      .aggregate({ function: 'AVG', field: 'salary' })
+      .groupBy(['department']);
 
     // Standard SQL output
     let result = qb.toSql();
@@ -76,7 +76,7 @@ describe('QueryBuilder - GROUP BY Support', () => {
   });
 
   test('Multiple GROUP BY fields', () => {
-    const qb = new QueryBuilder<Employee>(tableName).addGroupBy(['department', 'age']);
+    const qb = new QueryBuilder<Employee>(tableName).groupBy(['department', 'age']);
 
     // Standard SQL output
     let result = qb.toSql();
@@ -96,9 +96,9 @@ describe('QueryBuilder - GROUP BY Support', () => {
 
   test('GROUP BY with multiple aggregate functions', () => {
     const qb = new QueryBuilder<Employee>(tableName)
-      .addAggregate({ function: 'MAX', field: 'salary' })
-      .addAggregate({ function: 'MIN', field: 'age' })
-      .addGroupBy(['department']);
+      .aggregate({ function: 'MAX', field: 'salary' })
+      .aggregate({ function: 'MIN', field: 'age' })
+      .groupBy(['department']);
 
     // Standard SQL output
     let result = qb.toSql();
@@ -118,9 +118,9 @@ describe('QueryBuilder - GROUP BY Support', () => {
 
   test('GROUP BY with aggregate function and condition', () => {
     const qb = new QueryBuilder<Employee>(tableName)
-      .addCondition({ field: 'department', operator: '=', value: 'Engineering' })
-      .addAggregate({ function: 'COUNT', field: 'id' })
-      .addGroupBy(['age']);
+      .condition({ field: 'department', operator: '=', value: 'Engineering' })
+      .aggregate({ function: 'COUNT', field: 'id' })
+      .groupBy(['age']);
 
     // Standard SQL output
     let result = qb.toSql();
@@ -140,8 +140,8 @@ describe('QueryBuilder - GROUP BY Support', () => {
 
   test('GROUP BY with multiple fields', () => {
     const qb = new QueryBuilder<Employee>(tableName)
-      .addAggregate({ function: 'AVG', field: 'salary' })
-      .addGroupBy(['department', 'age']);
+      .aggregate({ function: 'AVG', field: 'salary' })
+      .groupBy(['department', 'age']);
 
     // Standard SQL output
     let result = qb.toSql();
@@ -161,12 +161,12 @@ describe('QueryBuilder - GROUP BY Support', () => {
 
   test('GROUP BY with logical group condition', () => {
     const qb = new QueryBuilder<Employee>(tableName)
-      .addLogicalGroup('AND', [
+      .logicalGroup('AND', [
         { field: 'age', operator: '>', value: 30 },
         { field: 'yearsOfService', operator: '<', value: 10 }
       ])
-      .addAggregate({ function: 'SUM', field: 'salary' })
-      .addGroupBy(['department']);
+      .aggregate({ function: 'SUM', field: 'salary' })
+      .groupBy(['department']);
   
     // Standard SQL output
     let result = qb.toSql();
@@ -186,14 +186,14 @@ describe('QueryBuilder - GROUP BY Support', () => {
   
   test('Complex GROUP BY with multiple conditions and aggregates', () => {
     const qb = new QueryBuilder<Employee>(tableName)
-      .addCondition({ field: 'department', operator: '=', value: 'Engineering' })
-      .addLogicalGroup('OR', [
+      .condition({ field: 'department', operator: '=', value: 'Engineering' })
+      .logicalGroup('OR', [
         { field: 'age', operator: '>', value: 50 },
         { field: 'yearsOfService', operator: '>=', value: 20 }
       ])
-      .addAggregate({ function: 'COUNT', field: 'id' })
-      .addAggregate({ function: 'AVG', field: 'salary' })
-      .addGroupBy(['department', 'age']);
+      .aggregate({ function: 'COUNT', field: 'id' })
+      .aggregate({ function: 'AVG', field: 'salary' })
+      .groupBy(['department', 'age']);
   
     // Standard SQL output
     let result = qb.toSql();
