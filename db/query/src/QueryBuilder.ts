@@ -27,6 +27,12 @@ export interface Pagination {
   end: number;
 }
 
+export interface SortCriteria<T> {
+  field: keyof T;
+  desc?: boolean;
+  byValues?: string[];
+}
+
 export interface ParameterizationConfig {
   useParams?: boolean; // Enable parameterization
   useNamedParams?: boolean; // Use named parameters (for Spanner), otherwise use '?' (for Knex)
@@ -189,11 +195,26 @@ export class QueryBuilder<T> {
     return this;
   }
 
+  sort(sortCriteria: SortCriteria<T>[]): this {
+    sortCriteria.forEach(criteria => {
+      const id = this.generateId();
+      let fieldName = criteria.field as string;
+      if (this.resolveFieldName) {
+        fieldName = this.resolveFieldName(fieldName);
+      }
+      criteria.field = fieldName as keyof T;
+      this.graph.setNode(id, { type: 'SORT', criteria });
+      this.graph.setEdge(this.rootId, id);
+    });
+    return this;
+  }
+
   toSql(config?: ParameterizationConfig): Query {
     let sql = 'SELECT ';
     const aggregates: string[] = [];
     let groupBys: string[] = [];
     let pagination: Pagination|undefined;
+    let sortClauses: string[] = [];
     const params: any[] = [];
     const namedParams: Query['namedParams'] = {
       params: {},
@@ -272,6 +293,19 @@ export class QueryBuilder<T> {
         case 'PAGINATION':
           pagination = { start: node.start, end: node.end };
           return '';
+        case 'SORT':
+          const { field, desc, byValues } = node.criteria;
+          if (byValues && byValues.length > 0) {
+            // Constructing a CASE statement for sorting by specific values
+            const cases = byValues.map((value: string, index: number) => `WHEN ${field} = ${parameterizeValue(value, typeof value)} THEN ${index}`).join(' ');
+            const orderByCase = `CASE ${cases} ELSE ${byValues.length} END`;
+            sortClauses.push(`${orderByCase}${desc ? ' DESC' : ' ASC'}`);
+          } else {
+            // Standard sorting
+            let sortClause = `${field}${desc ? ' DESC' : ' ASC'}`;
+            sortClauses.push(sortClause);
+          }
+        return '';
         default:
           return '';
       }
@@ -288,6 +322,10 @@ export class QueryBuilder<T> {
 
     if (groupBys.length > 0) {
       sql += ` GROUP BY ${groupBys.join(', ')}`;
+    }
+
+    if (sortClauses.length > 0) {
+      sql += ` ORDER BY ${sortClauses.join(', ')}`;
     }
 
     if (pagination) {
