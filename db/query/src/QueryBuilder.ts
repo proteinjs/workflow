@@ -43,7 +43,7 @@ export class QueryBuilder<T> {
   private currentContextIds: string[] = [];
   private debugLogicalGrouping = false;
 
-  constructor(private tableName?: string) {
+  constructor(private tableName: string) {
     this.graph = new graphlib.Graph({ directed: true });
     this.graph.setNode(this.rootId, { type: 'ROOT' });
   }
@@ -122,6 +122,9 @@ export class QueryBuilder<T> {
   }  
 
   condition(condition: Condition<T>, parentId?: string): this {
+    if (condition.value === this)
+        throw new Error(`Must use a new QueryBuilder instance for subquery`);
+
     const logger = new Logger(`${this.constructor.name}.condition`, this.debugLogicalGrouping ? 'debug' : 'info');
     const conditionId = this.generateId();
     this.graph.setNode(conditionId, { ...condition, type: 'CONDITION' });
@@ -162,29 +165,51 @@ export class QueryBuilder<T> {
     };
     let paramCounter = 0; // Counter for parameter names
 
-    // Function to process and parameterize values
-    const parameterizeValue = (value: any, valueType: string): string => {
+    // Function to process and parameterize values, including handling subqueries
+  const parameterizeValue = (value: any, valueType: string): string => {
+    if (value instanceof QueryBuilder) {
+      // Generate SQL for the subquery
+      const subQuery = value.toSql(config);
       if (config?.useParams) {
-        if (config.useNamedParams) {
-          const paramName = `param${paramCounter++}`;
-          namedParams.params[paramName] = value;
-          namedParams.types[paramName] = valueType;
-          return `@${paramName}`;
-        } else {
-          params.push(value);
-          return '?';
+        if (config.useNamedParams && subQuery.namedParams) {
+          // Merge parameters and types from subquery
+          for (let key of Object.keys(subQuery.namedParams.params)) {
+            const paramName = `param${paramCounter++}`;
+            namedParams.params[paramName] = subQuery.namedParams.params[key];
+            namedParams.types[paramName] = subQuery.namedParams.types[key];
+          }
+          return `(${subQuery.sql.slice(0, -1)})`; // Remove the trailing semicolon from subquery SQL
+        } else if (subQuery.params) {
+          // Append parameters from subquery
+          params.push(...subQuery.params);
         }
-      } else {
-        return typeof value === 'string' ? `'${value}'` : String(value);
       }
-    };
+      return `(${subQuery.sql.slice(0, -1)})`; // Subquery SQL for non-parameterized config
+    } else if (config?.useParams) {
+      if (config.useNamedParams) {
+        const paramName = `param${paramCounter++}`;
+        namedParams.params[paramName] = value;
+        namedParams.types[paramName] = valueType;
+        return `@${paramName}`;
+      } else {
+        params.push(value);
+        return '?';
+      }
+    } else {
+      // Direct value formatting for non-parameterized queries
+      return typeof value === 'string' ? `'${value}'` : String(value);
+    }
+  };
 
     // Define a recursive function to process nodes and build condition strings
     const processNode = (nodeId: string): string => {
       const node: any = this.graph.node(nodeId);
       switch (node.type) {
         case 'CONDITION':
-          if (node.operator === 'IN') {
+          if (node.value instanceof QueryBuilder) {
+            let valueStr = parameterizeValue(node.value, 'subquery');
+            return `${node.field} ${node.operator} ${valueStr}`;
+          } else if (node.operator === 'IN') {
             let valuesStr = Array.isArray(node.value) ? node.value.map((val: any) => parameterizeValue(val, typeof val)).join(', ') : parameterizeValue(node.value, typeof node.value);
             return `${node.field} ${node.operator} (${valuesStr})`;
           } else if (node.operator === 'BETWEEN') {
