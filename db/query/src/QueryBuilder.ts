@@ -6,23 +6,28 @@ export type LogicalOperator = 'AND'|'OR';
 export type Operator = '='|'<>'|'!='|'>'|'<'|'>='|'<='|'IN'|'LIKE'|'BETWEEN'|'IS NULL'|'IS NOT NULL'|'NOT';
 export type AggregateFunction = 'COUNT'|'SUM'|'AVG'|'MIN'|'MAX';
 
-interface LogicalGroup<T> {
+export interface LogicalGroup<T> {
   operator: LogicalOperator;
   children: Array<Condition<T>|LogicalGroup<T>>;
 }
 
-interface Condition<T> {
+export interface Condition<T> {
   field: keyof T;
   operator: Operator;
   value: T[keyof T]|T[keyof T][]|QueryBuilder<T>|null;
 }
 
-interface Aggregate<T> {
+export interface Aggregate<T> {
   function: AggregateFunction;
   field: keyof T;
 }
 
-interface ParameterizationConfig {
+export interface Pagination {
+  start: number;
+  end: number;
+}
+
+export interface ParameterizationConfig {
   useParams?: boolean; // Enable parameterization
   useNamedParams?: boolean; // Use named parameters (for Spanner), otherwise use '?' (for Knex)
 }
@@ -42,6 +47,7 @@ export class QueryBuilder<T> {
   private rootId: string = 'root';
   private currentContextIds: string[] = [];
   private debugLogicalGrouping = false;
+  private paginationNodeId?: string;
 
   constructor(
     private tableName: string,
@@ -175,10 +181,19 @@ export class QueryBuilder<T> {
     return this;
   }
 
+  paginate(pagination: Pagination): this {
+    const id = this.paginationNodeId ? this.paginationNodeId : this.generateId();
+    this.paginationNodeId = id;
+    this.graph.setNode(id, { type: 'PAGINATION', ...pagination });
+    this.graph.setEdge(this.rootId, id);
+    return this;
+  }
+
   toSql(config?: ParameterizationConfig): Query {
     let sql = 'SELECT ';
     const aggregates: string[] = [];
     let groupBys: string[] = [];
+    let pagination: Pagination|undefined;
     const params: any[] = [];
     const namedParams: Query['namedParams'] = {
       params: {},
@@ -254,6 +269,9 @@ export class QueryBuilder<T> {
         case 'GROUP_BY':
           groupBys.push(...node.fields.map((field: keyof T) => String(field)));
           return '';
+        case 'PAGINATION':
+          pagination = { start: node.start, end: node.end };
+          return '';
         default:
           return '';
       }
@@ -270,6 +288,12 @@ export class QueryBuilder<T> {
 
     if (groupBys.length > 0) {
       sql += ` GROUP BY ${groupBys.join(', ')}`;
+    }
+
+    if (pagination) {
+      const limit = pagination.end - pagination.start;
+      const offset = pagination.start;
+      sql += ` LIMIT ${limit} OFFSET ${offset}`;
     }
 
     sql = sql.trim() + ';';
