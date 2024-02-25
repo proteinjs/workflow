@@ -43,7 +43,10 @@ export class QueryBuilder<T> {
   private currentContextIds: string[] = [];
   private debugLogicalGrouping = false;
 
-  constructor(private tableName: string) {
+  constructor(
+    private tableName: string,
+    private resolveFieldName?: (propertyName: string) => string
+  ) {
     this.graph = new graphlib.Graph({ directed: true });
     this.graph.setNode(this.rootId, { type: 'ROOT' });
   }
@@ -127,6 +130,11 @@ export class QueryBuilder<T> {
 
     const logger = new Logger(`${this.constructor.name}.condition`, this.debugLogicalGrouping ? 'debug' : 'info');
     const conditionId = this.generateId();
+    let fieldName = condition.field as string;
+    if (this.resolveFieldName) {
+      fieldName = this.resolveFieldName(fieldName);
+    }
+    condition.field = fieldName as keyof T;
     this.graph.setNode(conditionId, { ...condition, type: 'CONDITION' });
     logger.debug(`Created node: CONDITION(${JSON.stringify(condition)}) (${conditionId})`)
     if (parentId) {
@@ -142,6 +150,11 @@ export class QueryBuilder<T> {
 
   aggregate(aggregate: Aggregate<T>): this {
     const id = this.generateId();
+    let fieldName = aggregate.field as string;
+    if (this.resolveFieldName) {
+      fieldName = this.resolveFieldName(fieldName);
+    }
+    aggregate.field = fieldName as keyof T;
     this.graph.setNode(id, { ...aggregate, type: 'AGGREGATE' });
     this.graph.setEdge(this.rootId, id);
     return this;
@@ -149,7 +162,15 @@ export class QueryBuilder<T> {
 
   groupBy(fields: (keyof T)[]): this {
     const id = this.generateId();
-    this.graph.setNode(id, { type: 'GROUP_BY', fields });
+    let resolvedFields = fields;
+    if (this.resolveFieldName) {
+      resolvedFields = [];
+      for (let field of fields) {
+        const resolvedField = this.resolveFieldName(field as string);
+        resolvedFields.push(resolvedField as keyof T);
+      }
+    }
+    this.graph.setNode(id, { type: 'GROUP_BY', fields: resolvedFields });
     this.graph.setEdge(this.rootId, id);
     return this;
   }
