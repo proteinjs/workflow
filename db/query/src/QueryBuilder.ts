@@ -1,6 +1,5 @@
 import { Logger } from '@brentbahry/util';
-
-const graphlib = require('@dagrejs/graphlib');
+import { Graph } from '@dagrejs/graphlib';
 
 export type LogicalOperator = 'AND'|'OR';
 export type Operator = '='|'<>'|'!='|'>'|'<'|'>='|'<='|'IN'|'LIKE'|'BETWEEN'|'IS NULL'|'IS NOT NULL'|'NOT';
@@ -48,7 +47,7 @@ export interface Query {
 }
 
 export class QueryBuilder<T> {
-  private graph: any;
+  private graph: Graph;
   private idCounter: number = 0;
   private rootId: string = 'root';
   private currentContextIds: string[] = [];
@@ -59,7 +58,7 @@ export class QueryBuilder<T> {
     private tableName: string,
     private resolveFieldName?: (propertyName: string) => string
   ) {
-    this.graph = new graphlib.Graph({ directed: true });
+    this.graph = new Graph({ directed: true });
     this.graph.setNode(this.rootId, { type: 'ROOT' });
   }
 
@@ -280,7 +279,7 @@ export class QueryBuilder<T> {
             return `${node.field} ${node.operator} ${conditionValue}`;
           }
         case 'LOGICAL':
-          const childIds: string[] = this.graph.successors(nodeId);
+          const childIds: string[] = this.graph.successors(nodeId) || [];
           const childConditions: string[] = childIds.map(processNode).filter(cond => cond !== '');
           const combinedConditions = childConditions.join(` ${node.operator} `);
           return combinedConditions ? `(${combinedConditions})` : '';
@@ -312,7 +311,7 @@ export class QueryBuilder<T> {
     };
 
     // Start processing from the root node
-    const rootChildren: string[] = this.graph.successors(this.rootId);
+    const rootChildren: string[] = this.graph.successors(this.rootId) || [];
     const whereClauses: string[] = rootChildren.map(processNode).filter(clause => clause !== '');
     const whereClause: string = whereClauses.length > 0 ? ` WHERE ${whereClauses.join(' AND ')}` : '';
 
