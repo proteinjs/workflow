@@ -67,6 +67,21 @@ export class QueryBuilder<T> {
   }
 
   /**
+   * Creates a QueryBuilder instance from an object.
+   * Object properties will be treated as fields, joined with AND to construct the query.
+   * @param obj a query object
+   * @param tableName the table to query
+   * @returns a QueryBuilder with the query applied to it
+   */
+  static fromObject<T extends Object>(obj: Partial<T>, tableName: string): QueryBuilder<T> {
+    const qb = new QueryBuilder<T>(tableName);
+    for (let prop of Object.keys(obj)) {
+      qb.condition({ field: prop as keyof T, operator: '=', value: obj[prop as keyof T] as T[keyof T]});
+    }
+    return qb;
+  }
+
+  /**
    * Adds a group of conditions or nested groups combined with the AND logical operator.
    * @param elements Array of Condition<T> or LogicalGroup<T> to be combined with AND.
    * @returns The instance of the QueryBuilder for chaining.
