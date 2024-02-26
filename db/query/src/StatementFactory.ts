@@ -15,15 +15,7 @@ export class StatementFactory<T> {
     const props = Object.keys(data);
     const values = props.map(prop => paramManager.parameterize(data[prop as keyof T], typeof data[prop as keyof T]));
     const sql = `INSERT INTO ${tableName} (${props.join(', ')}) VALUES (${values.join(', ')});`;
-    if (config?.useParams) {
-      if (config.useNamedParams) {
-        return { sql, namedParams: paramManager.getNamedParams() };
-      } else {
-        return { sql, params: paramManager.getParams() };
-      }
-    }
-    
-    return { sql };
+    return { sql, ...paramManager.getParams() };
   }
 
   update(tableName: string, data: Partial<T>, queryBuilder: QueryBuilder<T>, config?: ParameterizationConfig): Statement {
@@ -35,29 +27,14 @@ export class StatementFactory<T> {
     ;
     const whereClause = queryBuilder.toWhereClause(config, paramManager);
     const sql = `UPDATE ${tableName} SET ${setClauses} ${whereClause.sql};`;
-    if (config?.useParams) {
-      if (config.useNamedParams) {
-        return { sql, namedParams: whereClause.namedParams };
-      } else {
-        return { sql, params: whereClause.params };
-      }
-    }
-    
-    return { sql };
+    return { sql, ...paramManager.getParams() };
   }
 
   delete(tableName: string, queryBuilder: QueryBuilder<T>, config?: ParameterizationConfig): Statement {
-    const whereClause = queryBuilder.toWhereClause(config);
+    const paramManager = new StatementParamManager(config);
+    const whereClause = queryBuilder.toWhereClause(config, paramManager);
     const sql = `DELETE FROM ${tableName} ${whereClause.sql};`;
-    if (config?.useParams) {
-      if (config.useNamedParams) {
-        return { sql, namedParams: whereClause.namedParams };
-      } else {
-        return { sql, params: whereClause.params };
-      }
-    }
-    
-    return { sql };
+    return { sql, ...paramManager.getParams() };
   }
 }
 
@@ -107,11 +84,21 @@ export class StatementParamManager {
     }
   }
 
-  getParams(): any[] {
-    return this.params;
-  }
+  getParams(): { 
+    params?: any[],
+    namedParams?: {
+      params: Record<string, any>,
+      types: Record<string, string>,
+    }
+  } {
+    if (this.config?.useParams) {
+      if (this.config.useNamedParams) {
+        return { namedParams: { params: this.paramNames, types: this.paramTypes } };
+      } else {
+        return { params: this.params };
+      }
+    }
 
-  getNamedParams(): { params: Record<string, any>; types: Record<string, string> } {
-    return { params: this.paramNames, types: this.paramTypes };
+    return {};
   }
 }

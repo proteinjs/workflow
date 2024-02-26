@@ -253,16 +253,7 @@ export class QueryBuilder<T> {
     const rootChildren: string[] = this.graph.successors(this.rootId) || [];
     const whereParts = rootChildren.map(processNode).filter(part => part.length > 0);
     const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(' AND ')}` : '';
-    
-    if (config?.useParams) {
-      if (config.useNamedParams) {
-        return { sql: whereClause, namedParams: paramManager.getNamedParams() };
-      } else {
-        return { sql: whereClause, params: paramManager.getParams() };
-      }
-    }
-    
-    return { sql: whereClause };
+    return { sql: whereClause, ...paramManager.getParams() };
   }
 
   toSql(config?: ParameterizationConfig): Statement {
@@ -334,15 +325,6 @@ export class QueryBuilder<T> {
     }
 
     sql = sql.trim() + ';';
-    
-    if (config?.useParams) {
-      if (config.useNamedParams) {
-        return { sql, namedParams: paramManager.getNamedParams() };
-      } else {
-        return { sql, params: paramManager.getParams() };
-      }
-    }
-    
-    return { sql };
+    return { sql, ...paramManager.getParams() };
   }
 }
