@@ -47,16 +47,16 @@ export interface Query {
 }
 
 export class QueryBuilder<T> {
-  private graph: Graph;
-  private idCounter: number = 0;
-  private rootId: string = 'root';
-  private currentContextIds: string[] = [];
+  public graph: Graph;
+  public idCounter: number = 0;
+  public rootId: string = 'root';
+  public currentContextIds: string[] = [];
+  public paginationNodeId?: string;
   private debugLogicalGrouping = false;
-  private paginationNodeId?: string;
 
   constructor(
-    private tableName: string,
-    private resolveFieldName?: (propertyName: string) => string
+    public tableName: string,
+    public resolveFieldName?: (propertyName: string) => string
   ) {
     this.graph = new Graph({ directed: true });
     this.graph.setNode(this.rootId, { type: 'ROOT' });
