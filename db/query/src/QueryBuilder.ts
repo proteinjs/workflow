@@ -1,5 +1,6 @@
 import { Logger } from '@brentbahry/util';
 import { Graph } from '@dagrejs/graphlib';
+import { Statement, StatementParamManager } from './StatementFactory';
 
 export type LogicalOperator = 'AND'|'OR';
 export type Operator = '='|'<>'|'!='|'>'|'<'|'>='|'<='|'IN'|'LIKE'|'BETWEEN'|'IS NULL'|'IS NOT NULL'|'NOT';
@@ -35,15 +36,6 @@ export interface SortCriteria<T> {
 export interface ParameterizationConfig {
   useParams?: boolean; // Enable parameterization
   useNamedParams?: boolean; // Use named parameters (for Spanner), otherwise use '?' (for Knex)
-}
-
-export interface Query {
-  sql: string;
-  params?: any[]; // For Knex
-  namedParams?: { // For Spanner
-    params: Record<string, any>;
-    types: Record<string, string>;
-  };
 }
 
 export class QueryBuilder<T> {
@@ -223,54 +215,8 @@ export class QueryBuilder<T> {
     return this;
   }
 
-  toSql(config?: ParameterizationConfig): Query {
-    let sql = 'SELECT ';
-    const aggregates: string[] = [];
-    let groupBys: string[] = [];
-    let pagination: Pagination|undefined;
-    let sortClauses: string[] = [];
-    const params: any[] = [];
-    const namedParams: Query['namedParams'] = {
-      params: {},
-      types: {}
-    };
-    let paramCounter = 0; // Counter for parameter names
-
-    // Function to process and parameterize values, including handling subqueries
-  const parameterizeValue = (value: any, valueType: string): string => {
-    if (value instanceof QueryBuilder) {
-      // Generate SQL for the subquery
-      const subQuery = value.toSql(config);
-      if (config?.useParams) {
-        if (config.useNamedParams && subQuery.namedParams) {
-          // Merge parameters and types from subquery
-          for (let key of Object.keys(subQuery.namedParams.params)) {
-            const paramName = `param${paramCounter++}`;
-            namedParams.params[paramName] = subQuery.namedParams.params[key];
-            namedParams.types[paramName] = subQuery.namedParams.types[key];
-          }
-          return `(${subQuery.sql.slice(0, -1)})`; // Remove the trailing semicolon from subquery SQL
-        } else if (subQuery.params) {
-          // Append parameters from subquery
-          params.push(...subQuery.params);
-        }
-      }
-      return `(${subQuery.sql.slice(0, -1)})`; // Subquery SQL for non-parameterized config
-    } else if (config?.useParams) {
-      if (config.useNamedParams) {
-        const paramName = `param${paramCounter++}`;
-        namedParams.params[paramName] = value;
-        namedParams.types[paramName] = valueType;
-        return `@${paramName}`;
-      } else {
-        params.push(value);
-        return '?';
-      }
-    } else {
-      // Direct value formatting for non-parameterized queries
-      return typeof value === 'string' ? `'${value}'` : String(value);
-    }
-  };
+  toWhereClause(config?: ParameterizationConfig, queryParamManager?: StatementParamManager): Statement {
+    const paramManager = queryParamManager ? queryParamManager : new StatementParamManager(config);
 
     // Define a recursive function to process nodes and build condition strings
     const processNode = (nodeId: string): string => {
@@ -278,19 +224,19 @@ export class QueryBuilder<T> {
       switch (node.type) {
         case 'CONDITION':
           if (node.value instanceof QueryBuilder) {
-            let valueStr = parameterizeValue(node.value, 'subquery');
+            let valueStr = paramManager.parameterize(node.value, 'subquery');
             return `${node.field} ${node.operator} ${valueStr}`;
           } else if (node.operator === 'IN') {
-            let valuesStr = Array.isArray(node.value) ? node.value.map((val: any) => parameterizeValue(val, typeof val)).join(', ') : parameterizeValue(node.value, typeof node.value);
+            let valuesStr = Array.isArray(node.value) ? node.value.map((val: any) => paramManager.parameterize(val, typeof val)).join(', ') : paramManager.parameterize(node.value, typeof node.value);
             return `${node.field} ${node.operator} (${valuesStr})`;
           } else if (node.operator === 'BETWEEN') {
             // Ensure BETWEEN values are provided as an array of two elements
-            let valuesStr = Array.isArray(node.value) ? node.value.map((val: any) => parameterizeValue(val, typeof val)).join(' AND ') : parameterizeValue(node.value, typeof node.value);
+            let valuesStr = Array.isArray(node.value) ? node.value.map((val: any) => paramManager.parameterize(val, typeof val)).join(' AND ') : paramManager.parameterize(node.value, typeof node.value);
             return `${node.field} ${node.operator} ${valuesStr}`;
           } else if (node.operator === 'IS NULL' || node.operator === 'IS NOT NULL') {
             return `${node.field} ${node.operator}`;
           } else {
-            const conditionValue = parameterizeValue(node.value, typeof node.value);
+            const conditionValue = paramManager.parameterize(node.value, typeof node.value);
             return `${node.field} ${node.operator} ${conditionValue}`;
           }
         case 'LOGICAL':
@@ -298,6 +244,38 @@ export class QueryBuilder<T> {
           const childConditions: string[] = childIds.map(processNode).filter(cond => cond !== '');
           const combinedConditions = childConditions.join(` ${node.operator} `);
           return combinedConditions ? `(${combinedConditions})` : '';
+        default:
+          return '';
+      }
+    };
+
+    // Start processing from the root node
+    const rootChildren: string[] = this.graph.successors(this.rootId) || [];
+    const whereParts = rootChildren.map(processNode).filter(part => part.length > 0);
+    const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(' AND ')}` : '';
+    
+    if (config?.useParams) {
+      if (config.useNamedParams) {
+        return { sql: whereClause, namedParams: paramManager.getNamedParams() };
+      } else {
+        return { sql: whereClause, params: paramManager.getParams() };
+      }
+    }
+    
+    return { sql: whereClause };
+  }
+
+  toSql(config?: ParameterizationConfig): Statement {
+    const aggregates: string[] = [];
+    let groupBys: string[] = [];
+    let pagination: Pagination|undefined;
+    let sortClauses: string[] = [];
+    const paramManager = new StatementParamManager(config);
+
+    // Define a recursive function to process nodes and statement parts
+    const processNode = (nodeId: string): string => {
+      const node: any = this.graph.node(nodeId);
+      switch (node.type) {
         case 'AGGREGATE':
           aggregates.push(`${node.function}(${String(node.field)})`);
           return '';
@@ -311,7 +289,7 @@ export class QueryBuilder<T> {
           const { field, desc, byValues } = node.criteria;
           if (byValues && byValues.length > 0) {
             // Constructing a CASE statement for sorting by specific values
-            const cases = byValues.map((value: string, index: number) => `WHEN ${field} = ${parameterizeValue(value, typeof value)} THEN ${index}`).join(' ');
+            const cases = byValues.map((value: string, index: number) => `WHEN ${field} = ${paramManager.parameterize(value, typeof value)} THEN ${index}`).join(' ');
             const orderByCase = `CASE ${cases} ELSE ${byValues.length} END`;
             sortClauses.push(`${orderByCase}${desc ? ' DESC' : ' ASC'}`);
           } else {
@@ -327,12 +305,19 @@ export class QueryBuilder<T> {
 
     // Start processing from the root node
     const rootChildren: string[] = this.graph.successors(this.rootId) || [];
-    const whereClauses: string[] = rootChildren.map(processNode).filter(clause => clause !== '');
-    const whereClause: string = whereClauses.length > 0 ? ` WHERE ${whereClauses.join(' AND ')}` : '';
 
+    // order dependent for parameter value sequencing in paramManager.params
+    const { sql: whereClause } = this.toWhereClause(config, paramManager);
+    rootChildren.map(processNode).filter(part => part.length > 0);
+    // order dependent for parameter value sequencing in paramManager.params
+
+    let sql = 'SELECT ';
     sql += aggregates.length > 0 ? aggregates.join(', ') : '*';
     sql += ` FROM ${this.tableName}`;
-    sql += whereClause;
+
+    if (whereClause.length > 0) {
+      sql += ` ${whereClause}`;
+    }
 
     if (groupBys.length > 0) {
       sql += ` GROUP BY ${groupBys.join(', ')}`;
@@ -352,9 +337,9 @@ export class QueryBuilder<T> {
     
     if (config?.useParams) {
       if (config.useNamedParams) {
-        return { sql, namedParams };
+        return { sql, namedParams: paramManager.getNamedParams() };
       } else {
-        return { sql, params };
+        return { sql, params: paramManager.getParams() };
       }
     }
     
