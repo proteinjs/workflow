@@ -10,7 +10,7 @@ describe('QueryBuilder - Aggregate Support', () => {
 
   const tableName = 'Employee';
 
-  test('COUNT aggregate function', () => {
+  test('COUNT(field) aggregate function', () => {
     const qb = new QueryBuilder<Employee>(tableName).aggregate({ function: 'COUNT', field: 'id' });
 
     // Standard SQL output
@@ -25,6 +25,25 @@ describe('QueryBuilder - Aggregate Support', () => {
     // SQL output with named parameters and types
     result = qb.toSql({ useParams: true, useNamedParams: true });
     expect(result.sql).toBe('SELECT COUNT(id) FROM Employee;');
+    expect(result.namedParams?.params).toEqual({});
+    expect(result.namedParams?.types).toEqual({});
+  });
+
+  test('COUNT(*) as count aggregate function', () => {
+    const qb = new QueryBuilder<Employee>(tableName).aggregate({ function: 'COUNT', resultProp: 'count' });
+
+    // Standard SQL output
+    let result = qb.toSql();
+    expect(result.sql).toBe('SELECT COUNT(*) as count FROM Employee;');
+
+    // SQL output with positional parameters
+    result = qb.toSql({ useParams: true });
+    expect(result.sql).toBe('SELECT COUNT(*) as count FROM Employee;');
+    expect(result.params).toEqual([]);
+
+    // SQL output with named parameters and types
+    result = qb.toSql({ useParams: true, useNamedParams: true });
+    expect(result.sql).toBe('SELECT COUNT(*) as count FROM Employee;');
     expect(result.namedParams?.params).toEqual({});
     expect(result.namedParams?.types).toEqual({});
   });

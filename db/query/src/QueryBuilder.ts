@@ -19,7 +19,8 @@ export interface Condition<T> {
 
 export interface Aggregate<T> {
   function: AggregateFunction;
-  field: keyof T;
+  field?: keyof T;
+  resultProp?: string; // Prop name in the object returned from driver that contains the aggregate value
 }
 
 export interface Pagination {
@@ -168,8 +169,8 @@ export class QueryBuilder<T> {
 
   aggregate(aggregate: Aggregate<T>): this {
     const id = this.generateId();
-    let fieldName = aggregate.field as string;
-    if (this.resolveFieldName) {
+    let fieldName = aggregate.field ? aggregate.field as string : '*';
+    if (this.resolveFieldName && aggregate.field) {
       fieldName = this.resolveFieldName(fieldName);
     }
     aggregate.field = fieldName as keyof T;
@@ -268,7 +269,7 @@ export class QueryBuilder<T> {
       const node: any = this.graph.node(nodeId);
       switch (node.type) {
         case 'AGGREGATE':
-          aggregates.push(`${node.function}(${String(node.field)})`);
+          aggregates.push(`${node.function}(${String(node.field)})${node.resultProp ? ` as ${node.resultProp}` : ''}`);
           return '';
         case 'GROUP_BY':
           groupBys.push(...node.fields.map((field: keyof T) => String(field)));
