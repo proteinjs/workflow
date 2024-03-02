@@ -1,6 +1,6 @@
 import { DateTimeColumn, UuidColumn } from './Columns';
 import { Column, Table, Columns } from './Table';
-import moment from 'moment';
+import { moment } from './opt/moment';
 
 export interface Record {
 	id: string;
@@ -26,7 +26,7 @@ export function withRecordColumns<T extends Record>(columns: Columns<Omit<T, key
   return Object.assign(Object.assign({}, recordColumns), columns);
 }
 
-export type Row = { [columnName: string]: any }
+export type SerializedRecord = { [columnName: string]: any }
 
 export class RecordSerializer<T extends Record> {
   private table: Table<T>;
@@ -35,51 +35,71 @@ export class RecordSerializer<T extends Record> {
     this.table = table;
   }
 
-  async serialize(record: any): Promise<Row> {
+  async serialize(record: any): Promise<SerializedRecord> {
     const serialized: any = {};
-    const columns: {[prop: string]: Column<any, any>} = this.table.columns;
-    for (let prop in record) {
-      const column = columns[prop];
-      let value = await record[prop];
-      if (column.serialize)
-        value = await column.serialize(value, this.table, record, prop);
-      serialized[column.name] = value;
+    const fieldSerializer = new FieldSerializer(this.table);
+    for (let fieldPropertyName in record) {
+      const fieldValue = await record[fieldPropertyName];
+      const { columnName, serializedFieldValue } = await fieldSerializer.serialize(fieldPropertyName, fieldValue);
+      serialized[columnName] = serializedFieldValue;
     }
     return serialized;
   }
 
-  async deserialize(row: Row): Promise<T> {
+  async deserialize(serializedRecord: SerializedRecord): Promise<T> {
     const deserialized: any = {};
-    for (let columnName in row) {
-      const columns: {[prop: string]: Column<any, any>} = this.table.columns;
-      let column = columns[columnName];
-      if (column) {
-        let value = row[columnName];
-        await this.deserializeField(deserialized, column, columnName, value);
-        continue;
-      }
+    const fieldSerializer = new FieldSerializer(this.table);
+    for (let columnName in serializedRecord) {
+      const serializedFieldValue = serializedRecord[columnName];
+      const { fieldPropertyName, fieldValue } = await fieldSerializer.deserialize(columnName, serializedFieldValue);
+      deserialized[fieldPropertyName] = fieldValue;
+    }
+    return deserialized;
+  }
+}
 
-      for (let columnPropertyName in this.table.columns) {
-        column = (this.table.columns as any)[columnPropertyName];
-        if (column && columnName == column.name) {
-          const value = row[columnName];
-          await this.deserializeField(deserialized, column, columnPropertyName, value);
+export class FieldSerializer<T extends Record> {
+  constructor(
+    private table: Table<T>
+  ){}
+
+  async serialize(fieldPropertyName: string, fieldValue: any) {
+    const columns: {[prop: string]: Column<any, any>} = this.table.columns;
+    const column = columns[fieldPropertyName];
+    if (!column)
+      throw new Error(`[FieldSerializer.serialize] (${this.table.name}) no column matches fieldPropertyName: ${fieldPropertyName}`);
+
+    let serializedFieldValue = fieldValue;
+    if (column.serialize)
+      serializedFieldValue = await column.serialize(fieldValue);
+
+    return { columnName: column.name, serializedFieldValue };
+  }
+
+  async deserialize(columnName: string, serializedFieldValue: any) {
+    const columns: {[prop: string]: Column<any, any>} = this.table.columns;
+    let fieldPropertyName = columnName;
+    let column = columns[columnName]; // the scenario that the column name is the same as the property name
+    if (!column) {
+      for (let columnPropertyName in columns) {
+        const checkColumn = (this.table.columns as any)[columnPropertyName];
+        if (checkColumn && columnName == checkColumn.name) {
+          fieldPropertyName = columnPropertyName;
+          column = checkColumn;
           break;
         }
       }
     }
-    return deserialized;
-  }
 
-  private async deserializeField(deserialized: any, column: Column<any, any>, propertyName: string, propertyValue: any) {
-    if (!column.deserialize) {
-      deserialized[propertyName] = propertyValue;
-      return;
+    if (!column) {
+      // this is the case where a column exists in the db that is no longer defined in Table.columns
+      return { fieldPropertyName, fieldValue: undefined };
     }
-    
-    const deservialedValue = await column.deserialize(propertyValue, this.table, deserialized, propertyName);
-    if (typeof deservialedValue !== 'undefined') {
-      deserialized[propertyName] = deservialedValue;
-    }
+
+    let fieldValue = serializedFieldValue
+    if (column.deserialize)
+      fieldValue = await column.deserialize(serializedFieldValue);
+
+    return { fieldPropertyName, fieldValue };
   }
 }

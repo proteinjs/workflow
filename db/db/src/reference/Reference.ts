@@ -1,8 +1,7 @@
 import { CustomSerializableObject } from '@proteinjs/serializer';
-import { Db } from '../Db';
+import { getDb } from '../Db';
 import { Record } from '../Record';
 import { tableByName } from '../Table';
-import { getDbService } from '../services/DbService';
 import { ReferenceSerializerId } from '../serializers/ReferenceSerializer';
 
 /**
@@ -32,7 +31,7 @@ export class Reference<T extends Record> implements CustomSerializableObject {
   async get(): Promise<T|undefined> {
     if (!this._object && this._id) {
       const table = tableByName(this._table);
-      const db = typeof self === 'undefined' ? new Db() : getDbService();
+      const db = getDb();
       this._object = await db.get(table, { id: this._id });
     }
 

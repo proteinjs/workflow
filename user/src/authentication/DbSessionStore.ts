@@ -1,5 +1,5 @@
 import { Store } from 'express-session';
-import { Db } from '@proteinjs/db';
+import { Db, QueryBuilderFactory } from '@proteinjs/db';
 import { tables } from '../tables/tables';
 import { destroySession } from './destroySession';
 
@@ -82,8 +82,11 @@ export class DbSessionStore extends Store {
             return;
 
         console.info(`Sweeping expired sessions`);
-        const expiredSessions = (await new Db().query(tables.Session, [{ column: 'expires', operator: '<=', value: new Date() }])).length;
-        await new Db().delete(tables.Session, [{ column: 'expires', operator: '<=', value: new Date() }]);
+        const qb = new QueryBuilderFactory().getQueryBuilder(tables.Session)
+            .condition({ field: 'expires', operator: '<=', value: new Date() })
+        ;
+        const expiredSessions = await new Db().getRowCount(tables.Session, qb);
+        await new Db().delete(tables.Session, qb);
 		console.info(`Swept ${expiredSessions} expired sessions`);
 	}
 }

@@ -1,20 +1,22 @@
-import { Query, Record, Table, getDbService } from '@proteinjs/db'
+import { Query, QueryBuilderFactory, Record, SortCriteria, Table, getDb } from '@proteinjs/db'
 import { RowWindow, TableLoader } from '@proteinjs/ui'
 
 export class QueryTableLoader<T extends Record> implements TableLoader<T> {
   constructor(
     private table: Table<T>,
     private query?: Query<T>,
-    private sort?: { column: keyof T, desc?: boolean }[]
+    private sort?: SortCriteria<T>[]
   ) {}
 
   async load(startIndex: number, endIndex: number): Promise<RowWindow<T>> {
-    const dbService = getDbService();
-    const query = this.query ? this.query : {};
-    const sort: any = this.sort ? this.sort : [{ column: 'created', desc: true }];
-    const window = { start: startIndex, end: endIndex };
-    const queryPromise = dbService.query(this.table, query, sort, window);
-    const rowCountPromise = dbService.getRowCount(this.table, this.query);
+    const db = getDb();
+    const sort: any = this.sort ? this.sort : [{ field: 'created', desc: true }];
+    const qb = new QueryBuilderFactory().getQueryBuilder(this.table, this.query)
+      .sort(sort)
+      .paginate({ start: startIndex, end: endIndex })
+    ;
+    const queryPromise = db.query(this.table, qb);
+    const rowCountPromise = db.getRowCount(this.table, qb);
     const [rows, totalCount] = await Promise.all([queryPromise, rowCountPromise]);
     return { rows, totalCount };
   }

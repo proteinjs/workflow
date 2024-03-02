@@ -1,9 +1,9 @@
 import { CustomSerializableObject } from '@proteinjs/serializer';
-import { Db } from '../Db';
+import { getDb } from '../Db';
 import { Record } from '../Record';
 import { tableByName } from '../Table';
 import { ReferenceArraySerializerId } from '../serializers/ReferenceArraySerializer';
-import { getDbService } from '../services/DbService';
+import { QueryBuilderFactory } from '../QueryBuilderFactory';
 
 /**
  * The object returned by Db functions for each field of type ReferenceArrayColumn in a record.
@@ -39,8 +39,11 @@ export class ReferenceArray<T extends Record> implements CustomSerializableObjec
         this._objects = [];
       } else {
         const table = tableByName(this._table);
-        const db = typeof self === 'undefined' ? new Db() : getDbService();
-        this._objects = await db.query(table, [{ column: 'id', operator: 'in', value: this._ids }], [{ column: 'id', byValues: this._ids }]);
+        const db = getDb();
+        const qb = new QueryBuilderFactory().getQueryBuilder(table);
+        qb.condition({ field: 'id', operator: 'IN', value: this._ids });
+        qb.sort([{ field: 'id', byValues: this._ids }]);
+        this._objects = await db.query(table, qb);
       }
     }
 

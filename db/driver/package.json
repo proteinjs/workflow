@@ -1,6 +1,6 @@
 {
     "name": "@proteinjs/db-driver",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "description": "Db drvier",
     "repository": {
         "type": "git",
@@ -21,6 +21,7 @@
         "@brentbahry/reflection": "file:../../reflection",
         "@brentbahry/util": "file:../../util/common",
         "@proteinjs/db": "file:../db",
+        "@proteinjs/db-query": "file:../query",
         "knex": "0.21.5",
         "moment": "2.27.0",
         "mysql": "2.18.1",

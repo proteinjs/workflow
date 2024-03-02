@@ -2,7 +2,7 @@ import React from 'react'
 import { Delete, Add } from '@mui/icons-material'
 import S from 'string'
 import { TableButton, Table as TableComponent, TableLoader, TableProps } from '@proteinjs/ui'
-import { Column, Record, ReferenceArrayColumn, Table, getDbService } from '@proteinjs/db'
+import { Column, QueryBuilderFactory, Record, ReferenceArrayColumn, Table, getDb } from '@proteinjs/db'
 import { QueryTableLoader } from './QueryTableLoader'
 import { newRecordFormLink, recordFormLink } from '../pages/RecordFormPage'
 import { recordTableLink } from '../pages/RecordTablePage'
@@ -27,7 +27,10 @@ function deleteButton<T extends Record>(table: Table<T>): TableButton<T> {
       showWhenNoRowsSelected: false,
     },
     onClick: async (selectedRows, navigate) => {
-      await getDbService().delete(table, [{ column: 'id', operator: 'in', value: selectedRows.map(row => row.id) }]);
+      const qb = new QueryBuilderFactory().getQueryBuilder(table)
+        .condition({ field: 'id', operator: 'IN', value: selectedRows.map(row => row.id) as T[keyof T][] })
+      ;
+      await getDb().delete(table, qb);
       navigate(recordTableLink(table));
     },
   };
@@ -74,7 +77,7 @@ export function RecordTable<T extends Record>(props: RecordTableProps<T>) {
   }
 
   function defaultTableLoader() {
-    return new QueryTableLoader(props.table, undefined, [{ column: 'updated', desc: true }]);
+    return new QueryTableLoader(props.table, undefined, [{ field: 'updated', desc: true }]);
   }
 
   async function defaultRowOnClickRedirectUrl(row: T) {

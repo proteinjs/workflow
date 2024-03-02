@@ -59,8 +59,8 @@ export type Column<T, Serialized> = {
 	 */
 	oldName?: string,
 	options?: ColumnOptions,
-	serialize?: (fieldValue: T|undefined, table: Table<any>, record: any, columnPropertyName: string) => Promise<Serialized|undefined>,
-	deserialize?: (serializedField: Serialized, table: Table<any>, record: any, columnPropertyName: string) => Promise<T|void>,
+	serialize?: (fieldValue: T|undefined) => Promise<Serialized|undefined>,
+	deserialize?: (serializedFieldValue: Serialized) => Promise<T|void>,
 	beforeDelete?: (table: Table<any>, columnPropertyName: string, records: any[]) => Promise<void>,
 }
 

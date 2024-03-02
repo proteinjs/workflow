@@ -1,7 +1,7 @@
 import '../generated/index';
 import { Table, StringColumn, BooleanColumn, ObjectColumn, IntegerColumn, BigIntegerColumn, TextColumn, FloatColumn, DecimalColumn, DateColumn, DateTimeColumn, BinaryColumn, UuidColumn, Record, withRecordColumns } from '@proteinjs/db';
 import { loadTable, columnExists, getColumnMetadata, getPrimaryKey, getForeignKeys, getUniqueColumns, getIndexes } from '../src/loadTables';
-import { MysqlDriver } from '../src/MysqlDriver';
+import { KnexDriver } from '../src/KnexDriver';
 
 type User = Record & {
 	name: string,
@@ -58,81 +58,86 @@ function testColumnTypesTable(): Table<any> {
 };
 
 beforeAll(async () => {
-	await new MysqlDriver().init();
+	await new KnexDriver().init();
 })
 
 afterAll(async () => {
-	await MysqlDriver.getKnex().destroy();
+	await new KnexDriver().getKnex().destroy();
 });
 
 test('create primary key', async () => {
+	const knexDriver = new KnexDriver();
 	const UserTable = userTable();
 	await loadTable(UserTable);
-	expect(await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
-	const primaryKey = await getPrimaryKey(UserTable);
+	expect(await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
+	const primaryKey = await getPrimaryKey(UserTable, knexDriver);
 	expect(primaryKey[0]).toBe('id');
 	expect(primaryKey.length).toBe(1);
 	try {
-		await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).dropTable(UserTable.name);
+		await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).dropTable(UserTable.name);
 	} catch (error) {
 		console.log(`Catching error wheen dropping table: ${UserTable.name}, error: ${error}`);
 	}
-	expect(await MysqlDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
+	expect(await knexDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
 });
 
 test('alter primary key', async () => {
+	const knexDriver = new KnexDriver();
 	const UserTable = userTable();
 	await loadTable(UserTable);
-	expect(await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
-	let primaryKey = await getPrimaryKey(UserTable);
+	expect(await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
+	let primaryKey = await getPrimaryKey(UserTable, knexDriver);
 	expect(primaryKey[0]).toBe('id');
 	expect(primaryKey.length).toBe(1);
 	UserTable.primaryKey = ['name', 'email'];
 	await loadTable(UserTable);
-	primaryKey = await getPrimaryKey(UserTable);
+	primaryKey = await getPrimaryKey(UserTable, knexDriver);
 	expect(primaryKey[0]).toBe('name');
 	expect(primaryKey[1]).toBe('email');
 	expect(primaryKey.length).toBe(2);
-	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).dropTable(UserTable.name);
-	expect(await MysqlDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
+	await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).dropTable(UserTable.name);
+	expect(await knexDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
 });
 
 test('create columns', async () => {
+	const knexDriver = new KnexDriver();
 	const UserTable = userTable();
 	await loadTable(UserTable);
-	expect(await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
-	expect(await columnExists(UserTable.name, UserTable.columns.name.name)).toBeTruthy();
-	expect(await columnExists(UserTable.name, UserTable.columns.email.name)).toBeTruthy();
-	expect(await columnExists(UserTable.name, UserTable.columns.active.name)).toBeTruthy();
-	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).dropTable(UserTable.name);
-	expect(await MysqlDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
+	expect(await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
+	expect(await columnExists(UserTable.name, UserTable.columns.name.name, knexDriver)).toBeTruthy();
+	expect(await columnExists(UserTable.name, UserTable.columns.email.name, knexDriver)).toBeTruthy();
+	expect(await columnExists(UserTable.name, UserTable.columns.active.name, knexDriver)).toBeTruthy();
+	await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).dropTable(UserTable.name);
+	expect(await knexDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
 });
 
 test('add column via alter', async () => {
+	const knexDriver = new KnexDriver();
 	const UserTable = userTable();
 	const dataColumn = new ObjectColumn('data');
 	await loadTable(UserTable);
-	expect(await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
-	expect(await columnExists(UserTable.name, UserTable.columns.name.name)).toBeTruthy();
-	expect(await columnExists(UserTable.name, UserTable.columns.email.name)).toBeTruthy();
-	expect(await columnExists(UserTable.name, UserTable.columns.active.name)).toBeTruthy();
-	expect(await columnExists(UserTable.name, dataColumn.name)).toBeFalsy();
+	expect(await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
+	expect(await columnExists(UserTable.name, UserTable.columns.name.name, knexDriver)).toBeTruthy();
+	expect(await columnExists(UserTable.name, UserTable.columns.email.name, knexDriver)).toBeTruthy();
+	expect(await columnExists(UserTable.name, UserTable.columns.active.name, knexDriver)).toBeTruthy();
+	expect(await columnExists(UserTable.name, dataColumn.name, knexDriver)).toBeFalsy();
 	(UserTable as Table<any>).columns['data'] = dataColumn;
 	await loadTable(UserTable);
-	expect(await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
-	expect(await columnExists(UserTable.name, UserTable.columns.name.name)).toBeTruthy();
-	expect(await columnExists(UserTable.name, UserTable.columns.email.name)).toBeTruthy();
-	expect(await columnExists(UserTable.name, UserTable.columns.active.name)).toBeTruthy();
-	expect(await columnExists(UserTable.name, dataColumn.name)).toBeTruthy();
-	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).dropTable(UserTable.name);
-	expect(await MysqlDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
+	expect(await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
+	expect(await columnExists(UserTable.name, UserTable.columns.name.name, knexDriver)).toBeTruthy();
+	expect(await columnExists(UserTable.name, UserTable.columns.email.name, knexDriver)).toBeTruthy();
+	expect(await columnExists(UserTable.name, UserTable.columns.active.name, knexDriver)).toBeTruthy();
+	expect(await columnExists(UserTable.name, dataColumn.name, knexDriver)).toBeTruthy();
+	await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).dropTable(UserTable.name);
+	expect(await knexDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
 });
 
 test('columns created with correct types', async () => {
+	const knexDriver = new KnexDriver();
 	const TestColumnTypesTable = testColumnTypesTable();
 	await loadTable(TestColumnTypesTable);
-	expect(await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(TestColumnTypesTable.name)).toBeTruthy();
-	const columnMetadata = await getColumnMetadata(TestColumnTypesTable);
+	expect(await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(TestColumnTypesTable.name)).toBeTruthy();
+	const columnMetadata = await getColumnMetadata(TestColumnTypesTable, knexDriver);
 	expect(columnMetadata[TestColumnTypesTable.columns.integer.name]['DATA_TYPE']).toBe('int');
 	expect(columnMetadata[TestColumnTypesTable.columns.bigInteger.name]['DATA_TYPE']).toBe('bigint');
 	expect(columnMetadata[TestColumnTypesTable.columns.text.name]['DATA_TYPE']).toBe('text');
@@ -145,57 +150,60 @@ test('columns created with correct types', async () => {
 	expect(columnMetadata[TestColumnTypesTable.columns.binary.name]['DATA_TYPE']).toBe('blob');
 	expect(columnMetadata[TestColumnTypesTable.columns.object.name]['DATA_TYPE']).toBe('mediumtext');
 	expect(columnMetadata[TestColumnTypesTable.columns.uuid.name]['DATA_TYPE']).toBe('char');
-	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).dropTable(TestColumnTypesTable.name);
-	expect(await MysqlDriver.getKnex().schema.hasTable(TestColumnTypesTable.name)).toBeFalsy();
+	await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).dropTable(TestColumnTypesTable.name);
+	expect(await knexDriver.getKnex().schema.hasTable(TestColumnTypesTable.name)).toBeFalsy();
 });
 
 test('columns created with correct options', async () => {
+	const knexDriver = new KnexDriver();
 	const UserTable = userTable();
 	const TestColumnTypesTable = testColumnTypesTable();
 	await loadTable(UserTable);
 	await loadTable(TestColumnTypesTable);
-	expect(await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
-	expect(await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(TestColumnTypesTable.name)).toBeTruthy();
+	expect(await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
+	expect(await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(TestColumnTypesTable.name)).toBeTruthy();
 	
-	const columnMetadata = await getColumnMetadata(TestColumnTypesTable);
+	const columnMetadata = await getColumnMetadata(TestColumnTypesTable, knexDriver);
 	expect(columnMetadata[TestColumnTypesTable.columns.integer.name]['IS_NULLABLE']).toBe('YES');
 	expect(columnMetadata[TestColumnTypesTable.columns.bigInteger.name]['IS_NULLABLE']).toBe('NO');
 	// expect(parseFloat(columnMetadata[TestColumnTypesTable.columns.float.name]['COLUMN_DEFAULT'])).toBe(0.5);
 	
-	const foreignKeys = await getForeignKeys(TestColumnTypesTable);
+	const foreignKeys = await getForeignKeys(TestColumnTypesTable, knexDriver);
 	expect(foreignKeys[TestColumnTypesTable.columns.string.name]['REFERENCED_TABLE_NAME']).toBe(UserTable.name);
 	expect(foreignKeys[TestColumnTypesTable.columns.string.name]['REFERENCED_COLUMN_NAME']).toBe('id');
 	
-	const uniqueColumns = await getUniqueColumns(TestColumnTypesTable);
+	const uniqueColumns = await getUniqueColumns(TestColumnTypesTable, knexDriver);
 	expect(uniqueColumns.includes(TestColumnTypesTable.columns.uuid.name)).toBeTruthy();
 	
-	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).dropTable(TestColumnTypesTable.name);
-	expect(await MysqlDriver.getKnex().schema.hasTable(TestColumnTypesTable.name)).toBeFalsy();
-	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).dropTable(UserTable.name);
-	expect(await MysqlDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
+	await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).dropTable(TestColumnTypesTable.name);
+	expect(await knexDriver.getKnex().schema.hasTable(TestColumnTypesTable.name)).toBeFalsy();
+	await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).dropTable(UserTable.name);
+	expect(await knexDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
 });
 
 test('alter column name', async () => {
+	const knexDriver = new KnexDriver();
 	const UserTable = userTable();
 	await loadTable(UserTable);
-	expect(await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
-	expect(await columnExists(UserTable.name, UserTable.columns.name.name)).toBeTruthy();
+	expect(await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
+	expect(await columnExists(UserTable.name, UserTable.columns.name.name, knexDriver)).toBeTruthy();
 	UserTable.columns.name.oldName = 'name';
 	UserTable.columns.name.name = 'namo';
 	await loadTable(UserTable);
-	expect(await columnExists(UserTable.name, 'namo')).toBeTruthy();
-	expect(await columnExists(UserTable.name, 'name')).toBeFalsy();
-	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).dropTable(UserTable.name);
-	expect(await MysqlDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
+	expect(await columnExists(UserTable.name, 'namo', knexDriver)).toBeTruthy();
+	expect(await columnExists(UserTable.name, 'name', knexDriver)).toBeFalsy();
+	await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).dropTable(UserTable.name);
+	expect(await knexDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
 });
 
 test('alter column types', async () => {
+	const knexDriver = new KnexDriver();
 	const UserTable = userTable();
 	const TestColumnTypesTable = testColumnTypesTable();
 	await loadTable(UserTable);
 	await loadTable(TestColumnTypesTable);
-	expect(await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
-	expect(await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(TestColumnTypesTable.name)).toBeTruthy();
+	expect(await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
+	expect(await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(TestColumnTypesTable.name)).toBeTruthy();
 	TestColumnTypesTable.columns.integer = new BigIntegerColumn('integer', { nullable: true });
 	TestColumnTypesTable.columns.bigInteger = new IntegerColumn('big_integer', { nullable: false });
 	TestColumnTypesTable.columns.text = new StringColumn('text');
@@ -208,7 +216,7 @@ test('alter column types', async () => {
 	TestColumnTypesTable.columns.binary = new StringColumn('binary');
 	TestColumnTypesTable.columns.uuid = new StringColumn('uuid', { unique: { unique: true } });
 	await loadTable(TestColumnTypesTable);
-	const columnMetadata = await getColumnMetadata(TestColumnTypesTable);
+	const columnMetadata = await getColumnMetadata(TestColumnTypesTable, knexDriver);
 	expect(columnMetadata[TestColumnTypesTable.columns.integer.name]['DATA_TYPE']).toBe('bigint');
 	expect(columnMetadata[TestColumnTypesTable.columns.bigInteger.name]['DATA_TYPE']).toBe('int');
 	expect(columnMetadata[TestColumnTypesTable.columns.text.name]['DATA_TYPE']).toBe('varchar');
@@ -221,30 +229,31 @@ test('alter column types', async () => {
 	expect(columnMetadata[TestColumnTypesTable.columns.binary.name]['DATA_TYPE']).toBe('varchar');
 	expect(columnMetadata[TestColumnTypesTable.columns.object.name]['DATA_TYPE']).toBe('mediumtext');
 	expect(columnMetadata[TestColumnTypesTable.columns.uuid.name]['DATA_TYPE']).toBe('varchar');
-	const foreignKeys = await getForeignKeys(TestColumnTypesTable);
-	const uniqueColumns = await getUniqueColumns(TestColumnTypesTable);
+	const foreignKeys = await getForeignKeys(TestColumnTypesTable, knexDriver);
+	const uniqueColumns = await getUniqueColumns(TestColumnTypesTable, knexDriver);
 	expect(columnMetadata[TestColumnTypesTable.columns.integer.name]['IS_NULLABLE']).toBe('YES');
 	expect(columnMetadata[TestColumnTypesTable.columns.bigInteger.name]['IS_NULLABLE']).toBe('NO');
 	// expect(parseFloat(columnMetadata[TestColumnTypesTable.columns.float.name]['COLUMN_DEFAULT'])).toBe(0.5);
 	expect(foreignKeys[TestColumnTypesTable.columns.string.name]['REFERENCED_TABLE_NAME']).toBe(UserTable.name);
 	expect(foreignKeys[TestColumnTypesTable.columns.string.name]['REFERENCED_COLUMN_NAME']).toBe('id');
 	expect(uniqueColumns.includes(TestColumnTypesTable.columns.uuid.name)).toBeTruthy();
-	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).dropTable(TestColumnTypesTable.name);
-	expect(await MysqlDriver.getKnex().schema.hasTable(TestColumnTypesTable.name)).toBeFalsy();
-	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).dropTable(UserTable.name);
-	expect(await MysqlDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
+	await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).dropTable(TestColumnTypesTable.name);
+	expect(await knexDriver.getKnex().schema.hasTable(TestColumnTypesTable.name)).toBeFalsy();
+	await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).dropTable(UserTable.name);
+	expect(await knexDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
 });
 
 test('alter column options', async () => {
+	const knexDriver = new KnexDriver();
 	const UserTable = userTable();
 	const TestColumnTypesTable = testColumnTypesTable();
 	await loadTable(UserTable);
 	TestColumnTypesTable.columns.text.options = { defaultValue: async () => 'asdf' };
 	TestColumnTypesTable.columns['string2'] = new StringColumn('string2', { references: { table: 'user', column: 'id' } });
 	await loadTable(TestColumnTypesTable);
-	expect(await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
-	expect(await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(TestColumnTypesTable.name)).toBeTruthy();
-	let columnMetadata = await getColumnMetadata(TestColumnTypesTable);
+	expect(await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
+	expect(await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(TestColumnTypesTable.name)).toBeTruthy();
+	let columnMetadata = await getColumnMetadata(TestColumnTypesTable, knexDriver);
 	expect(columnMetadata[TestColumnTypesTable.columns.integer.name]['DATA_TYPE']).toBe('int');
 	expect(columnMetadata[TestColumnTypesTable.columns.bigInteger.name]['DATA_TYPE']).toBe('bigint');
 	expect(columnMetadata[TestColumnTypesTable.columns.text.name]['DATA_TYPE']).toBe('text');
@@ -258,8 +267,8 @@ test('alter column options', async () => {
 	expect(columnMetadata[TestColumnTypesTable.columns.binary.name]['DATA_TYPE']).toBe('blob');
 	expect(columnMetadata[TestColumnTypesTable.columns.object.name]['DATA_TYPE']).toBe('mediumtext');
 	expect(columnMetadata[TestColumnTypesTable.columns.uuid.name]['DATA_TYPE']).toBe('char');
-	let foreignKeys = await getForeignKeys(TestColumnTypesTable);
-	let uniqueColumns = await getUniqueColumns(TestColumnTypesTable);
+	let foreignKeys = await getForeignKeys(TestColumnTypesTable, knexDriver);
+	let uniqueColumns = await getUniqueColumns(TestColumnTypesTable, knexDriver);
 	expect(columnMetadata[TestColumnTypesTable.columns.integer.name]['IS_NULLABLE']).toBe('YES');
 	expect(columnMetadata[TestColumnTypesTable.columns.bigInteger.name]['IS_NULLABLE']).toBe('NO');
 	// expect(parseFloat(columnMetadata[TestColumnTypesTable.columns.float.name]['COLUMN_DEFAULT'])).toBe(0.5);
@@ -275,7 +284,7 @@ test('alter column options', async () => {
 	TestColumnTypesTable.columns.decimal = new DecimalColumn('decimal', { defaultValue: async () => 0 });
 	TestColumnTypesTable.columns.uuid = new UuidColumn('uuid', { unique: { unique: false } });
 	await loadTable(TestColumnTypesTable);
-	columnMetadata = await getColumnMetadata(TestColumnTypesTable);
+	columnMetadata = await getColumnMetadata(TestColumnTypesTable, knexDriver);
 	expect(columnMetadata[TestColumnTypesTable.columns.integer.name]['DATA_TYPE']).toBe('int');
 	expect(columnMetadata[TestColumnTypesTable.columns.bigInteger.name]['DATA_TYPE']).toBe('bigint');
 	expect(columnMetadata[TestColumnTypesTable.columns.text.name]['DATA_TYPE']).toBe('text');
@@ -289,8 +298,8 @@ test('alter column options', async () => {
 	expect(columnMetadata[TestColumnTypesTable.columns.binary.name]['DATA_TYPE']).toBe('blob');
 	expect(columnMetadata[TestColumnTypesTable.columns.object.name]['DATA_TYPE']).toBe('mediumtext');
 	expect(columnMetadata[TestColumnTypesTable.columns.uuid.name]['DATA_TYPE']).toBe('char');
-	foreignKeys = await getForeignKeys(TestColumnTypesTable);
-	uniqueColumns = await getUniqueColumns(TestColumnTypesTable);
+	foreignKeys = await getForeignKeys(TestColumnTypesTable, knexDriver);
+	uniqueColumns = await getUniqueColumns(TestColumnTypesTable, knexDriver);
 	expect(columnMetadata[TestColumnTypesTable.columns.integer.name]['IS_NULLABLE']).toBe('NO');
 	expect(columnMetadata[TestColumnTypesTable.columns.bigInteger.name]['IS_NULLABLE']).toBe('YES');
 	// expect(parseFloat(columnMetadata[TestColumnTypesTable.columns.float.name]['COLUMN_DEFAULT'])).toBe(1.5);
@@ -301,36 +310,38 @@ test('alter column options', async () => {
 	// expect(foreignKeys[TestColumnTypesTable.columns.text.name]['REFERENCED_TABLE_NAME']).toBe('user');
 	// expect(foreignKeys[TestColumnTypesTable.columns.text.name]['REFERENCED_COLUMN_NAME']).toBe('id');
 	expect(uniqueColumns.includes(TestColumnTypesTable.columns.uuid.name)).toBeFalsy();
-	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).dropTable(TestColumnTypesTable.name);
-	expect(await MysqlDriver.getKnex().schema.hasTable(TestColumnTypesTable.name)).toBeFalsy();
-	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).dropTable(UserTable.name);
-	expect(await MysqlDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
+	await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).dropTable(TestColumnTypesTable.name);
+	expect(await knexDriver.getKnex().schema.hasTable(TestColumnTypesTable.name)).toBeFalsy();
+	await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).dropTable(UserTable.name);
+	expect(await knexDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
 });
 
 test('create index', async () => {
+	const knexDriver = new KnexDriver();
 	const UserTable = userTable();
 	await loadTable(UserTable);
-	expect(await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
-	const indexes = await getIndexes(UserTable);
+	expect(await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
+	const indexes = await getIndexes(UserTable, knexDriver);
 	expect(JSON.stringify(indexes['db_test_user_email_index'])).toBe(JSON.stringify(['email']));
 	expect(JSON.stringify(indexes['db_test_user_active_email_index'])).toBe(JSON.stringify(['active', 'email']));
-	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).dropTable(UserTable.name);
-	expect(await MysqlDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
+	await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).dropTable(UserTable.name);
+	expect(await knexDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
 });
 
 test('alter index', async () => {
+	const knexDriver = new KnexDriver();
 	const UserTable = userTable();
 	await loadTable(UserTable);
-	expect(await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
-	let indexes = await getIndexes(UserTable);
+	expect(await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(UserTable.name)).toBeTruthy();
+	let indexes = await getIndexes(UserTable, knexDriver);
 	expect(JSON.stringify(indexes['db_test_user_email_index'])).toBe(JSON.stringify(['email']));
 	expect(JSON.stringify(indexes['db_test_user_active_email_index'])).toBe(JSON.stringify(['active', 'email']));
 	UserTable.indexes = [{ columns: ['email'] }, { columns: ['active', 'name'] }];
 	await loadTable(UserTable);
-	indexes = await getIndexes(UserTable);
+	indexes = await getIndexes(UserTable, knexDriver);
 	expect(JSON.stringify(indexes['db_test_user_email_index'])).toBe(JSON.stringify(['email']));
 	expect(JSON.stringify(indexes['db_test_user_active_name_index'])).toBe(JSON.stringify(['active', 'name']));
 	expect(JSON.stringify(indexes['db_test_user_active_email_index'])).toBeFalsy();
-	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).dropTable(UserTable.name);
-	expect(await MysqlDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
+	await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).dropTable(UserTable.name);
+	expect(await knexDriver.getKnex().schema.hasTable(UserTable.name)).toBeFalsy();
 });

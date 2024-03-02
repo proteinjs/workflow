@@ -17,7 +17,13 @@ export class ServiceExecutor {
     this.logger.info(`Executing with args:\n${JSON.stringify(requestBody, null, 2)}`);
     const method = this.service[this.method.name].bind(this.service);
     const deserializedArgs = Serializer.deserialize(requestBody);
-    const _return = await method(...deserializedArgs);
+    let _return: any;
+    try {
+      _return = await method(...deserializedArgs);
+    } catch (error: any) {
+      this.logger.error(`Failed with args:\n${JSON.stringify(requestBody, null, 2)}`);
+      throw error;
+    }
     const serializedReturn = Serializer.serialize(_return);
     this.logger.info(`Returning:\n${serializedReturn}`);
     return serializedReturn;

@@ -19,7 +19,7 @@ export class Settings implements SettingsService {
 
   async set(name: string, value: any) {
     const db = getDb();
-    const rowsUpdated = await db.update(tables.Setting, { value }, [{ column: 'name', operator: '=', value: name }]);
+    const rowsUpdated = await db.update(tables.Setting, { value }, { name });
     if (rowsUpdated == 0) {
       this.logger.info(`Creating new setting: ${name}`);
       await db.insert(tables.Setting, { name, value });

@@ -1,23 +1,23 @@
 import * as knex from 'knex';
 import { Table, Column, mysqlColumnTypeMap, getTables } from '@proteinjs/db';
-import { MysqlDriver } from './MysqlDriver';
+import { KnexDriver } from './KnexDriver';
 import { getColumnFactory } from './getColumnFactory';
 import { Logger } from '@brentbahry/util';
 
-export async function loadTables(): Promise<void> {
+export async function loadTables(knexDriver?: KnexDriver): Promise<void> {
 	const tables = getTables();
 	for (const table of tables)
-		await loadTable(table);
+		await loadTable(table, knexDriver);
 }
 
-export async function loadTable(table: Table<any>): Promise<void> {
-	if (await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).hasTable(table.name))
-		await alterTable(table);
+export async function loadTable(table: Table<any>, knexDriver = new KnexDriver()): Promise<void> {
+	if (await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(table.name))
+		await alterTable(table, knexDriver);
 	else
-		await createTable(table);
+		await createTable(table, knexDriver);
 }
 
-async function createTable(table: Table<any>) {
+async function createTable(table: Table<any>, knexDriver: KnexDriver) {
 	let resolve: any;
 	let reject: any;
 	const p = new Promise<void>((rs, rj) => {
@@ -27,10 +27,10 @@ async function createTable(table: Table<any>) {
 
 	const logger = new Logger('createTable');
 	logger.info(`Creating table: ${table.name}`);
-	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).createTable(table.name, (tableBuilder: any) => {
+	await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).createTable(table.name, (tableBuilder: any) => {
 		for (const columnPropertyName in table.columns) {
 			const column = table.columns[columnPropertyName];
-			createColumn(column, tableBuilder as any, table);
+			createColumn(column, tableBuilder as any, table, knexDriver);
 			logger.info(`[${table.name}] Created column: ${column.name}`);
 		}
 
@@ -56,7 +56,7 @@ async function createTable(table: Table<any>) {
 	return p;
 }
 
-async function alterTable(table: Table<any>) {
+async function alterTable(table: Table<any>, knexDriver: KnexDriver) {
 	let resolve: any;
 	let reject: any;
 	const p = new Promise<void>((rs, rj) => {
@@ -70,10 +70,10 @@ async function alterTable(table: Table<any>) {
 	const columnsToAlter: string[] = [];
 	const columnsWithForeignKeysToDrop: string[] = [];
 	const columnsWithUniqeConstraintToDrop: string[] = [];
-	const columnMetadata = await getColumnMetadata(table);
-	const uniqueColumns = await getUniqueColumns(table);
-	const foreignKeys = await getForeignKeys(table);
-	const { indexesToCreate, indexesToDrop } = await getIndexOperations(table);
+	const columnMetadata = await getColumnMetadata(table, knexDriver);
+	const uniqueColumns = await getUniqueColumns(table, knexDriver);
+	const foreignKeys = await getForeignKeys(table, knexDriver);
+	const { indexesToCreate, indexesToDrop } = await getIndexOperations(table, knexDriver);
 	for (const columnPropertyName in table.columns) {
 		const column = table.columns[columnPropertyName];
 		if (columnMetadata[column.name]) {
@@ -126,7 +126,7 @@ async function alterTable(table: Table<any>) {
 		columnsToCreate.push(columnPropertyName);
 	}
 
-	const existingPrimaryKey = await getPrimaryKey(table);
+	const existingPrimaryKey = await getPrimaryKey(table, knexDriver);
 	let dropExistingPrimaryKey = false;
 	if (existingPrimaryKey.length > 0 && !table.primaryKey)
 		dropExistingPrimaryKey = true;
@@ -162,10 +162,10 @@ async function alterTable(table: Table<any>) {
 		return;
 		
 	logger.info(`Altering table: ${table.name}`);
-	await MysqlDriver.getKnex().schema.withSchema(MysqlDriver.getDbName()).table(table.name, (tableBuilder: knex.TableBuilder) => {
+	await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).table(table.name, (tableBuilder: knex.TableBuilder) => {
 		for (const columnPropertyName of columnsToCreate) {
 			const column = table.columns[columnPropertyName];
-			createColumn(column, tableBuilder as any, table);
+			createColumn(column, tableBuilder as any, table, knexDriver);
 			logger.info(`[${table.name}] Created column: ${column.name}`);
 		}
 
@@ -186,7 +186,7 @@ async function alterTable(table: Table<any>) {
 
 		for (const columnPropertyName of columnsToAlter) {
 			const column = table.columns[columnPropertyName];
-			createColumn(column, tableBuilder as any, table).alter();
+			createColumn(column, tableBuilder as any, table, knexDriver).alter();
 			logger.info(`[${table.name}.${column.name}] Altered column, type: ${column.type}`);
 		}
 
@@ -225,8 +225,8 @@ async function alterTable(table: Table<any>) {
 	return p;
 }
 
-async function getIndexOperations(table: Table<any>) {
-	const existingIndexes = await getIndexes(table);
+async function getIndexOperations(table: Table<any>, knexDriver: KnexDriver) {
+	const existingIndexes = await getIndexes(table, knexDriver);
 	const indexesToDrop: string[][] = [];
 	const indexesToCreate: string[][] = [];
 	const currentIndexMap: {[serializedColumns: string]: boolean} = {};
@@ -253,16 +253,16 @@ async function getIndexOperations(table: Table<any>) {
 	return { indexesToCreate, indexesToDrop };
 }
 
-export async function columnExists(tableName: string, columnName: string): Promise<boolean> {
-	const result = await MysqlDriver.getKnex().withSchema('INFORMATION_SCHEMA').select().from('COLUMNS').where({
-		'TABLE_SCHEMA': MysqlDriver.getDbName(),
+export async function columnExists(tableName: string, columnName: string, knexDriver: KnexDriver): Promise<boolean> {
+	const result = await knexDriver.getKnex().withSchema('INFORMATION_SCHEMA').select().from('COLUMNS').where({
+		'TABLE_SCHEMA': knexDriver.getDbName(),
 		'TABLE_NAME': tableName,
 		'COLUMN_NAME': columnName
 	});
 	return result.length > 0;
 }
 
-function createColumn(column: Column<any, any>, tableBuilder: knex.TableBuilder, table: Table<any>) {
+function createColumn(column: Column<any, any>, tableBuilder: knex.TableBuilder, table: Table<any>, knexDriver: KnexDriver) {
 	const logger = new Logger('createColumn');
 	const columnFactory = getColumnFactory(column);
 	const columnBuilder = columnFactory.create(column, tableBuilder);
@@ -272,7 +272,7 @@ function createColumn(column: Column<any, any>, tableBuilder: knex.TableBuilder,
 	}
 
 	if (column.options?.references) {
-		columnBuilder.references(column.options.references.column).inTable(`${MysqlDriver.getDbName()}.${column.options.references.table}`);
+		columnBuilder.references(column.options.references.column).inTable(`${knexDriver.getDbName()}.${column.options.references.table}`);
 		logger.info(`[${table.name}.${column.name}] Added foreign key -> ${column.options.references.table}.${column.options.references.column}`);
 	}
 
@@ -288,9 +288,9 @@ function createColumn(column: Column<any, any>, tableBuilder: knex.TableBuilder,
 	return columnBuilder;
 }
 
-export async function getColumnMetadata(table: Table<any>) {
-	const result = await MysqlDriver.getKnex().withSchema('INFORMATION_SCHEMA').select().from('COLUMNS').where({
-		'TABLE_SCHEMA': MysqlDriver.getDbName(),
+export async function getColumnMetadata(table: Table<any>, knexDriver: KnexDriver) {
+	const result = await knexDriver.getKnex().withSchema('INFORMATION_SCHEMA').select().from('COLUMNS').where({
+		'TABLE_SCHEMA': knexDriver.getDbName(),
 		'TABLE_NAME': table.name
 	});
 	const columnMetadata: {[columnName: string]: any} = {};
@@ -300,9 +300,9 @@ export async function getColumnMetadata(table: Table<any>) {
 	return columnMetadata;
 }
 
-export async function getPrimaryKey(table: Table<any>) {
-	const result = await MysqlDriver.getKnex().withSchema('INFORMATION_SCHEMA').select().from('KEY_COLUMN_USAGE').where({
-		'TABLE_SCHEMA': MysqlDriver.getDbName(),
+export async function getPrimaryKey(table: Table<any>, knexDriver: KnexDriver) {
+	const result = await knexDriver.getKnex().withSchema('INFORMATION_SCHEMA').select().from('KEY_COLUMN_USAGE').where({
+		'TABLE_SCHEMA': knexDriver.getDbName(),
 		'TABLE_NAME': table.name,
 		'CONSTRAINT_NAME': 'PRIMARY'
 	});
@@ -313,9 +313,9 @@ export async function getPrimaryKey(table: Table<any>) {
 	return primaryKey;
 }
 
-export async function getForeignKeys(table: Table<any>) {
-	const result = await MysqlDriver.getKnex().withSchema('INFORMATION_SCHEMA').select().from('KEY_COLUMN_USAGE').where({
-		'TABLE_SCHEMA': MysqlDriver.getDbName(),
+export async function getForeignKeys(table: Table<any>, knexDriver: KnexDriver) {
+	const result = await knexDriver.getKnex().withSchema('INFORMATION_SCHEMA').select().from('KEY_COLUMN_USAGE').where({
+		'TABLE_SCHEMA': knexDriver.getDbName(),
 		'TABLE_NAME': table.name
 	});
 	const foreignKeys: {[columnName: string]: any} = {};
@@ -329,9 +329,9 @@ export async function getForeignKeys(table: Table<any>) {
 	return foreignKeys;
 }
 
-export async function getUniqueColumns(table: Table<any>) {
-	const result = await MysqlDriver.getKnex().withSchema('INFORMATION_SCHEMA').select().from('KEY_COLUMN_USAGE').where({
-		'TABLE_SCHEMA': MysqlDriver.getDbName(),
+export async function getUniqueColumns(table: Table<any>, knexDriver: KnexDriver) {
+	const result = await knexDriver.getKnex().withSchema('INFORMATION_SCHEMA').select().from('KEY_COLUMN_USAGE').where({
+		'TABLE_SCHEMA': knexDriver.getDbName(),
 		'TABLE_NAME': table.name
 	});
 	const uniqueColumns: string[] = [];
@@ -345,8 +345,8 @@ export async function getUniqueColumns(table: Table<any>) {
 	return uniqueColumns;
 }
 
-export async function getIndexes(table: Table<any>) {
-	const result = await MysqlDriver.getKnex().raw(`SHOW INDEX FROM ${MysqlDriver.getDbName()}.${table.name}`);
+export async function getIndexes(table: Table<any>, knexDriver: KnexDriver) {
+	const result = await knexDriver.getKnex().raw(`SHOW INDEX FROM ${knexDriver.getDbName()}.${table.name}`);
 	const indexes: { [keyName: string]: string[] } = {};
 	for (const row of result[0]) {
 		if (!indexes[row['Key_name']])
