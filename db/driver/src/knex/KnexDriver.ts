@@ -1,13 +1,14 @@
 import knex from 'knex';
-import { DbDriver, Record, SerializedRecord, Table } from '@proteinjs/db';
-import { loadTables } from './loadTables';
-import { MysqlConfig, getMysqlConfig } from './MysqlConfig';
+import { DbDriver, Record, SerializedRecord, Table, TableManager } from '@proteinjs/db';
+import { MysqlConfig, getMysqlConfig } from '../MysqlConfig';
 import { Logger } from '@brentbahry/util';
 import { ParameterizationConfig, Statement } from '@proteinjs/db-query';
+import { KnexSchemaMetadata } from './KnexSchemaMetadata';
+import { KnexSchemaOperations } from './KnexSchemaOperations';
 
 export class KnexDriver implements DbDriver {
 	private static KNEX: knex;
-	private logger = new Logger('KnexDriver');
+	private logger = new Logger(this.constructor.name);
 	private config: MysqlConfig;
 	private knexConfig: any;
 
@@ -23,7 +24,7 @@ export class KnexDriver implements DbDriver {
 		};
 	}
 
-	getKnex(): any {
+	getKnex(): knex {
 		if (!KnexDriver.KNEX)
 			KnexDriver.KNEX = knex(this.knexConfig);
 
@@ -34,10 +35,16 @@ export class KnexDriver implements DbDriver {
 		return this.config.dbName as string;
 	}
 
+	getTableManager() {
+		const schemaMetadata = new KnexSchemaMetadata(this);
+		const schemaOperations = new KnexSchemaOperations(this);
+		return new TableManager(schemaMetadata, schemaOperations);
+	}
+
 	async init(): Promise<void> {
 		await this.createDatabaseIfNotExists(this.getDbName());
 		await this.setMaxAllowedPacketSize();
-		await loadTables(this);
+		await this.getTableManager().loadTables();
 	}
 
 	async tableExists<T extends Record>(table: Table<T>): Promise<boolean> {
@@ -89,7 +96,7 @@ export class KnexDriver implements DbDriver {
 	async executeStatement(generateStatement: (config: ParameterizationConfig) => Statement): Promise<any> {
 		const { sql, params } = generateStatement({ useParams: true });
 		try {
-			return (await this.getKnex().raw(sql, params))[0];
+			return (await this.getKnex().raw(sql, params as any))[0];
 		} catch(error: any) {
 			this.logger.error(`Failed when executing: ${sql}`);
 			throw error;

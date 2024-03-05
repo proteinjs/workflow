@@ -1,6 +1,5 @@
 import { Db, Record, StringColumn, Table, withRecordColumns } from '@proteinjs/db';
-import { KnexDriver } from '../src/KnexDriver';
-import { loadTable } from '../src/loadTables';
+import { KnexDriver } from '../src/knex/KnexDriver';
 import { QueryBuilder } from '@proteinjs/db-query';
 
 export interface Employee extends Record {
@@ -22,7 +21,7 @@ describe('KnexDriver', () => {
     user: 'root',
     password: '',
     dbName: 'test',
-  })
+  });
   const getTable = (tableName: string) => {
     const employeeTable = new EmployeeTable();
     if (employeeTable.name == tableName)
@@ -34,10 +33,14 @@ describe('KnexDriver', () => {
 
   beforeAll(async () => {
     await knexDriver.init();
-    await loadTable(new EmployeeTable(), knexDriver);
+    await knexDriver.getTableManager().loadTable(new EmployeeTable());
   })
   
   afterAll(async () => {
+    const employeeTable = new EmployeeTable();
+    if (await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(employeeTable.name))
+      await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).dropTable(employeeTable.name);
+
     await knexDriver.getKnex().destroy();
   });
 

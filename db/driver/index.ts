@@ -1,2 +1,2 @@
-export * from './src/KnexDriver';
+export * from './src/knex/KnexDriver';
 export * from './src/MysqlConfig';

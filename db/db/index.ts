@@ -8,6 +8,9 @@ export * from './src/RecordIterator';
 export * from './src/source/SourceRecord';
 export * from './src/QueryBuilderFactory';
 
+export * from './src/schema/Schema';
+export * from './src/schema/TableManager';
+
 export * from './src/services/DbService';
 
 export * from '@proteinjs/db-query';

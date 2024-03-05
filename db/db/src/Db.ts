@@ -7,6 +7,7 @@ import { loadSourceRecords } from './source/loadSourceRecords';
 import { ParameterizationConfig, Statement, StatementFactory } from '@proteinjs/db-query';
 import { QueryBuilderFactory } from './QueryBuilderFactory';
 import { StatementConfigFactory } from './StatementConfigFactory';
+import { TableManager } from './schema/TableManager';
 
 export const getDb = () => typeof self === 'undefined' ? new Db() : getDbService() as Db;
 
@@ -19,6 +20,7 @@ export interface DbDriver extends Loadable {
     tableExists<T extends Record>(table: Table<T>): Promise<boolean>;
     init(): Promise<void>;
     getDbName(): string;
+    getTableManager(): TableManager;
 }
 
 export class Db implements DbService {
