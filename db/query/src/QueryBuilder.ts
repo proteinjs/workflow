@@ -13,7 +13,7 @@ export interface LogicalGroup<T> {
 export interface Condition<T> {
   field: keyof T;
   operator: Operator;
-  value: T[keyof T]|T[keyof T][]|QueryBuilder<T>|null;
+  value?: T[keyof T]|T[keyof T][]|QueryBuilder<T>|null;
 }
 
 interface InternalCondition<T> extends Condition<T> {
@@ -146,8 +146,15 @@ export class QueryBuilder<T> {
       throw new Error(`Must use a new QueryBuilder instance for subquery`);
 
     let resolvedCondition = condition;
-    if (Array.isArray(condition.value) && condition.value.length == 0)
+    if (
+      (Array.isArray(condition.value) && condition.value.length == 0) ||
+      (condition.operator === 'IN' && !condition.value)
+    ) {
       resolvedCondition = Object.assign(resolvedCondition, { empty: true });
+    }
+
+    if (typeof resolvedCondition.value === 'undefined')
+      resolvedCondition.value = null;
 
     const logger = new Logger(`${this.constructor.name}.condition`, this.debugLogicalGrouping ? 'debug' : 'info');
     const conditionId = this.generateId();

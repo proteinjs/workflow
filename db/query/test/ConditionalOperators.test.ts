@@ -131,7 +131,7 @@ describe('QueryBuilder - Conditional Operator Support', () => {
   });
   
   test('IS NULL operator', () => {
-    const qb = new QueryBuilder<Employee>(tableName).condition({ field: 'country', operator: 'IS NULL', value: null });
+    const qb = new QueryBuilder<Employee>(tableName).condition({ field: 'country', operator: 'IS NULL' });
   
     // Standard SQL output
     let result = qb.toSql({dbName});
@@ -151,7 +151,7 @@ describe('QueryBuilder - Conditional Operator Support', () => {
   });
   
   test('IS NOT NULL operator', () => {
-    const qb = new QueryBuilder<Employee>(tableName).condition({ field: 'country', operator: 'IS NOT NULL', value: null });
+    const qb = new QueryBuilder<Employee>(tableName).condition({ field: 'country', operator: 'IS NOT NULL' });
   
     // Standard SQL output
     let result = qb.toSql({dbName});
@@ -168,5 +168,45 @@ describe('QueryBuilder - Conditional Operator Support', () => {
     // No namedParams should be added for IS NOT NULL
     expect(result.namedParams?.params).toEqual({});
     expect(result.namedParams?.types).toEqual({});
-  });  
+  });
+
+  test('Empty array condition value simplifies to 1=0', () => {
+    const qb = new QueryBuilder<Employee>(tableName).condition({ field: 'id', operator: 'IN', value: [] });
+    
+    // Standard SQL output
+    let result = qb.toSql({dbName});
+    expect(result.sql).toBe("SELECT * FROM test.Employee WHERE 1=0;");
+
+    // SQL output with positional parameters (This should remain the same as IS NOT NULL doesn't use parameters)
+    result = qb.toSql({ dbName, useParams: true });
+    expect(result.sql).toBe("SELECT * FROM test.Employee WHERE 1=0;");
+    expect(result.params).toEqual([]);
+  
+    // SQL output with named parameters and types (Named params don't apply to IS NOT NULL, but included for consistency)
+    result = qb.toSql({ dbName, useParams: true, useNamedParams: true });
+    expect(result.sql).toBe("SELECT * FROM test.Employee WHERE 1=0;");
+    // No namedParams should be added for IS NOT NULL
+    expect(result.namedParams?.params).toEqual({});
+    expect(result.namedParams?.types).toEqual({});
+  });
+
+  test('Undefined array condition value simplifies to 1=0', () => {
+    const qb = new QueryBuilder<Employee>(tableName).condition({ field: 'id', operator: 'IN' });
+    
+    // Standard SQL output
+    let result = qb.toSql({dbName});
+    expect(result.sql).toBe("SELECT * FROM test.Employee WHERE 1=0;");
+
+    // SQL output with positional parameters (This should remain the same as IS NOT NULL doesn't use parameters)
+    result = qb.toSql({ dbName, useParams: true });
+    expect(result.sql).toBe("SELECT * FROM test.Employee WHERE 1=0;");
+    expect(result.params).toEqual([]);
+  
+    // SQL output with named parameters and types (Named params don't apply to IS NOT NULL, but included for consistency)
+    result = qb.toSql({ dbName, useParams: true, useNamedParams: true });
+    expect(result.sql).toBe("SELECT * FROM test.Employee WHERE 1=0;");
+    // No namedParams should be added for IS NOT NULL
+    expect(result.namedParams?.params).toEqual({});
+    expect(result.namedParams?.types).toEqual({});
+  });
 });
