@@ -49,17 +49,16 @@ export class KnexSchemaOperations implements SchemaOperations {
   }
 
   private createColumn(column: Column<any, any>, table: Table<any>, tableBuilder: knex.TableBuilder, tableChanges?: TableChanges) {
-    const logger = new Logger('KnexSchemaManager.createColumn');
     const columnFactory = getColumnFactory(column);
     const columnBuilder = columnFactory.create(column, tableBuilder);
     if (column.options?.unique?.unique && (!tableChanges || tableChanges.columnsWithUniqueConstraintsToCreate.includes(column.name))) {
       columnBuilder.unique(column.options.unique.indexName);
-      logger.info(`[${table.name}.${column.name}] Added unique constraint`);
+      this.logger.info(`[${table.name}.${column.name}] Added unique constraint`);
     }
   
     if (column.options?.references && (!tableChanges || tableChanges.columnsWithForeignKeysToCreate.includes(column.name))) {
       columnBuilder.references(column.options.references.column).inTable(`${this.knexDriver.getDbName()}.${column.options.references.table}`);
-      logger.info(`[${table.name}.${column.name}] Added foreign key -> ${column.options.references.table}.${column.options.references.column}`);
+      this.logger.info(`[${table.name}.${column.name}] Added foreign key -> ${column.options.references.table}.${column.options.references.column}`);
     }
   
     if (typeof column.options?.nullable !== 'undefined') {
@@ -68,7 +67,7 @@ export class KnexSchemaOperations implements SchemaOperations {
       else
         columnBuilder.notNullable();
   
-      logger.info(`[${table.name}.${column.name}] Added constraint nullable: ${column.options?.nullable}`);
+      this.logger.info(`[${table.name}.${column.name}] Added constraint nullable: ${column.options?.nullable}`);
     }
   
     return columnBuilder;
