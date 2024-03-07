@@ -1,6 +1,11 @@
 import { Logger, Graph } from '@brentbahry/util';
 import { Statement, StatementConfig, StatementParamManager } from './StatementFactory';
 
+export interface Select<T> {
+  fields?: (keyof T)[];
+  indexes?: boolean;
+}
+
 export type LogicalOperator = 'AND'|'OR';
 export type Operator = '='|'<>'|'!='|'>'|'<'|'>='|'<='|'IN'|'LIKE'|'BETWEEN'|'IS NULL'|'IS NOT NULL'|'NOT';
 export type AggregateFunction = 'COUNT'|'SUM'|'AVG'|'MIN'|'MAX';
@@ -37,7 +42,7 @@ export interface SortCriteria<T> {
   byValues?: string[];
 }
 
-export class QueryBuilder<T> {
+export class QueryBuilder<T = any> {
   public __serializerId = '@proteinjs/db/QueryBuilderSerializer';
   public graph: Graph;
   public idCounter: number = 0;
@@ -70,6 +75,13 @@ export class QueryBuilder<T> {
       qb.condition({ field: prop as keyof T, operator: '=', value: obj[prop as keyof T] as T[keyof T]});
     }
     return qb;
+  }
+
+  select(select: Select<T>): this {
+    const id = this.generateId();
+    this.graph.setNode(id, { type: 'SELECT', ...select });
+    this.graph.setEdge(this.rootId, id);
+    return this;
   }
 
   /**
@@ -150,7 +162,7 @@ export class QueryBuilder<T> {
       (Array.isArray(condition.value) && condition.value.length == 0) ||
       (condition.operator === 'IN' && !condition.value)
     ) {
-      resolvedCondition = Object.assign(resolvedCondition, { empty: true });
+      resolvedCondition = Object.assign(resolvedCondition, { empty: true }) as InternalCondition<T>;
     }
 
     if (typeof resolvedCondition.value === 'undefined')
@@ -250,6 +262,7 @@ export class QueryBuilder<T> {
   }
 
   toSql(config: StatementConfig): Statement {
+    let select: Select<any>|undefined;
     const aggregates: string[] = [];
     let groupBys: string[] = [];
     let pagination: Pagination|undefined;
@@ -260,6 +273,9 @@ export class QueryBuilder<T> {
     const processNode = (nodeId: string): string => {
       const node: any = this.graph.node(nodeId);
       switch (node.type) {
+        case 'SELECT':
+          select = node;
+          return '';
         case 'AGGREGATE':
           const resolvedAggFieldName = config.resolveFieldName && node.field != '*' ? config.resolveFieldName(this.tableName, node.field) : node.field;
           aggregates.push(`${node.function}(${resolvedAggFieldName})${node.resultProp ? ` as ${node.resultProp}` : ''}`);
@@ -297,8 +313,18 @@ export class QueryBuilder<T> {
     rootChildren.map(processNode).filter(part => part.length > 0);
     // order dependent for parameter value sequencing in paramManager.params
 
-    let sql = 'SELECT ';
-    sql += aggregates.length > 0 ? aggregates.join(', ') : '*';
+    let sql = select?.indexes ? 'SHOW INDEX' : 'SELECT ';
+    sql += aggregates.length > 0 ? 
+    aggregates.join(', ')
+      :
+      select?.fields ?
+        select.fields.join(', ')
+        :
+        select?.indexes ?
+          ''
+          :
+          '*'
+    ;
     sql += ` FROM ${config.dbName ? `${config.dbName}.` : ''}${this.tableName}`;
 
     if (whereClause.length > 0) {
