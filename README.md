@@ -1,14 +1,28 @@
+# Overview
+
+Protein JS is an app framework, written in TypeScript, leveraging Node and React. It's relatively modular and aims to be opt-in as much as possible, while also providing a range of components types: from minimal-dependency utilities to stateful, full-stack features. For example, you could depend on just @proteinjs/conversation to leverage APIs for interacting with chat bots. Or, you could depend on most packages and consume DB services with their corresponding UI components and build your own.
+
+The direction of Protein JS is to be a simple set of tools to build scalable apps as we transition into the AI era.
+
+The project is currently in beta, and can be built from source. Packages will be published as the project matures.
+
+Current goals:
+
+1. Add additional infra support (db drivers, ai chatbot drivers, cloud ops utils)
+2. Stabilize with automated testing and production use
+3. Onboard interested devs
+
 # Setup
 
 1. Setup the Protein JS components monorepo
-    1. `git clone git@github.com:brentbahry/components.git`
+    1. `git clone git@github.com:proteinjs/components.git`
     2. `cd components && ./setup.sh`
 2. Setup a local mysql server
     1. Install docker
     2. Create and start mysql container: `docker run -p 127.0.0.1:3306:3306  --name mdb -e MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=TRUE -d mariadb:latest`
     3. (optional) Connect to mysql cli: `docker exec -it mdb mariadb --user root`
 3. Setup the app-template project
-    1. `git clone git@github.com:brentbahry/app-template.git`
+    1. `git clone git@github.com:proteinjs/app-template.git`
     2. `cd app-template/common && npm i && npm run watch`
     3. Open a new terminal tab and run: `cd app-template/ui && npm i && npm run watch`
     4. Open a new terminal tab and run: `cd app-template/server && npm i && npm run watch`
