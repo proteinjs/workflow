@@ -4,7 +4,7 @@ Protein JS is an app framework, written in TypeScript, leveraging Node and React
 
 The direction of Protein JS is to be a simple set of tools to build scalable apps as we transition into the AI era.
 
-The project is currently in beta, and can be built from source. Packages will be published as the project matures.
+The project is currently in beta, and can be used by building from source via the setup instructions below. Packages will be published as the project matures.
 
 Current goals:
 
