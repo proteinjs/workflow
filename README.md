@@ -35,7 +35,7 @@ Current goals:
 
 1. Tables
     1. An example table is created in app-template-common
-    2. Since app-template-ui and app-template-server depend on @proteinjs/db-ui and @proteinjs/db-driver respectively, you get a base set of table and form components for free for any table table created with the @proteinjs/db/Table api
+    2. Since app-template-ui and app-template-server depend on @proteinjs/db-ui and @proteinjs/db-driver-knex respectively, you get a base set of table and form components for free for any table created with the @proteinjs/db/Table api
         1. Open http://localhost:3000/tables in a browser
         2. Click on the table named `example`
         3. You've been navigated to the table ui for this table, where all its records are listed
