@@ -12,15 +12,12 @@ import { TableManager } from './schema/TableManager';
 export const getDb = () => typeof self === 'undefined' ? new Db() : getDbService() as Db;
 
 export interface DbDriver extends Loadable {
-    insert(generateStatement: (config: ParameterizationConfig) => Statement): Promise<void>;
-    update(generateStatement: (config: ParameterizationConfig) => Statement): Promise<number>;
-    delete(generateStatement: (config: ParameterizationConfig) => Statement): Promise<number>;
-    query(generateStatement: (config: ParameterizationConfig) => Statement): Promise<SerializedRecord[]>;
-    executeStatement(generateStatement: (config: ParameterizationConfig) => Statement): Promise<any>;
-    tableExists<T extends Record>(table: Table<T>): Promise<boolean>;
-    init(): Promise<void>;
     getDbName(): string;
+    createDbIfNotExists(): Promise<void>;
+    init?(): Promise<void>;
     getTableManager(): TableManager;
+    runQuery(generateStatement: (config: ParameterizationConfig) => Statement): Promise<SerializedRecord[]>;
+    runDml(generateStatement: (config: ParameterizationConfig) => Statement): Promise<number>; // returns the number of affected rows
 }
 
 export class Db implements DbService {
@@ -48,12 +45,13 @@ export class Db implements DbService {
     }
 
     async init(): Promise<void> {
-        await this.dbDriver.init();
+        await this.dbDriver.createDbIfNotExists();
+        await this.dbDriver.getTableManager().loadTables();
         await loadSourceRecords();
     }
 
     async tableExists<T extends Record>(table: Table<T>): Promise<boolean> {
-        return await this.dbDriver.tableExists(table);
+        return await this.dbDriver.getTableManager().tableExists(table);
     }
 
     async get<T extends Record>(table: Table<T>, query: Query<T>): Promise<T> {
@@ -66,7 +64,7 @@ export class Db implements DbService {
         const recordSearializer = new RecordSerializer(table);
         const serializedRecord = await recordSearializer.serialize(recordCopy);
         const generateInsert = (config: ParameterizationConfig) => new StatementFactory<T>().insert(table.name, serializedRecord as Partial<T>, this.statementConfigFactory.getStatementConfig(config));
-        await this.dbDriver.insert(generateInsert);
+        await this.dbDriver.runDml(generateInsert);
         return recordCopy as T;
     }
 
@@ -91,7 +89,7 @@ export class Db implements DbService {
             qb.condition({ field: 'id', operator: '=', value: recordCopy.id as T[keyof T] });
             
         const generateUpdate = (config: ParameterizationConfig) => new StatementFactory<T>().update(table.name, serializedRecord as Partial<T>, qb, this.statementConfigFactory.getStatementConfig(config));
-        return await this.dbDriver.update(generateUpdate);
+        return await this.dbDriver.runDml(generateUpdate);
     }
 
     private async addUpdateFieldValues<T extends Record>(table: Table<T>, record: any) {
@@ -112,7 +110,7 @@ export class Db implements DbService {
         deleteQb.condition({ field: 'id', operator: 'IN', value: recordsToDeleteIds as T[keyof T][] });
         const generateDelete = (config: ParameterizationConfig) => new StatementFactory<T>().delete(table.name, deleteQb, this.statementConfigFactory.getStatementConfig(config));
         await this.beforeDelete(table, recordsToDelete);
-        const deletedRowCount = await this.dbDriver.delete(generateDelete);
+        const deletedRowCount = await this.dbDriver.runDml(generateDelete);
         await this.cascadeDeletions(table, recordsToDeleteIds);
         return deletedRowCount;
     }
@@ -143,7 +141,7 @@ export class Db implements DbService {
     async query<T extends Record>(table: Table<T>, query: Query<T>): Promise<T[]> {
         const qb = new QueryBuilderFactory().getQueryBuilder(table, query);
         const generateQuery = (config: ParameterizationConfig) => qb.toSql(this.statementConfigFactory.getStatementConfig(config));
-        const serializedRecords = await this.dbDriver.query(generateQuery);
+        const serializedRecords = await this.dbDriver.runQuery(generateQuery);
         const recordSearializer = new RecordSerializer(table);
         return await Promise.all(serializedRecords.map(async (serializedRecord) => recordSearializer.deserialize(serializedRecord)));
     }
@@ -152,7 +150,7 @@ export class Db implements DbService {
         const qb = new QueryBuilderFactory().getQueryBuilder(table, query);
         qb.aggregate({ function: 'COUNT', resultProp: 'count' });
         const generateQuery = (config: ParameterizationConfig) => qb.toSql(this.statementConfigFactory.getStatementConfig(config));
-        const result = await this.dbDriver.executeStatement(generateQuery);
+        const result = await this.dbDriver.runQuery(generateQuery);
         return result[0]['count'];
     }
 }

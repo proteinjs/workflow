@@ -1,5 +1,5 @@
 import { Db, Record, StringColumn, Table, withRecordColumns } from '@proteinjs/db';
-import { KnexDriver } from '../src/knex/KnexDriver';
+import { KnexDriver } from '../src/KnexDriver';
 import { QueryBuilder } from '@proteinjs/db-query';
 
 export interface Employee extends Record {

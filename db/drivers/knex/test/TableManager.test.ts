@@ -1,6 +1,6 @@
 import '../generated/index';
 import { Table, StringColumn, BooleanColumn, ObjectColumn, IntegerColumn, BigIntegerColumn, TextColumn, FloatColumn, DecimalColumn, DateColumn, DateTimeColumn, BinaryColumn, UuidColumn, Record, withRecordColumns, Db } from '@proteinjs/db';
-import { KnexDriver } from '../src/knex/KnexDriver';
+import { KnexDriver } from '../src/KnexDriver';
 
 interface User extends Record {
 	name: string,
