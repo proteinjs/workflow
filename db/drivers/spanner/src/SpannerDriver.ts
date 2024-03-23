@@ -1,10 +1,10 @@
 import { Database, Instance, Spanner } from '@google-cloud/spanner';
-import { DbDriver, Record, SerializedRecord, Table, TableManager } from '@proteinjs/db';
+import { DbDriver, TableManager } from '@proteinjs/db';
 import { SpannerConfig, getSpannerConfig } from './SpannerConfig';
 import { Logger } from '@brentbahry/util';
-import { ParameterizationConfig, Statement, QueryBuilder } from '@proteinjs/db-query';
-import { KnexSchemaMetadata } from './KnexSchemaMetadata';
-import { KnexSchemaOperations } from './KnexSchemaOperations';
+import { ParameterizationConfig, Statement } from '@proteinjs/db-query';
+import { SpannerSchemaOperations } from './SpannerSchemaOperations';
+import { SpannerColumnTypeFactory } from './SpannerColumnTypeFactory';
 
 export class SpannerDriver implements DbDriver {
 	private static SPANNER: Spanner;
@@ -43,10 +43,10 @@ export class SpannerDriver implements DbDriver {
 		return this.config.databaseName;
 	}
 
-	getTableManager() {
-		const schemaMetadata = new KnexSchemaMetadata(this);
-		const schemaOperations = new KnexSchemaOperations(this);
-		return new TableManager(schemaMetadata, schemaOperations);
+	getTableManager(): TableManager {
+		const schemaOperations = new SpannerSchemaOperations(this);
+		const columnTypeFactory = new SpannerColumnTypeFactory();
+		return new TableManager(this, schemaOperations, columnTypeFactory);
 	}
 
 	async createDbIfNotExists(): Promise<void> {
@@ -59,13 +59,6 @@ export class SpannerDriver implements DbDriver {
 	private async dbExists(databaseName: string): Promise<boolean> {
 		const [exists] = await this.getSpannerInstance().database(databaseName).exists();
 		return exists;
-	}
-
-	async tableExists<T extends Record>(table: Table<T>): Promise<boolean> {
-		const qb = new QueryBuilder('INFORMATION_SCHEMA.TABLES').condition({ field: 'TABLE_NAME', operator: '=', value: table.name });
-		const generateStatement = (config: ParameterizationConfig) => qb.toSql({ dbName: this.getDbName(), ...config });
-		const results = await this.runQuery(generateStatement);
-		return results.length > 0;
 	}
 
 	async runQuery(generateStatement: (config: ParameterizationConfig) => Statement): Promise<any> {
@@ -96,6 +89,19 @@ export class SpannerDriver implements DbDriver {
 			});
 		} catch(error: any) {
 			this.logger.error(`Failed when executing dml: ${sql}`);
+			throw error;
+		}
+	}
+
+	/**
+	 * Execute a schema write operation.
+	 */
+	async runUpdateSchema(sql: string): Promise<void> {
+		try {
+			const [operation] = await this.getSpannerDb().updateSchema(sql);
+      await operation.promise();
+		} catch(error: any) {
+			this.logger.error(`Failed when executing schema update: ${sql}`);
 			throw error;
 		}
 	}

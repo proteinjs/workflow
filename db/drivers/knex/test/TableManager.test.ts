@@ -1,5 +1,5 @@
 import '../generated/index';
-import { Table, StringColumn, BooleanColumn, ObjectColumn, IntegerColumn, BigIntegerColumn, TextColumn, FloatColumn, DecimalColumn, DateColumn, DateTimeColumn, BinaryColumn, UuidColumn, Record, withRecordColumns, Db } from '@proteinjs/db';
+import { Table, StringColumn, BooleanColumn, ObjectColumn, IntegerColumn, FloatColumn, DecimalColumn, DateColumn, DateTimeColumn, BinaryColumn, UuidColumn, Record, withRecordColumns, Db } from '@proteinjs/db';
 import { KnexDriver } from '../src/KnexDriver';
 
 interface User extends Record {
@@ -41,9 +41,9 @@ class ColumnTypesTable extends Table<ColumnTypes> {
 	name = 'db_test_column_types';
 	columns = withRecordColumns<ColumnTypes>({
 		integer: new IntegerColumn('integer', { nullable: true }),
-		bigInteger: new BigIntegerColumn('big_integer', { nullable: false }),
-		text: new TextColumn('text'),
+		bigInteger: new IntegerColumn('big_integer', { nullable: false }, true),
 		string: new StringColumn('string', { references: { table: 'db_test_user', column: 'id' } }),
+		text: new StringColumn('text', undefined, 'MAX'),
 		float: new FloatColumn('float', { defaultValue: async () => 0.5 }),
 		decimal: new DecimalColumn('decimal'),
 		boolean: new BooleanColumn('boolean'),
@@ -153,7 +153,7 @@ test('columns created with correct types', async () => {
 	const columnMetadata = await tableManager.schemaMetadata.getColumnMetadata(columnTypesTable);
 	expect(columnMetadata[columnTypesTable.columns.integer.name]['DATA_TYPE']).toBe('int');
 	expect(columnMetadata[columnTypesTable.columns.bigInteger.name]['DATA_TYPE']).toBe('bigint');
-	expect(columnMetadata[columnTypesTable.columns.text.name]['DATA_TYPE']).toBe('text');
+	expect(columnMetadata[columnTypesTable.columns.text.name]['DATA_TYPE']).toBe('longtext');
 	expect(columnMetadata[columnTypesTable.columns.string.name]['DATA_TYPE']).toBe('varchar');
 	expect(columnMetadata[columnTypesTable.columns.float.name]['DATA_TYPE']).toBe('float');
 	expect(columnMetadata[columnTypesTable.columns.decimal.name]['DATA_TYPE']).toBe('decimal');
@@ -161,7 +161,7 @@ test('columns created with correct types', async () => {
 	expect(columnMetadata[columnTypesTable.columns.date.name]['DATA_TYPE']).toBe('date');
 	expect(columnMetadata[columnTypesTable.columns.dateTime.name]['DATA_TYPE']).toBe('datetime');
 	expect(columnMetadata[columnTypesTable.columns.binary.name]['DATA_TYPE']).toBe('blob');
-	expect(columnMetadata[columnTypesTable.columns.object.name]['DATA_TYPE']).toBe('mediumtext');
+	expect(columnMetadata[columnTypesTable.columns.object.name]['DATA_TYPE']).toBe('longtext');
 	expect(columnMetadata[columnTypesTable.columns.uuid.name]['DATA_TYPE']).toBe('char');
 });
 
@@ -203,11 +203,11 @@ test('alter column types', async () => {
 	const columnTypesTable = new ColumnTypesTable();
 	await tableManager.loadTable(userTable);
 	await tableManager.loadTable(columnTypesTable);
-	const columnTypesTableIndexes = await tableManager.schemaMetadata.getIndexes(columnTypesTable);
-	console.log(`columnTypesTableIndexes:\n${JSON.stringify(columnTypesTableIndexes, null, 2)}`)
+	// const columnTypesTableIndexes = await tableManager.schemaMetadata.getIndexes(columnTypesTable);
+	// console.log(`columnTypesTableIndexes:\n${JSON.stringify(columnTypesTableIndexes, null, 2)}`)
 	expect(await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(userTable.name)).toBeTruthy();
 	expect(await knexDriver.getKnex().schema.withSchema(knexDriver.getDbName()).hasTable(columnTypesTable.name)).toBeTruthy();
-	columnTypesTable.columns.integer = new BigIntegerColumn('integer', { nullable: true });
+	columnTypesTable.columns.integer = new IntegerColumn('integer', { nullable: true }, true);
 	columnTypesTable.columns.bigInteger = new IntegerColumn('big_integer', { nullable: false });
 	columnTypesTable.columns.text = new StringColumn('text');
 	// TestColumnTypesTable.columns.string = new UuidColumn('string', { references: { table: 'user', column: 'id' } });
@@ -230,7 +230,7 @@ test('alter column types', async () => {
 	expect(columnMetadata[columnTypesTable.columns.date.name]['DATA_TYPE']).toBe('datetime');
 	expect(columnMetadata[columnTypesTable.columns.dateTime.name]['DATA_TYPE']).toBe('date');
 	expect(columnMetadata[columnTypesTable.columns.binary.name]['DATA_TYPE']).toBe('varchar');
-	expect(columnMetadata[columnTypesTable.columns.object.name]['DATA_TYPE']).toBe('mediumtext');
+	expect(columnMetadata[columnTypesTable.columns.object.name]['DATA_TYPE']).toBe('longtext');
 	expect(columnMetadata[columnTypesTable.columns.uuid.name]['DATA_TYPE']).toBe('varchar');
 	const foreignKeys = await tableManager.schemaMetadata.getForeignKeys(columnTypesTable);
 	const uniqueColumns = await tableManager.schemaMetadata.getUniqueColumns(columnTypesTable);
@@ -254,7 +254,7 @@ test('alter column options', async () => {
 	let columnMetadata = await tableManager.schemaMetadata.getColumnMetadata(columnTypesTable);
 	expect(columnMetadata[columnTypesTable.columns.integer.name]['DATA_TYPE']).toBe('int');
 	expect(columnMetadata[columnTypesTable.columns.bigInteger.name]['DATA_TYPE']).toBe('bigint');
-	expect(columnMetadata[columnTypesTable.columns.text.name]['DATA_TYPE']).toBe('text');
+	expect(columnMetadata[columnTypesTable.columns.text.name]['DATA_TYPE']).toBe('longtext');
 	expect(columnMetadata[columnTypesTable.columns.string.name]['DATA_TYPE']).toBe('varchar');
 	expect(columnMetadata[(columnTypesTable as Table<any>).columns.string2.name]['DATA_TYPE']).toBe('varchar');
 	expect(columnMetadata[columnTypesTable.columns.float.name]['DATA_TYPE']).toBe('float');
@@ -263,7 +263,7 @@ test('alter column options', async () => {
 	expect(columnMetadata[columnTypesTable.columns.date.name]['DATA_TYPE']).toBe('date');
 	expect(columnMetadata[columnTypesTable.columns.dateTime.name]['DATA_TYPE']).toBe('datetime');
 	expect(columnMetadata[columnTypesTable.columns.binary.name]['DATA_TYPE']).toBe('blob');
-	expect(columnMetadata[columnTypesTable.columns.object.name]['DATA_TYPE']).toBe('mediumtext');
+	expect(columnMetadata[columnTypesTable.columns.object.name]['DATA_TYPE']).toBe('longtext');
 	expect(columnMetadata[columnTypesTable.columns.uuid.name]['DATA_TYPE']).toBe('char');
 	let foreignKeys = await tableManager.schemaMetadata.getForeignKeys(columnTypesTable);
 	let uniqueColumns = await tableManager.schemaMetadata.getUniqueColumns(columnTypesTable);
@@ -274,7 +274,7 @@ test('alter column options', async () => {
 	expect(foreignKeys[columnTypesTable.columns.string.name]['REFERENCED_COLUMN_NAME']).toBe('id');
 	expect(uniqueColumns.includes(columnTypesTable.columns.uuid.name)).toBeTruthy();
 	columnTypesTable.columns.integer = new IntegerColumn('integer', { nullable: false });
-	columnTypesTable.columns.bigInteger = new BigIntegerColumn('big_integer', { nullable: true });
+	columnTypesTable.columns.bigInteger = new IntegerColumn('big_integer', { nullable: true }, true);
 	// columnTypesTable.columns.text = new TextColumn('text', { references: { table: userTable.name, column: 'id' } });
 	delete columnTypesTable.columns.string.options?.references;
 	((columnTypesTable as Table<any>).columns.string2.options as any).references = { table: userTable.name, column: 'name' };
@@ -285,7 +285,7 @@ test('alter column options', async () => {
 	columnMetadata = await tableManager.schemaMetadata.getColumnMetadata(columnTypesTable);
 	expect(columnMetadata[columnTypesTable.columns.integer.name]['DATA_TYPE']).toBe('int');
 	expect(columnMetadata[columnTypesTable.columns.bigInteger.name]['DATA_TYPE']).toBe('bigint');
-	expect(columnMetadata[columnTypesTable.columns.text.name]['DATA_TYPE']).toBe('text');
+	expect(columnMetadata[columnTypesTable.columns.text.name]['DATA_TYPE']).toBe('longtext');
 	expect(columnMetadata[columnTypesTable.columns.string.name]['DATA_TYPE']).toBe('varchar');
 	expect(columnMetadata[(columnTypesTable as Table<any>).columns.string2.name]['DATA_TYPE']).toBe('varchar');
 	expect(columnMetadata[columnTypesTable.columns.float.name]['DATA_TYPE']).toBe('float');
@@ -294,7 +294,7 @@ test('alter column options', async () => {
 	expect(columnMetadata[columnTypesTable.columns.date.name]['DATA_TYPE']).toBe('date');
 	expect(columnMetadata[columnTypesTable.columns.dateTime.name]['DATA_TYPE']).toBe('datetime');
 	expect(columnMetadata[columnTypesTable.columns.binary.name]['DATA_TYPE']).toBe('blob');
-	expect(columnMetadata[columnTypesTable.columns.object.name]['DATA_TYPE']).toBe('mediumtext');
+	expect(columnMetadata[columnTypesTable.columns.object.name]['DATA_TYPE']).toBe('longtext');
 	expect(columnMetadata[columnTypesTable.columns.uuid.name]['DATA_TYPE']).toBe('char');
 	foreignKeys = await tableManager.schemaMetadata.getForeignKeys(columnTypesTable);
 	uniqueColumns = await tableManager.schemaMetadata.getUniqueColumns(columnTypesTable);

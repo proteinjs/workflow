@@ -1,14 +1,28 @@
 import { Logger } from '@brentbahry/util';
-import { Table, mysqlColumnTypeMap, getTables } from '../Table';
-import { SchemaMetadata, SchemaOperations, TableChanges } from './Schema';
+import { Column, Table, getTables } from '../Table';
+import { SchemaOperations, TableChanges } from './SchemaOperations';
+import { SchemaMetadata } from './SchemaMetadata';
+import { DbDriver } from '../Db';
+
+export interface ColumnTypeFactory {
+  getType(column: Column<any, any>): string;
+}
 
 export class TableManager {
 	private logger = new Logger(this.constructor.name);
+	public schemaMetadata: SchemaMetadata;
+	public schemaOperations: SchemaOperations;
+	public columnTypeFactory: ColumnTypeFactory;
 
 	constructor(
-		public schemaMetadata: SchemaMetadata,
-		public schemaOperations: SchemaOperations
-	){}
+		dbDriver: DbDriver,
+		schemaOperations: SchemaOperations,
+		columnTypeFactory: ColumnTypeFactory
+	){
+		this.schemaMetadata = new SchemaMetadata(dbDriver);
+		this.schemaOperations = schemaOperations;
+		this.columnTypeFactory = columnTypeFactory;
+	}
 
 	async tableExists(table: Table<any>) {
 		return await this.schemaMetadata.tableExists(table);
@@ -59,8 +73,12 @@ export class TableManager {
 			columnsToCreate: [],
 			columnsToRename: [],
 			columnsToAlter: [],
+			columnTypeChanges: [],
+			columnNullableChanges: [],
 			columnsWithForeignKeysToCreate: [],
+			foreignKeysToCreate: [],
 			columnsWithForeignKeysToDrop: [],
+			foreignKeysToDrop: [],
 			columnsWithUniqueConstraintsToCreate: [],
 			columnsWithUniqueConstraintsToDrop: [],
 			indexesToCreate,
@@ -87,10 +105,11 @@ export class TableManager {
 			const column = table.columns[columnPropertyName];
 			if (columnMetadata[column.name]) {
 				let alter = false;
-				const mysqlColumnType = mysqlColumnTypeMap[column.type];
-				const existingMysqlColumnType = columnMetadata[column.name]['DATA_TYPE'];
-				if (mysqlColumnType != existingMysqlColumnType) {
-					// console.log(`mysqlColumnType != existingMysqlColumnType`);
+				const columnType = this.columnTypeFactory.getType(column);
+				const existingColumnType = columnMetadata[column.name]['DATA_TYPE'];
+				if (columnType != existingColumnType) {
+					// console.log(`columnType != existingColumnType`);
+					tableChanges.columnTypeChanges.push({ name: column.name, newType: columnType });
 					alter = true;
 				}
 				
@@ -99,6 +118,7 @@ export class TableManager {
 					(column.options?.nullable === false && columnMetadata[column.name]['IS_NULLABLE'] == 'YES')
 				) {
 					// console.log(`column.options?.nullable`)
+					tableChanges.columnNullableChanges.push({ name: column.name, nullable: column.options.nullable === true });
 					alter = true;
 				}
 				
@@ -121,11 +141,13 @@ export class TableManager {
 				) {
 					// console.log(`column.options?.references`)
 					tableChanges.columnsWithForeignKeysToDrop.push(column.name);
+					tableChanges.foreignKeysToDrop.push({ table: foreignKeys[column.name]['REFERENCED_TABLE_NAME'], column: foreignKeys[column.name]['REFERENCED_COLUMN_NAME'], referencedByColumn: column.name });
 					alter = true;
 				} else if (
 					column.options?.references && !foreignKeys[column.name]
 				) {
 					tableChanges.columnsWithForeignKeysToCreate.push(column.name);
+					tableChanges.foreignKeysToCreate.push({ table: column.options.references.table, column: column.options.references.column, referencedByColumn: column.name });
 					alter = true;
 				}
 	
@@ -146,13 +168,21 @@ export class TableManager {
 		return tableChanges;
 	}
 
-	async getIndexOperations(table: Table<any>) {
+	private async getIndexOperations(table: Table<any>) {
     const existingIndexes = await this.schemaMetadata.getIndexes(table);
-    const indexesToDrop: string[][] = [];
-    const indexesToCreate: string[][] = [];
+    const indexesToDrop: {
+			name?: string;
+			columns: string|string[];
+			unique?: boolean;
+		}[] = [];
+    const indexesToCreate: {
+			name?: string;
+			columns: string|string[];
+			unique?: boolean;
+		}[] = [];
     const currentIndexMap: {[serializedColumns: string]: boolean} = {};
     const existingIndexMap: {[serializedColumns: string]: boolean} = {};
-    for (const keyName in existingIndexes)
+		for (const keyName in existingIndexes)
       existingIndexMap[JSON.stringify(existingIndexes[keyName])] = true;
   
     if (table.indexes) {
@@ -160,7 +190,7 @@ export class TableManager {
         const serializedColumns = JSON.stringify(index.columns);
         currentIndexMap[serializedColumns] = true;
         if (!existingIndexMap[serializedColumns])
-          indexesToCreate.push(index.columns as string[]);
+          indexesToCreate.push({ name: index.name, columns: index.columns as string[] });
       }
     }
   
@@ -173,7 +203,7 @@ export class TableManager {
 				!keyName.endsWith('_unique') &&
 				!keyName.endsWith('_foreign')
 			)
-        indexesToDrop.push(existingIndex);
+        indexesToDrop.push({ name: keyName, columns: existingIndex });
     }
   
     return { indexesToCreate, indexesToDrop };

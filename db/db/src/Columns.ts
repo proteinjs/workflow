@@ -1,79 +1,44 @@
 import moment from 'moment';
 import { v1 as uuidv1 } from 'uuid';
-import { Column, ColumnOptions, Table, ColumnType, tableByName } from './Table';
+import { Column, ColumnOptions, Table, tableByName } from './Table';
 import { Record } from './Record';
 import { ReferenceArray } from './reference/ReferenceArray';
 import { Db } from './Db';
 import { Reference } from './reference/Reference';
+import { QueryBuilderFactory } from './QueryBuilderFactory';
 
 export class IntegerColumn implements Column<number, number> {
-	type: ColumnType = 'integer';
-
 	constructor(
 		public name: string,
 		public options?: ColumnOptions,
-		public length?: number,
-		public unsigned: boolean = false
+		public large = false
 	) {}
 }
 
-export class BigIntegerColumn implements Column<number, number> {
-	type: ColumnType = 'bigInteger';
-
+export class StringColumn<T = string> implements Column<T, string> {
 	constructor(
 		public name: string,
 		public options?: ColumnOptions,
-		public unsigned: boolean = false
-	) {}
-}
-
-export class TextColumn implements Column<string, string> {
-	type: ColumnType = 'text';
-	
-	constructor(
-		public name: string,
-		public options?: ColumnOptions,
-		public textType: 'text'|'mediumtext'|'longtext' = 'text'
-	) {
-		this.type = textType;
-	}
-}
-
-export class StringColumn implements Column<string, string> {
-	type: ColumnType = 'string';
-	
-	constructor(
-		public name: string,
-		public options?: ColumnOptions,
-		public maxLength: number = 255
+		public maxLength: number|'MAX' = 255
 	) {}
 }
 
 export class FloatColumn implements Column<number, number> {
-	type: ColumnType = 'float';
-	
 	constructor(
 		public name: string,
-		public options?: ColumnOptions,
-		public precision: number = 8,
-		public scale: number = 2
+		public options?: ColumnOptions
 	) {}
 }
 
 export class DecimalColumn implements Column<number, number> {
-	type: ColumnType = 'decimal';
-	
 	constructor(
 		public name: string,
 		public options?: ColumnOptions,
-		public precision: number = 8,
-		public scale: number = 2
+		public large = false
 	) {}
 }
 
 export class BooleanColumn implements Column<boolean, boolean> {
-	type: ColumnType = 'boolean';
-	
 	constructor(
 		public name: string,
 		public options?: ColumnOptions
@@ -95,8 +60,6 @@ export class BooleanColumn implements Column<boolean, boolean> {
 }
 
 export class DateColumn implements Column<Date, Date> {
-	type: ColumnType = 'date';
-	
 	constructor(
 		public name: string,
 		public options?: ColumnOptions
@@ -104,8 +67,6 @@ export class DateColumn implements Column<Date, Date> {
 }
 
 export class DateTimeColumn implements Column<moment.Moment, Date> {
-	type: ColumnType = 'dateTime';
-	
 	constructor(
 		public name: string,
 		public options?: ColumnOptions
@@ -127,35 +88,28 @@ export class DateTimeColumn implements Column<moment.Moment, Date> {
 }
 
 export class BinaryColumn implements Column<number, number> {
-	type: ColumnType = 'binary';
-	
 	constructor(
 		public name: string,
 		public options?: ColumnOptions,
-		public mysqlLength?: number,
+		public maxLength?: number|'MAX',
 	) {}
 }
 
-export class UuidColumn implements Column<string, string> {
-	type: ColumnType = 'uuid';
-	
+export class UuidColumn extends StringColumn {
 	constructor(
-		public name: string,
-		public options?: ColumnOptions
+		name: string,
+		options?: ColumnOptions
 	) {
-		this.options = Object.assign({ defaultValue: async () => uuidv1().split('-').join('') }, options);
+		super(name, Object.assign({ defaultValue: async () => uuidv1().split('-').join('') }, options), 36);
 	}
 }
 
-export class ObjectColumn<T> implements Column<T, string> {
-	type: ColumnType = 'mediumtext';
-	
+export class ObjectColumn<T> extends StringColumn<T> {
 	constructor(
-		public name: string,
-		public options?: ColumnOptions,
-		public largeObject: boolean = false // up to 4g, default up to 16m
+		name: string,
+		options?: ColumnOptions
 	) {
-		this.type = largeObject ? 'longtext' : 'mediumtext';
+		super(name, options, 'MAX'); // MAX is 4gb
 	}
 
 	async serialize(fieldValue: T|undefined): Promise<string|undefined> {
@@ -173,33 +127,16 @@ export class ObjectColumn<T> implements Column<T, string> {
 	}
 }
 
-export class ArrayColumn<T> implements Column<T[], string> {
-	private objectColumn: ObjectColumn<T[]>;
-	
+export class ArrayColumn<T> extends ObjectColumn<T[]> {
 	constructor(
-		public name: string,
-		public options?: ColumnOptions,
-		public largeObject: boolean = false // up to 4g, default up to 16m
+		name: string,
+		options?: ColumnOptions
 	) {
-		this.objectColumn = new ObjectColumn(name, options, largeObject);
-	}
-
-	get type() {
-		return this.objectColumn.type;
-	}
-
-	async serialize(fieldValue: T[]|undefined): Promise<string|undefined> {
-		return await this.objectColumn.serialize(fieldValue);
-	}
-
-	async deserialize(serializedFieldValue: string): Promise<T[]|undefined> {
-		return await this.objectColumn.deserialize(serializedFieldValue);
+		super(name, options);
 	}
 }
 
-export class ReferenceArrayColumn<T extends Record> implements Column<ReferenceArray<T>, string> {
-	private arrayColumn: ArrayColumn<string>;
-	
+export class ReferenceArrayColumn<T extends Record> extends ObjectColumn<ReferenceArray<T>> {
 	/**
 	 * A column that stores an array of references to other records.
 	 * 
@@ -207,20 +144,14 @@ export class ReferenceArrayColumn<T extends Record> implements Column<ReferenceA
 	 * @param referenceTable name of table that the reference records are in
 	 * @param cascadeDelete if true referenced records will be deleted when this record is deleted
 	 * @param options generic column options
-	 * @param largeObject if true store up to 4g, default (false) up to 16m; only record ids are stored
 	 */
 	constructor(
-		public name: string,
+		name: string,
 		public referenceTable: string,
 		public cascadeDelete: boolean,
-		public options?: ColumnOptions,
-		public largeObject: boolean = false
+		options?: ColumnOptions
 	) {
-		this.arrayColumn = new ArrayColumn(name, options, largeObject);
-	}
-
-	get type() {
-		return this.arrayColumn.type;
+		super(name, options);
 	}
 
 	async serialize(fieldValue: ReferenceArray<T>|undefined): Promise<string|undefined> {
@@ -228,11 +159,11 @@ export class ReferenceArrayColumn<T extends Record> implements Column<ReferenceA
 			return;
 		
 		const ids = (await fieldValue.get()).map(record => record.id);
-		return await this.arrayColumn.serialize(ids);
+		return await super.serialize(ids as any);
 	}
 
 	async deserialize(serializedFieldValue: string): Promise<ReferenceArray<T>> {
-		let ids = await this.arrayColumn.deserialize(serializedFieldValue);
+		let ids = (await super.deserialize(serializedFieldValue)) as string[]|undefined;
 		if (typeof ids === 'undefined')
 			ids = [];
 
@@ -255,13 +186,14 @@ export class ReferenceArrayColumn<T extends Record> implements Column<ReferenceA
 			return;
 
 		const referenceTable = tableByName(this.referenceTable);
-		await new Db().delete(referenceTable, [{ column: 'id', operator: 'in', value: recordIdsToDelete }]);
+		const qb = new QueryBuilderFactory().getQueryBuilder(referenceTable)
+			.condition({ field: 'id', operator: 'IN', value: recordIdsToDelete })
+		;
+		await new Db().delete(referenceTable, qb);
 	}
 }
 
-export class ReferenceColumn<T extends Record> implements Column<Reference<T>, string> {
-	private stringColumn: StringColumn;
-	
+export class ReferenceColumn<T extends Record> extends StringColumn<Reference<T>> {
 	/**
 	 * A column that stores a reference (id) to another record.
 	 * 
@@ -271,16 +203,12 @@ export class ReferenceColumn<T extends Record> implements Column<Reference<T>, s
 	 * @param options generic column options
 	 */
 	constructor(
-		public name: string,
+		name: string,
 		public referenceTable: string,
 		public cascadeDelete: boolean,
-		public options?: ColumnOptions
+		options?: ColumnOptions
 	) {
-		this.stringColumn = new StringColumn(name, options);
-	}
-
-	get type() {
-		return this.stringColumn.type;
+		super(name, options, 36);
 	}
 
 	async serialize(fieldValue: Reference<T>|undefined): Promise<string|undefined> {
@@ -312,6 +240,9 @@ export class ReferenceColumn<T extends Record> implements Column<Reference<T>, s
 			return;
 
 		const referenceTable = tableByName(this.referenceTable);
-		await new Db().delete(referenceTable, [{ column: 'id', operator: 'in', value: recordIdsToDelete }]);
+		const qb = new QueryBuilderFactory().getQueryBuilder(referenceTable)
+			.condition({ field: 'id', operator: 'IN', value: recordIdsToDelete })
+		;
+		await new Db().delete(referenceTable, qb);
 	}
 }

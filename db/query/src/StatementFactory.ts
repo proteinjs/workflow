@@ -19,6 +19,51 @@ export interface StatementConfig extends ParameterizationConfig {
   resolveFieldName?: (tableName: string, propertyName: string) => string,
 }
 
+interface Column {
+  name: string;
+  type: string;
+  nullable?: boolean;
+}
+
+interface ColumnTypeChange {
+  name: string;
+  newType: string;
+}
+
+interface ColumnNullableChange {
+  name: string;
+  nullable: boolean;
+}
+
+interface ColumnRename {
+  currentName: string;
+  newName: string;
+}
+
+interface ForeignKey {
+  table: string; // table that is referenced
+  column: string; // column that is referenced
+  referencedByColumn: string; // column the constraint is applied to
+}
+
+interface Index {
+  name?: string;
+  columns: string|string[];
+  unique?: boolean;
+}
+
+export interface AlterTableParams {
+  tableName: string;
+  columnsToAdd?: Column[];
+  foreignKeysToDrop?: ForeignKey[];
+  foreignKeysToAdd?: ForeignKey[];
+  columnTypeChanges?: ColumnTypeChange[];
+  columnNullableChanges?: ColumnNullableChange[];
+  columnRenames: ColumnRename[];
+  dropPrimaryKey?: boolean;
+  primaryKeyToCreate?: string | string[];
+}
+
 export class StatementFactory<T> {
   insert(tableName: string, data: Partial<T>, config: StatementConfig): Statement {
     const paramManager = new StatementParamManager(config);
@@ -45,6 +90,80 @@ export class StatementFactory<T> {
     const whereClause = queryBuilder.toWhereClause(config, paramManager);
     const sql = `DELETE FROM ${config.dbName}.${tableName} ${whereClause.sql};`;
     return { sql, ...paramManager.getParams() };
+  }
+
+  createTable(tableName: string, columns: Column[], primaryKey?: string|string[], foreignKeys?: ForeignKey[]): Statement {
+    const columnsSql = columns.map(column => `${column.name} ${column.type}${column.nullable === false ? ' NOT NULL' : ''}`).join(', ');
+    const primaryKeySql = primaryKey ? 
+      typeof primaryKey === 'string' ?
+        `PRIMARY KEY (${primaryKey})`  
+        :
+        `PRIMARY KEY (${primaryKey.join(', ')})`
+      :
+      ''
+    ;
+    const foreignKeysSql = foreignKeys ?
+      foreignKeys.map(foreignKey => `CONSTRAINT ${this.getForeignKeyName(tableName, foreignKey)} FOREIGN KEY (${foreignKey.referencedByColumn}) REFERENCES ${foreignKey.table}(${foreignKey.column})`).join(', ')
+      :
+      ''
+    ;
+    const sql = `
+      CREATE TABLE ${tableName} (
+        ${columnsSql},
+        ${foreignKeysSql}
+      ) ${primaryKeySql};`
+    ;
+
+    return { sql };
+  }
+
+  alterTable({
+    tableName,
+    columnsToAdd = [],
+    foreignKeysToDrop = [],
+    foreignKeysToAdd = [],
+    columnTypeChanges = [],
+    columnNullableChanges = [],
+    columnRenames = [],
+    dropPrimaryKey = false,
+    primaryKeyToCreate
+  }: AlterTableParams): Statement {
+    const addColumnsSql = columnsToAdd.map(column => `ADD COLUMN ${column.name} ${column.type}${column.nullable === false ? ' NOT NULL' : ''}`).join(', ');
+    const dropForeignKeysSql = foreignKeysToDrop.map(foreignKey => `DROP CONSTRAINT ${this.getForeignKeyName(tableName, foreignKey)}`).join(', ');
+    const addForeignKeysSql = foreignKeysToAdd.map(foreignKey => `ADD CONSTRAINT ${this.getForeignKeyName(tableName, foreignKey)} FOREIGN KEY (${foreignKey.referencedByColumn}) REFERENCES ${foreignKey.table}(${foreignKey.column})`).join(', ');
+    const changeColumnTypesSql = columnTypeChanges.map(change => `ALTER COLUMN ${change.name} TYPE ${change.newType}`).join(', ');
+    const columnNullableChangesSql = columnNullableChanges.map(change => `ALTER COLUMN ${change.name} ${change.nullable ? 'DROP NOT NULL' : 'SET NOT NULL'}`).join(', ');
+    const renameColumnsSql = columnRenames.map(rename => `RENAME COLUMN ${rename.currentName} TO ${rename.newName}`).join(', ');
+    const dropPrimaryKeySql = dropPrimaryKey ? 'DROP PRIMARY KEY' : '';
+    const primaryKeySql = primaryKeyToCreate ? 
+      typeof primaryKeyToCreate === 'string' ?
+        `ADD PRIMARY KEY (${primaryKeyToCreate})`  
+        :
+        `ADD PRIMARY KEY (${primaryKeyToCreate.join(', ')})`
+      :
+      ''
+    ;
+    const parts = [addColumnsSql, dropForeignKeysSql, addForeignKeysSql, changeColumnTypesSql, columnNullableChangesSql, renameColumnsSql, dropPrimaryKeySql, primaryKeySql].filter(part => part !== '').join(', ');
+    const sql = `ALTER TABLE ${tableName} ${parts};`;
+    return { sql };
+  }
+
+  private getForeignKeyName(tableName: string, foreignKey: ForeignKey) {
+    return `${tableName}_${foreignKey.referencedByColumn}_to_${foreignKey.table}_${foreignKey.column}`;
+  }
+
+  createIndex(index: Index, tableName: string): Statement {
+    const sql = `CREATE${index.unique ? ' UNIQUE' : ''} INDEX ${this.getIndexName(tableName, index)} ON ${tableName}(${typeof index.columns === 'string' ? index.columns : index.columns.join(', ')})`;
+    return { sql };
+  }
+
+  dropIndex(index: Index, tableName: string): Statement {
+    const sql = `DROP INDEX ${this.getIndexName(tableName, index)};`;
+    return { sql }
+  }
+
+  private getIndexName(tableName: string, index: Index) {
+    return index.name ? index.name : `${tableName}_${typeof index.columns === 'string' ? index.columns : index.columns.join('_')}`;
   }
 }
 

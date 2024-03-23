@@ -3,8 +3,8 @@ import { DbDriver, SerializedRecord, TableManager } from '@proteinjs/db';
 import { KnexConfig, getKnexConfig } from './KnexConfig';
 import { Logger } from '@brentbahry/util';
 import { ParameterizationConfig, Statement } from '@proteinjs/db-query';
-import { KnexSchemaMetadata } from './KnexSchemaMetadata';
 import { KnexSchemaOperations } from './KnexSchemaOperations';
+import { KnexColumnTypeFactory } from './KnexColumnTypeFactory';
 
 export class KnexDriver implements DbDriver {
 	private static KNEX: knex;
@@ -63,10 +63,10 @@ export class KnexDriver implements DbDriver {
 		this.logger.info('Set global max_allowed_packet size to 1gb');
 	}
 
-	getTableManager() {
-		const schemaMetadata = new KnexSchemaMetadata(this);
+	getTableManager(): TableManager {
 		const schemaOperations = new KnexSchemaOperations(this);
-		return new TableManager(schemaMetadata, schemaOperations);
+		const columnTypeFactory = new KnexColumnTypeFactory();
+		return new TableManager(this, schemaOperations, columnTypeFactory);
 	}
 
 	async runQuery(generateStatement: (config: ParameterizationConfig) => Statement): Promise<SerializedRecord[]> {

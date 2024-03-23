@@ -1,135 +1,86 @@
 import knex from 'knex';
-import { BigIntegerColumn, BinaryColumn, BooleanColumn, Column, ColumnType, DateColumn, DateTimeColumn, DecimalColumn, FloatColumn, IntegerColumn, ObjectColumn, StringColumn, TextColumn, UuidColumn } from '@proteinjs/db';
+import { BinaryColumn, BooleanColumn, Column, DateColumn, DateTimeColumn, DecimalColumn, FloatColumn, IntegerColumn, StringColumn, UuidColumn } from '@proteinjs/db';
 
-export const getColumnFactory = (column: Column<any, any>) => {
-  const columnFactory = columnFactories[column.type];
-  if (!columnFactory)
-    throw new Error(`Could not find ColumnFactory for column type: ${column.type}`);
+export const getColumnFactory = (column: Column<any, any>): ColumnFactory => {
+  if (column instanceof IntegerColumn)
+		return new IntegerColumnFactory();
+	else if (column instanceof UuidColumn)
+		return new UuidColumnFactory();
+	else if (column instanceof StringColumn)
+		return new StringColumnFactory();
+	else if (column instanceof FloatColumn)
+		return new FloatColumnFactory();
+	else if (column instanceof DecimalColumn)
+		return new DecimalColumnFactory();
+	else if (column instanceof BooleanColumn)
+		return new BooleanColumnFactory();
+	else if (column instanceof DateColumn)
+		return new DateColumnFactory();
+	else if (column instanceof DateTimeColumn)
+		return new DateTimeColumnFactory();
+	else if (column instanceof BinaryColumn)
+		return new BinaryColumnFactory();
 
-  return columnFactory;
+	throw new Error(`Invalid column type: ${column.constructor.name}, must extend a base column`);
 }
-
-export type ColumnFactoryMap = { [key: string]: ColumnFactory }
 
 export interface ColumnFactory {
   create(column: Column<any, any>, tableBuilder: knex.TableBuilder): knex.ColumnBuilder;
 }
 
 export class IntegerColumnFactory implements ColumnFactory {
-	type: ColumnType = 'integer';
-
 	create(integerColumn: IntegerColumn, tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		const columnBuilder = tableBuilder.integer(integerColumn.name, integerColumn.length);
-		if (integerColumn.unsigned)
-			columnBuilder.unsigned();
-
-		return columnBuilder;
+		return integerColumn.large ? tableBuilder.bigInteger(integerColumn.name) : tableBuilder.integer(integerColumn.name);
 	}
 }
 
-export class BigIntegerColumnFactory implements ColumnFactory {
-	type: ColumnType = 'bigInteger';
-
-	create(bigIntegerColumn: BigIntegerColumn, tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		const columnBuilder = tableBuilder.bigInteger(bigIntegerColumn.name);
-		if (bigIntegerColumn.unsigned)
-			columnBuilder.unsigned();
-
-		return columnBuilder;
-	}
-}
-
-export class TextColumnFactory implements ColumnFactory {
-	type: ColumnType = 'text';
-
-	create(textColumn: TextColumn, tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		return tableBuilder.text(textColumn.name, textColumn.textType);
-	}
-}
-
+// max length of longtext is 4,294,967,295 bytes (~4 GiB)
 export class StringColumnFactory implements ColumnFactory {
-	type: ColumnType = 'string';
-	
 	create(stringColumn: StringColumn, tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		return tableBuilder.string(stringColumn.name, stringColumn.maxLength);
+		return stringColumn.maxLength === 'MAX' ? tableBuilder.text(stringColumn.name, 'longtext') : tableBuilder.string(stringColumn.name, stringColumn.maxLength);
 	}
 }
 
 export class FloatColumnFactory implements ColumnFactory {
-	type: ColumnType = 'float';
-	
 	create(floatColumn: FloatColumn, tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		return tableBuilder.float(floatColumn.name, floatColumn.precision, floatColumn.scale);
+		return tableBuilder.float(floatColumn.name);
 	}
 }
 
 export class DecimalColumnFactory implements ColumnFactory {
-	type: ColumnType = 'decimal';
-
 	create(decimalColumn: DecimalColumn, tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		return tableBuilder.decimal(decimalColumn.name, decimalColumn.precision, decimalColumn.scale);
+		return decimalColumn.large ? tableBuilder.decimal(decimalColumn.name, 38, 20) : tableBuilder.decimal(decimalColumn.name);
 	}
 }
 
 export class BooleanColumnFactory implements ColumnFactory {
-	type: ColumnType = 'boolean';
-
 	create(booleanColumn: BooleanColumn, tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
 		return tableBuilder.boolean(booleanColumn.name);
 	}
 }
 
 export class DateColumnFactory implements ColumnFactory {
-	type: ColumnType = 'date';
-
 	create(dateColumn: DateColumn, tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
 		return tableBuilder.date(dateColumn.name);
 	}
 }
 
 export class DateTimeColumnFactory implements ColumnFactory {
-	type: ColumnType = 'dateTime';
-
 	create(dateTimeColumn: DateTimeColumn, tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
 		return tableBuilder.dateTime(dateTimeColumn.name);
 	}
 }
 
+// max length of longblob is 4,294,967,295 bytes (~4 GiB)
+// max length when undefined (aka blob) is 65,535 bytes (~64 KiB)
 export class BinaryColumnFactory implements ColumnFactory {
-	type: ColumnType = 'binary';
-
 	create(binaryColumn: BinaryColumn, tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		return tableBuilder.binary(binaryColumn.name, binaryColumn.mysqlLength);
-	}
-}
-
-export class ObjectColumnFactory implements ColumnFactory {
-	type: ColumnType = 'mediumtext';
-
-	create(objectColumn: ObjectColumn<any>, tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
-		return tableBuilder.text(objectColumn.name, objectColumn.type);
+		return binaryColumn.maxLength == 'MAX' ? tableBuilder.specificType(binaryColumn.name, 'longblob') : tableBuilder.binary(binaryColumn.name, binaryColumn.maxLength);
 	}
 }
 
 export class UuidColumnFactory implements ColumnFactory {
-	type: ColumnType = 'uuid';
-
 	create(uuidColumn: UuidColumn, tableBuilder: knex.TableBuilder): knex.ColumnBuilder {
 		return tableBuilder.uuid(uuidColumn.name);
 	}
-}
-
-export const columnFactories: ColumnFactoryMap = {
-  'integer': new IntegerColumnFactory(),
-  'bigInteger': new BigIntegerColumnFactory(),
-  'text': new TextColumnFactory(),
-  'string': new StringColumnFactory(),
-  'float': new FloatColumnFactory(),
-  'decimal': new DecimalColumnFactory(),
-  'boolean': new BooleanColumnFactory(),
-  'date': new DateColumnFactory(),
-  'dateTime': new DateTimeColumnFactory(),
-  'binary': new BinaryColumnFactory(),
-  'mediumtext': new ObjectColumnFactory(),
-  'uuid': new UuidColumnFactory(),
 }

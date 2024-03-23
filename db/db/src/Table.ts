@@ -51,7 +51,6 @@ export type Columns<T> = {
 
 export type Column<T, Serialized> = {
 	name: string,
-	type: ColumnType,
 	/**
 	 * Use to rename column, will find column with `oldName` and change it to `name`.
 	 * 
@@ -62,37 +61,6 @@ export type Column<T, Serialized> = {
 	serialize?: (fieldValue: T|undefined) => Promise<Serialized|undefined>,
 	deserialize?: (serializedFieldValue: Serialized) => Promise<T|void>,
 	beforeDelete?: (table: Table<any>, columnPropertyName: string, records: any[]) => Promise<void>,
-}
-
-export type ColumnType = 'integer'
-	| 'bigInteger'
-	| 'text'
-	| 'mediumtext'
-	| 'longtext'
-	| 'string'
-	| 'float'
-	| 'decimal'
-	| 'boolean'
-	| 'date'
-	| 'dateTime'
-	| 'binary'
-	| 'uuid'
-;
-
-export const mysqlColumnTypeMap = {
-	integer: 'int',
-	bigInteger: 'bigint',
-	text: 'text',
-	mediumtext: 'mediumtext',
-	longtext: 'longtext',
-	string: 'varchar',
-	float: 'float',
-	decimal: 'decimal',
-	boolean: 'tinyint',
-	date: 'date',
-	dateTime: 'datetime',
-	binary: 'blob',
-	uuid: 'char'
 }
 
 export type ColumnOptions = {
