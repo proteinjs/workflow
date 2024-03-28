@@ -14,4 +14,7 @@ export * from './src/schema/TableManager';
 
 export * from './src/services/DbService';
 
+export * from './test/TableManagerTests';
+export * from './test/CrudTests';
+
 export * from '@proteinjs/db-query';

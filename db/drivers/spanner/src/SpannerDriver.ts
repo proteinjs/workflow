@@ -1,10 +1,11 @@
 import { Database, Instance, Spanner } from '@google-cloud/spanner';
-import { DbDriver, TableManager } from '@proteinjs/db';
+import { DbDriver, DbDriverStatementConfig, TableManager } from '@proteinjs/db';
 import { SpannerConfig, getSpannerConfig } from './SpannerConfig';
 import { Logger } from '@brentbahry/util';
-import { ParameterizationConfig, Statement } from '@proteinjs/db-query';
+import { Statement } from '@proteinjs/db-query';
 import { SpannerSchemaOperations } from './SpannerSchemaOperations';
 import { SpannerColumnTypeFactory } from './SpannerColumnTypeFactory';
+import { SpannerSchemaMetadata } from './SpannerSchemaMetadata';
 
 export class SpannerDriver implements DbDriver {
 	private static SPANNER: Spanner;
@@ -44,9 +45,10 @@ export class SpannerDriver implements DbDriver {
 	}
 
 	getTableManager(): TableManager {
-		const schemaOperations = new SpannerSchemaOperations(this);
 		const columnTypeFactory = new SpannerColumnTypeFactory();
-		return new TableManager(this, schemaOperations, columnTypeFactory);
+		const schemaOperations = new SpannerSchemaOperations(this);
+		const schemaMetadata = new SpannerSchemaMetadata(this, false);
+		return new TableManager(this, columnTypeFactory, schemaOperations, schemaMetadata);
 	}
 
 	async createDbIfNotExists(): Promise<void> {
@@ -61,12 +63,15 @@ export class SpannerDriver implements DbDriver {
 		return exists;
 	}
 
-	async runQuery(generateStatement: (config: ParameterizationConfig) => Statement): Promise<any> {
-		const { sql, namedParams } = generateStatement({ useParams: true, useNamedParams: true });
+	async runQuery(generateStatement: (config: DbDriverStatementConfig) => Statement): Promise<any[]> {
+		const { sql, namedParams } = generateStatement({ useParams: true, useNamedParams: true, prefixTablesWithDb: false });
 		try {
-			return (await this.getSpannerDb().run({ sql, params: namedParams?.params }))[0];
+			this.logger.debug(`Executing query: ${sql}`);
+			const [rows] = await this.getSpannerDb().run({ sql, params: namedParams?.params });
+			return rows.map(row => row.toJSON());
+			// return JSON.parse(JSON.stringify((await this.getSpannerDb().run({ sql, params: namedParams?.params }))[0]));
 		} catch(error: any) {
-			this.logger.error(`Failed when executing: ${sql}`);
+			this.logger.error(`Failed when executing query: ${sql}\nreason: ${error.details}`);
 			throw error;
 		}
 	}
@@ -76,10 +81,11 @@ export class SpannerDriver implements DbDriver {
 	 * 
 	 * @returns number of affected rows
 	 */
-	async runDml(generateStatement: (config: ParameterizationConfig) => Statement): Promise<number> {
-		const { sql, namedParams } = generateStatement({ useParams: true, useNamedParams: true });
+	async runDml(generateStatement: (config: DbDriverStatementConfig) => Statement): Promise<number> {
+		const { sql, namedParams } = generateStatement({ useParams: true, useNamedParams: true, prefixTablesWithDb: false });
 		try {
 			return await this.getSpannerDb().runTransactionAsync(async (transaction) => {
+				this.logger.debug(`Executing dml: ${sql}`);
 				const [rowCount] = await transaction.runUpdate({
 					sql,
 					params: namedParams?.params,
@@ -88,7 +94,7 @@ export class SpannerDriver implements DbDriver {
 				return rowCount;
 			});
 		} catch(error: any) {
-			this.logger.error(`Failed when executing dml: ${sql}`);
+			this.logger.error(`Failed when executing dml: ${sql}\nreason: ${error.details}`);
 			throw error;
 		}
 	}
@@ -98,10 +104,11 @@ export class SpannerDriver implements DbDriver {
 	 */
 	async runUpdateSchema(sql: string): Promise<void> {
 		try {
+			this.logger.debug(`Executing schema update: ${sql}`)
 			const [operation] = await this.getSpannerDb().updateSchema(sql);
       await operation.promise();
 		} catch(error: any) {
-			this.logger.error(`Failed when executing schema update: ${sql}`);
+			this.logger.error(`Failed when executing schema update: ${sql}\nreason: ${error.details}`);
 			throw error;
 		}
 	}

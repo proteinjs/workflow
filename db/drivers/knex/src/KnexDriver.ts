@@ -1,8 +1,8 @@
 import knex from 'knex';
-import { DbDriver, SerializedRecord, TableManager } from '@proteinjs/db';
+import { DbDriver, DbDriverStatementConfig, SerializedRecord, TableManager } from '@proteinjs/db';
 import { KnexConfig, getKnexConfig } from './KnexConfig';
 import { Logger } from '@brentbahry/util';
-import { ParameterizationConfig, Statement } from '@proteinjs/db-query';
+import { Statement } from '@proteinjs/db-query';
 import { KnexSchemaOperations } from './KnexSchemaOperations';
 import { KnexColumnTypeFactory } from './KnexColumnTypeFactory';
 
@@ -52,8 +52,12 @@ export class KnexDriver implements DbDriver {
 		return false;
 	}
 
-	async init() {
+	async start() {
 		await this.setMaxAllowedPacketSize();
+	}
+
+	async stop() {
+		await this.getKnex().destroy();
 	}
 
 	private async setMaxAllowedPacketSize(): Promise<void> {
@@ -64,13 +68,13 @@ export class KnexDriver implements DbDriver {
 	}
 
 	getTableManager(): TableManager {
-		const schemaOperations = new KnexSchemaOperations(this);
 		const columnTypeFactory = new KnexColumnTypeFactory();
-		return new TableManager(this, schemaOperations, columnTypeFactory);
+		const schemaOperations = new KnexSchemaOperations(this);
+		return new TableManager(this, columnTypeFactory, schemaOperations);
 	}
 
-	async runQuery(generateStatement: (config: ParameterizationConfig) => Statement): Promise<SerializedRecord[]> {
-		const { sql, params } = generateStatement({ useParams: true });
+	async runQuery(generateStatement: (config: DbDriverStatementConfig) => Statement): Promise<SerializedRecord[]> {
+		const { sql, params } = generateStatement({ useParams: true, prefixTablesWithDb: true });
 		try {
 			return (await this.getKnex().raw(sql, params as any))[0]; // returns 2 arrays, first is records, second is metadata per record
 		} catch(error: any) {
@@ -79,7 +83,7 @@ export class KnexDriver implements DbDriver {
 		}
 	}
 
-	async runDml(generateStatement: (config: ParameterizationConfig) => Statement): Promise<number> {
+	async runDml(generateStatement: (config: DbDriverStatementConfig) => Statement): Promise<number> {
 		const { affectedRows } = (await this.runQuery(generateStatement) as any);
 		return affectedRows;
 	}

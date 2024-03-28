@@ -4,7 +4,7 @@ import { BinaryColumn, BooleanColumn, Column, DateColumn, DateTimeColumn, Decima
 export class KnexColumnTypeFactory {
   getType(column: Column<any, any>): string {
     if (column instanceof IntegerColumn)
-      return column.large ? 'bigInt' : 'int';
+      return column.large ? 'bigint' : 'int';
     else if (column instanceof UuidColumn)
       return 'char';
     else if (column instanceof StringColumn)

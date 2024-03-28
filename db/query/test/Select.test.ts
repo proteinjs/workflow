@@ -61,23 +61,22 @@ describe('QueryBuilder - Select tests', () => {
     expect(result.namedParams?.types).toEqual({ param0: 'string', param1: 'string' });
   });
 
-  test('Select name, age', () => {
-    const qb = new QueryBuilder(tableName).select({ indexes: true });
+  test('Select indexes', () => {
+    const qb = new QueryBuilder('STATISTICS').condition({ field: 'TABLE_NAME', operator: '=', value: tableName });
 
     // Standard SQL output
-    let result = qb.toSql({dbName});
-    const expectedSQL = "SHOW INDEX FROM test.Employee;";
-    expect(result.sql).toBe(expectedSQL);
+    let result = qb.toSql({ dbName: 'INFORMATION_SCHEMA' });
+    expect(result.sql).toBe("SELECT * FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_NAME = 'Employee';");
 
     // SQL output with positional parameters
-    result = qb.toSql({ dbName, useParams: true });
-    expect(result.sql).toContain("SHOW INDEX FROM test.Employee;");
-    expect(result.params).toEqual([]);
+    result = qb.toSql({ dbName: 'INFORMATION_SCHEMA', useParams: true });
+    expect(result.sql).toContain("SELECT * FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_NAME = ?;");
+    expect(result.params).toEqual(['Employee']);
 
     // SQL output with named parameters and types
-    result = qb.toSql({ dbName, useParams: true, useNamedParams: true });
-    expect(result.sql).toContain("SHOW INDEX FROM test.Employee;");
-    expect(result.namedParams?.params).toEqual({});
-    expect(result.namedParams?.types).toEqual({});
+    result = qb.toSql({ dbName: 'INFORMATION_SCHEMA', useParams: true, useNamedParams: true });
+    expect(result.sql).toContain("SELECT * FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_NAME = @param0;");
+    expect(result.namedParams?.params).toEqual({ param0: 'Employee' });
+    expect(result.namedParams?.types).toEqual({ param0: 'string' });
   });
 });

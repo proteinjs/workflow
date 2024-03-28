@@ -124,8 +124,8 @@ export class KnexSchemaOperations implements SchemaOperations {
     }
   
     if (column.options?.references && (!tableChanges || tableChanges.columnsWithForeignKeysToCreate.includes(column.name))) {
-      columnBuilder.references(column.options.references.column).inTable(`${this.knexDriver.getDbName()}.${column.options.references.table}`);
-      this.logger.info(`[${table.name}.${column.name}] Adding foreign key -> ${column.options.references.table}.${column.options.references.column}`);
+      columnBuilder.references('id').inTable(`${this.knexDriver.getDbName()}.${column.options.references.table}`);
+      this.logger.info(`[${table.name}.${column.name}] Adding foreign key -> ${column.options.references.table}.id`);
     }
   
     if (typeof column.options?.nullable !== 'undefined') {

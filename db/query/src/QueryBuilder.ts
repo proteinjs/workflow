@@ -3,7 +3,6 @@ import { Statement, StatementConfig, StatementParamManager } from './StatementFa
 
 export interface Select<T> {
   fields?: (keyof T)[];
-  indexes?: boolean;
 }
 
 export type LogicalOperator = 'AND'|'OR';
@@ -72,6 +71,9 @@ export class QueryBuilder<T = any> {
   static fromObject<T extends Object>(obj: Partial<T>, tableName: string): QueryBuilder<T> {
     const qb = new QueryBuilder<T>(tableName);
     for (let prop of Object.keys(obj)) {
+      if (typeof obj[prop as keyof T] === 'undefined')
+        continue;
+      
       qb.condition({ field: prop as keyof T, operator: '=', value: obj[prop as keyof T] as T[keyof T]});
     }
     return qb;
@@ -313,17 +315,14 @@ export class QueryBuilder<T = any> {
     rootChildren.map(processNode).filter(part => part.length > 0);
     // order dependent for parameter value sequencing in paramManager.params
 
-    let sql = select?.indexes ? 'SHOW INDEX' : 'SELECT ';
+    let sql = 'SELECT ';
     sql += aggregates.length > 0 ? 
     aggregates.join(', ')
       :
       select?.fields ?
         select.fields.join(', ')
         :
-        select?.indexes ?
-          ''
-          :
-          '*'
+        '*'
     ;
     sql += ` FROM ${config.dbName ? `${config.dbName}.` : ''}${this.tableName}`;
 

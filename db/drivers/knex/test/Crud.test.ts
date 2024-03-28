@@ -1,6 +1,5 @@
-import { Table, tableManagerTests } from '@proteinjs/db'
+import { Table, crudTests } from '@proteinjs/db'
 import { KnexDriver } from '../src/KnexDriver'
-import { KnexColumnTypeFactory } from '../src/KnexColumnTypeFactory';
 
 const knexDriver = new KnexDriver({
 	host: 'localhost',
@@ -14,10 +13,9 @@ const dropTable = async (table: Table<any>) => {
 }
 
 describe(
-	'Table Manager Tests',
-	tableManagerTests(
+	'CRUD Tests',
+	crudTests(
 		knexDriver,
-		dropTable,
-		new KnexColumnTypeFactory().getType
+		dropTable
 	)
 );

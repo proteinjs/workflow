@@ -1,5 +1,5 @@
 import { Logger } from '@brentbahry/util';
-import { Table, SchemaOperations, TableChanges, StatementFactory, AlterTableParams } from '@proteinjs/db';
+import { Table, SchemaOperations, TableChanges, StatementFactory, AlterTableParams, StatementUtil, getColumnByName } from '@proteinjs/db';
 import { SpannerDriver } from './SpannerDriver';
 import { SpannerColumnTypeFactory } from './SpannerColumnTypeFactory';
 
@@ -29,37 +29,36 @@ export class SpannerSchemaOperations implements SchemaOperations {
       }
   
       if (column.options?.references) {
-        foreignKeys.push({ table: column.options.references.table, column: column.options.references.column, referencedByColumn: column.name });
-        this.logger.info(`[${table.name}.${column.name}] Adding foreign key -> ${column.options.references.table}.${column.options.references.column}`);
+        foreignKeys.push({ table: column.options.references.table, column: 'id', referencedByColumn: column.name });
+        this.logger.info(`[${table.name}.${column.name}] Adding foreign key -> ${column.options.references.table}.id`);
       }
     }
-    const createTableSql = new StatementFactory().createTable(table.name, serializedColumns, table.primaryKey as string[]).sql;
+    const createTableSql = new StatementFactory().createTable(table.name, serializedColumns, table.primaryKey as string[], foreignKeys).sql;
     await this.spannerDriver.runUpdateSchema(createTableSql);
 
     for (let index of indexes) {
       const createIndexSql = new StatementFactory().createIndex(index, table.name).sql;
-      this.logger.info(`[${table.name}] Creating index: ${index.name}`);
+      const indexName = StatementUtil.getIndexName(table.name, index);
+      this.logger.info(`[${table.name}] Creating index: ${indexName} (${typeof index.columns === 'string' ? index.columns : index.columns.join(', ')})`);
       await this.spannerDriver.runUpdateSchema(createIndexSql);
-      this.logger.info(`[${table.name}] Created index: ${index.name}`);
+      this.logger.info(`[${table.name}] Created index: ${indexName} (${typeof index.columns === 'string' ? index.columns : index.columns.join(', ')})`);
     }
   }
 
   async alterTable(table: Table<any>, tableChanges: TableChanges) {
-    const params: AlterTableParams = {
+    const alterParams: AlterTableParams = {
       tableName: table.name,
       columnsToAdd: [],
       foreignKeysToDrop: [],
       foreignKeysToAdd: [],
-      columnTypeChanges: [],
       columnRenames: [],
-      dropPrimaryKey: false,
     };
     const indexesToDrop = tableChanges.indexesToDrop;
     const indexesToAdd = tableChanges.indexesToCreate;
 		for (const columnPropertyName of tableChanges.columnsToCreate) {
       const column = table.columns[columnPropertyName];
       const columnType = new SpannerColumnTypeFactory().getType(column);
-      params.columnsToAdd?.push({ name: column.name, type: columnType, nullable: column.options?.nullable });
+      alterParams.columnsToAdd?.push({ name: column.name, type: columnType, nullable: column.options?.nullable });
       this.logger.info(`[${table.name}] Creating column: ${column.name} (${column.constructor.name})`);
       if (column.options?.unique?.unique && tableChanges.columnsWithUniqueConstraintsToCreate.includes(column.name)) {
         indexesToAdd.push({ name: column.options.unique.indexName, columns: column.name, unique: true });
@@ -67,8 +66,8 @@ export class SpannerSchemaOperations implements SchemaOperations {
       }
   
       if (column.options?.references && tableChanges.columnsWithForeignKeysToCreate.includes(column.name)) {
-        params.foreignKeysToAdd?.push({ table: column.options.references.table, column: column.options.references.column, referencedByColumn: column.name });
-        this.logger.info(`[${table.name}.${column.name}] Adding foreign key -> ${column.options.references.table}.${column.options.references.column}`);
+        alterParams.foreignKeysToAdd?.push({ table: column.options.references.table, column: 'id', referencedByColumn: column.name });
+        this.logger.info(`[${table.name}.${column.name}] Adding foreign key -> ${column.options.references.table}.id`);
       }
     }
 
@@ -78,51 +77,52 @@ export class SpannerSchemaOperations implements SchemaOperations {
     }
 
     for (const foreignKey of tableChanges.foreignKeysToDrop) {
-      params.foreignKeysToDrop?.push(foreignKey);
+      alterParams.foreignKeysToDrop?.push(foreignKey);
       this.logger.info(`[${table.name}.${foreignKey.referencedByColumn}] Dropping foreign key -> ${foreignKey.table}.${foreignKey.column}`);
     }
 
     for (const columnTypeChange of tableChanges.columnTypeChanges) {
-      params.columnTypeChanges?.push(columnTypeChange);
-      this.logger.info(`[${table.name}.${columnTypeChange.name}] Changing column type to: ${columnTypeChange.newType}`);
+      const errorMessage = `[${table.name}.${columnTypeChange.name}] Unable to change column types in Spanner. Attempted to change type to: ${columnTypeChange.newType}`;
+      this.logger.error(errorMessage);
+      throw new Error(errorMessage);
     }
 
     for (const columnNullableChange of tableChanges.columnNullableChanges) {
-      params.columnNullableChanges?.push(columnNullableChange);
-      this.logger.info(`[${table.name}.${columnNullableChange.name}] Updating nullable constraint to: ${columnNullableChange.nullable === true}`);
+      const errorMessage = `[${table.name}.${columnNullableChange.name}] Unable to update nullable constraint on existing column in Spanner. Attempted to update nullable constraint to: ${columnNullableChange.nullable === true}`;
+      this.logger.error(errorMessage);
+      throw new Error(errorMessage);
     }
 
     for (const columnPropertyName of tableChanges.columnsToRename) {
       const column = table.columns[columnPropertyName];
-      if (!column.oldName)
-        continue;
-
-      params.columnRenames.push({ currentName: column.oldName, newName: column.name });
-      this.logger.info(`[${table.name}] Renaming column: ${column.oldName} -> ${column.name}`);
+      const errorMessage = `[${table.name}.${column.oldName}] Unable to rename columns in Spanner. Attempted to perform rename: ${column.oldName} -> ${column.name}`;
+      this.logger.error(errorMessage);
+      throw new Error(errorMessage);
     }
 
-    if (tableChanges.dropExistingPrimaryKey) {
-      params.dropPrimaryKey = tableChanges.dropExistingPrimaryKey;
-      this.logger.info(`[${table.name}] Dropping primary key: ${tableChanges.existingPrimaryKey}`);
+    if (tableChanges.dropExistingPrimaryKey || tableChanges.createPrimaryKey) {
+      const errorMessage = `[${table.name}] Unable to change an existing primary key in Spanner. Attempted primary key change: ${tableChanges.existingPrimaryKey} -> ${tableChanges.createPrimaryKey}`;
+      this.logger.error(errorMessage);
+      throw new Error(errorMessage);
     }
 
-    if (tableChanges.createPrimaryKey) {
-      params.primaryKeyToCreate = (table.primaryKey as string[]);
-      this.logger.info(`[${table.name}] Creating primary key: ${table.primaryKey}`);
-    }
+    const alterStatements = new StatementFactory().alterTable(alterParams);
+    for (let alterStatement of alterStatements)
+      await this.spannerDriver.runUpdateSchema(alterStatement.sql);
 
     for (let index of tableChanges.indexesToDrop) {
       const dropIndexSql = new StatementFactory().dropIndex(index, table.name).sql;
-      this.logger.info(`[${table.name}] Dropping index: ${index.name}`);
+      this.logger.info(`[${table.name}] Dropping index: ${index.name} (${typeof index.columns === 'string' ? index.columns : index.columns.join(', ')})`);
       await this.spannerDriver.runUpdateSchema(dropIndexSql);
-      this.logger.info(`[${table.name}] Dropped index: ${index.name}`);
+      this.logger.info(`[${table.name}] Dropped index: ${index.name} (${typeof index.columns === 'string' ? index.columns : index.columns.join(', ')})`);
     }
 
     for (let index of tableChanges.indexesToCreate) {
-      const createIndexSql = new StatementFactory().dropIndex(index, table.name).sql;
-      this.logger.info(`[${table.name}] Creating index: ${index.name}`);
+      const createIndexSql = new StatementFactory().createIndex(index, table.name).sql;
+      const indexName = StatementUtil.getIndexName(table.name, index);
+      this.logger.info(`[${table.name}] Creating index: ${indexName} (${typeof index.columns === 'string' ? index.columns : index.columns.join(', ')})`);
       await this.spannerDriver.runUpdateSchema(createIndexSql);
-      this.logger.info(`[${table.name}] Created index: ${index.name}`);
+      this.logger.info(`[${table.name}] Created index: ${indexName} (${typeof index.columns === 'string' ? index.columns : index.columns.join(', ')})`);
     }
 	}
 }

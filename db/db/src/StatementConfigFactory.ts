@@ -1,5 +1,6 @@
-import { ParameterizationConfig } from '@proteinjs/db-query';
+import { StatementConfig } from '@proteinjs/db-query';
 import { Table, tableByName } from './Table';
+import { DbDriverStatementConfig } from './Db';
 
 export class StatementConfigFactory {
   private dbName: string;
@@ -13,11 +14,12 @@ export class StatementConfigFactory {
     this.getTable = getTable ? getTable : tableByName;
   }
 
-  getStatementConfig(parameterizationConfig: ParameterizationConfig) {
+  getStatementConfig(config: DbDriverStatementConfig): StatementConfig {
     return {
-        dbName: this.dbName,
+        dbName: config.prefixTablesWithDb ? this.dbName : undefined,
         resolveFieldName: this.getResolveFieldName(),
-        ...parameterizationConfig
+        useParams: config.useParams,
+        useNamedParams: config.useNamedParams
     };
   }
 

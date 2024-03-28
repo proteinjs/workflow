@@ -1,5 +1,5 @@
 import { Logger } from '@brentbahry/util';
-import { Column, Table, getTables } from '../Table';
+import { Column, Table, getTables, tableByName } from '../Table';
 import { SchemaOperations, TableChanges } from './SchemaOperations';
 import { SchemaMetadata } from './SchemaMetadata';
 import { DbDriver } from '../Db';
@@ -10,18 +10,19 @@ export interface ColumnTypeFactory {
 
 export class TableManager {
 	private logger = new Logger(this.constructor.name);
-	public schemaMetadata: SchemaMetadata;
-	public schemaOperations: SchemaOperations;
 	public columnTypeFactory: ColumnTypeFactory;
+	public schemaOperations: SchemaOperations;
+	public schemaMetadata: SchemaMetadata;
 
 	constructor(
 		dbDriver: DbDriver,
+		columnTypeFactory: ColumnTypeFactory,
 		schemaOperations: SchemaOperations,
-		columnTypeFactory: ColumnTypeFactory
+		schemaMetadata?: SchemaMetadata
 	){
-		this.schemaMetadata = new SchemaMetadata(dbDriver);
-		this.schemaOperations = schemaOperations;
 		this.columnTypeFactory = columnTypeFactory;
+		this.schemaOperations = schemaOperations;
+		this.schemaMetadata = schemaMetadata ? schemaMetadata : new SchemaMetadata(dbDriver);
 	}
 
 	async tableExists(table: Table<any>) {
@@ -106,7 +107,7 @@ export class TableManager {
 			if (columnMetadata[column.name]) {
 				let alter = false;
 				const columnType = this.columnTypeFactory.getType(column);
-				const existingColumnType = columnMetadata[column.name]['DATA_TYPE'];
+				const existingColumnType = columnMetadata[column.name].type;
 				if (columnType != existingColumnType) {
 					// console.log(`columnType != existingColumnType`);
 					tableChanges.columnTypeChanges.push({ name: column.name, newType: columnType });
@@ -114,8 +115,8 @@ export class TableManager {
 				}
 				
 				if (
-					(column.options?.nullable && columnMetadata[column.name]['IS_NULLABLE'] == 'NO') ||
-					(column.options?.nullable === false && columnMetadata[column.name]['IS_NULLABLE'] == 'YES')
+					(column.options?.nullable && !columnMetadata[column.name].isNullable) ||
+					(column.options?.nullable === false && columnMetadata[column.name].isNullable)
 				) {
 					// console.log(`column.options?.nullable`)
 					tableChanges.columnNullableChanges.push({ name: column.name, nullable: column.options.nullable === true });
@@ -137,17 +138,17 @@ export class TableManager {
 				
 				if (
 					!column.options?.references && foreignKeys[column.name] ||
-					column.options?.references && foreignKeys[column.name] && (foreignKeys[column.name]['REFERENCED_TABLE_NAME'] != column.options.references.table || foreignKeys[column.name]['REFERENCED_COLUMN_NAME'] != column.options.references.column)
+					column.options?.references && foreignKeys[column.name] && foreignKeys[column.name].referencedTableName != column.options.references.table
 				) {
 					// console.log(`column.options?.references`)
 					tableChanges.columnsWithForeignKeysToDrop.push(column.name);
-					tableChanges.foreignKeysToDrop.push({ table: foreignKeys[column.name]['REFERENCED_TABLE_NAME'], column: foreignKeys[column.name]['REFERENCED_COLUMN_NAME'], referencedByColumn: column.name });
+					tableChanges.foreignKeysToDrop.push({ table: foreignKeys[column.name].referencedTableName, column: foreignKeys[column.name].referencedColumnName, referencedByColumn: column.name });
 					alter = true;
 				} else if (
 					column.options?.references && !foreignKeys[column.name]
 				) {
 					tableChanges.columnsWithForeignKeysToCreate.push(column.name);
-					tableChanges.foreignKeysToCreate.push({ table: column.options.references.table, column: column.options.references.column, referencedByColumn: column.name });
+					tableChanges.foreignKeysToCreate.push({ table: column.options.references.table, column: 'id', referencedByColumn: column.name });
 					alter = true;
 				}
 	
@@ -200,8 +201,10 @@ export class TableManager {
       if (
 				!currentIndexMap[serializedColumns] && 
 				keyName != 'PRIMARY' &&
+				keyName != 'PRIMARY_KEY' &&
 				!keyName.endsWith('_unique') &&
-				!keyName.endsWith('_foreign')
+				!keyName.endsWith('_foreign') &&
+				!keyName.startsWith('IDX_')
 			)
         indexesToDrop.push({ name: keyName, columns: existingIndex });
     }

@@ -4,7 +4,8 @@ import { DbDriver } from '../Db';
 
 export class SchemaMetadata {
   constructor(
-    private dbDriver: DbDriver
+    public dbDriver: DbDriver,
+    private multiDbSupported = true
   ){}
 
   async tableExists(table: Table<any>): Promise<boolean> {
@@ -16,7 +17,7 @@ export class SchemaMetadata {
 
   async columnExists(columnName: string, table: Table<any>): Promise<boolean> {
     const qb = QueryBuilder.fromObject({
-      'TABLE_SCHEMA': this.dbDriver.getDbName(),
+      'TABLE_SCHEMA': this.multiDbSupported ? this.dbDriver.getDbName() : undefined,
       'TABLE_NAME': table.name,
       'COLUMN_NAME': columnName,
     }, 'COLUMNS');
@@ -25,27 +26,27 @@ export class SchemaMetadata {
 		return results.length > 0;
   }
   
-  async getColumnMetadata(table: Table<any>): Promise<{[columnName: string]: any}> {
+  async getColumnMetadata(table: Table<any>): Promise<{[columnName: string]: { type: string, isNullable: boolean }}> {
     const qb = QueryBuilder.fromObject({
-      'TABLE_SCHEMA': this.dbDriver.getDbName(),
+      'TABLE_SCHEMA': this.multiDbSupported ? this.dbDriver.getDbName() : undefined,
       'TABLE_NAME': table.name
     }, 'COLUMNS');
     const generateStatement = (config: ParameterizationConfig) => qb.toSql({ dbName: 'INFORMATION_SCHEMA', ...config });
 		const results = await this.dbDriver.runQuery(generateStatement);
-    const columnMetadata: {[columnName: string]: any} = {};
+    const columnMetadata: {[columnName: string]: { type: string, isNullable: boolean }} = {};
     for (const row of results)
-      columnMetadata[row['COLUMN_NAME']] = row;
+      columnMetadata[row['COLUMN_NAME']] = { type: row['DATA_TYPE'], isNullable: row['IS_NULLABLE'] === 'YES' };
   
     return columnMetadata;
   }
   
   async getPrimaryKey(table: Table<any>): Promise<string[]> {
     const qb = QueryBuilder.fromObject({
-      'TABLE_SCHEMA': this.dbDriver.getDbName(),
+      'TABLE_SCHEMA': this.multiDbSupported ? this.dbDriver.getDbName() : undefined,
       'TABLE_NAME': table.name,
       'CONSTRAINT_NAME': 'PRIMARY',
     }, 'KEY_COLUMN_USAGE');
-    const generateStatement = (config: ParameterizationConfig) => qb.toSql({ dbName: 'INFORMATION_SCHEMA', ...config });
+    const generateStatement = (config: ParameterizationConfig) => qb.toSql({ dbName: 'INFORMATION_SCHEMA' });
 		const results = await this.dbDriver.runQuery(generateStatement);
     const primaryKey: string[] = [];
     for (const row of results)
@@ -54,19 +55,22 @@ export class SchemaMetadata {
     return primaryKey;
   }
   
-  async getForeignKeys(table: Table<any>): Promise<{[columnName: string]: any}> {
+  async getForeignKeys(table: Table<any>): Promise<{[columnName: string]: { referencedTableName: string, referencedColumnName: string }}> {
     const qb = QueryBuilder.fromObject({
-      'TABLE_SCHEMA': this.dbDriver.getDbName(),
+      'TABLE_SCHEMA': this.multiDbSupported ? this.dbDriver.getDbName() : undefined,
       'TABLE_NAME': table.name
     }, 'KEY_COLUMN_USAGE');
     const generateStatement = (config: ParameterizationConfig) => qb.toSql({ dbName: 'INFORMATION_SCHEMA', ...config });
 		const results = await this.dbDriver.runQuery(generateStatement);
-    const foreignKeys: {[columnName: string]: any} = {};
+    const foreignKeys: {[columnName: string]: { referencedTableName: string, referencedColumnName: string }} = {};
     for (const row of results) {
       if (!row['REFERENCED_TABLE_NAME'])
         continue;
   
-      foreignKeys[row['COLUMN_NAME']] = row;
+      foreignKeys[row['COLUMN_NAME']] = {
+        referencedTableName: row['REFERENCED_TABLE_NAME'],
+        referencedColumnName: row['REFERENCED_COLUMN_NAME'],
+      };
     }
   
     return foreignKeys;
@@ -74,7 +78,7 @@ export class SchemaMetadata {
   
   async getUniqueColumns(table: Table<any>): Promise<string[]> {
     const qb = QueryBuilder.fromObject({
-      'TABLE_SCHEMA': this.dbDriver.getDbName(),
+      'TABLE_SCHEMA': this.multiDbSupported ? this.dbDriver.getDbName() : undefined,
       'TABLE_NAME': table.name
     }, 'KEY_COLUMN_USAGE');
     const generateStatement = (config: ParameterizationConfig) => qb.toSql({ dbName: 'INFORMATION_SCHEMA', ...config });
@@ -91,15 +95,19 @@ export class SchemaMetadata {
   }
   
   async getIndexes(table: Table<any>): Promise<{[keyName: string]: string[]}> {
-    const qb = new QueryBuilder(table.name).select({ indexes: true });
-    const generateStatement = (config: ParameterizationConfig) => qb.toSql({ dbName: this.dbDriver.getDbName(), ...config });
+    const qb = new QueryBuilder('STATISTICS')
+      .condition({ field: 'TABLE_SCHEMA', operator: '=', value: this.dbDriver.getDbName() })
+      .condition({ field: 'TABLE_NAME', operator: '=', value: table.name })
+      .sort([{ field: 'SEQ_IN_INDEX', desc: false }])
+    ;
+    const generateStatement = (config: ParameterizationConfig) => qb.toSql({ dbName: 'INFORMATION_SCHEMA', ...config });
 		const results: any[] = await this.dbDriver.runQuery(generateStatement);
     const indexes: { [keyName: string]: string[] } = {};
     for (const row of results) {
-      if (!indexes[row['Key_name']])
-        indexes[row['Key_name']] = [];
+      if (!indexes[row['INDEX_NAME']])
+        indexes[row['INDEX_NAME']] = [];
   
-      indexes[row['Key_name']].push(row['Column_name']);
+      indexes[row['INDEX_NAME']].push(row['COLUMN_NAME']);
     }
   
     return indexes;

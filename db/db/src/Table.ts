@@ -25,6 +25,16 @@ export const getColumnPropertyName = (table: Table<any>, columnName: string) => 
 	return null;
 }
 
+export const getColumnByName = (table: Table<any>, columnName: string) => {
+	for (let columnPropertyName in table.columns) {
+		const column = table.columns[columnPropertyName];
+		if (column.name == columnName)
+			return column;
+	}
+
+	return null;
+}
+
 export abstract class Table<T extends Record> implements Loadable, CustomSerializableObject {
 	public __serializerId = TableSerializerId;
 	abstract name: string;
@@ -66,9 +76,11 @@ export type Column<T, Serialized> = {
 export type ColumnOptions = {
 	unique?: { unique: boolean, indexName?: string },
 	/**
-	 * Note: use migration to drop or change existing foreign key
+	 * The column in the reference table `table` is the primary key of the table (`id` unless otherwise specified in the Table definition)
+	 * 
+	 * Note: use a migration to drop or change an existing foreign key
 	 */
-	references?: { table: string, column: string },
+	references?: { table: string },
 	nullable?: boolean,
 	defaultValue?: () => Promise<any>,
 	updateValue?: () => Promise<any>,
