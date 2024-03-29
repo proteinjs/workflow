@@ -35,11 +35,13 @@ export const getColumnByName = (table: Table<any>, columnName: string) => {
 	return null;
 }
 
+/**
+ * primary key is `id`
+ */
 export abstract class Table<T extends Record> implements Loadable, CustomSerializableObject {
 	public __serializerId = TableSerializerId;
 	abstract name: string;
 	abstract columns: Columns<T>;
-	public primaryKey: (keyof T)[] = ['id'];
 	public indexes: { columns: (keyof T)[], name?: string }[] = [];
 	public cascadeDeleteReferences: () => { table: string, referenceColumn: string }[] = () => [];
 	public loadRecordsFromSource = false;

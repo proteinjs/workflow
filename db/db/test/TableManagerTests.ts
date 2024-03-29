@@ -16,7 +16,6 @@ class UserTable extends Table<User> {
     email: new StringColumn('email'),
 		active: new BooleanColumn('active'),
 	});
-	primaryKey = ['id'] as (keyof User)[];
 	indexes = [
 		{ name: 'db_test_user_email_index', columns: ['email'] as (keyof User)[] },
 		{ name: 'db_test_user_active_email_index', columns: ['active', 'email'] as (keyof User)[] },
@@ -54,7 +53,6 @@ class ColumnTypesTable extends Table<ColumnTypes> {
 		object: new ObjectColumn('object'),
 		uuid: new UuidColumn('uuid', { unique: { unique: true } })
 	});
-	primaryKey = ['uuid'] as (keyof ColumnTypes)[];
 }
 
 export const tableManagerTests = (
@@ -62,7 +60,6 @@ export const tableManagerTests = (
   dropTable: (table: Table<any>) => Promise<void>,
   getColumnType: (column: Column<any, any>) => string,
   excludedTests?: {
-    alterPrimaryKey?: boolean,
     alterColumnName?: boolean,
     alterColumnTypes?: boolean,
     alterNullableConstraint?: boolean,
@@ -93,24 +90,6 @@ export const tableManagerTests = (
       const primaryKey = await tableManager.schemaMetadata.getPrimaryKey(userTable);
       expect(primaryKey[0]).toBe('id');
       expect(primaryKey.length).toBe(1);
-    });
-    
-    test('alter primary key', async () => {
-      if (excludedTests?.alterPrimaryKey)
-        return;
-
-      const userTable = new UserTable();
-      await tableManager.loadTable(userTable);
-      expect(await tableManager.tableExists(userTable)).toBeTruthy();
-      let primaryKey = await tableManager.schemaMetadata.getPrimaryKey(userTable);
-      expect(primaryKey[0]).toBe('id');
-      expect(primaryKey.length).toBe(1);
-      userTable.primaryKey = ['name', 'email'];
-      await tableManager.loadTable(userTable);
-      primaryKey = await tableManager.schemaMetadata.getPrimaryKey(userTable);
-      expect(primaryKey[0]).toBe('name');
-      expect(primaryKey[1]).toBe('email');
-      expect(primaryKey.length).toBe(2);
     });
     
     test('create columns', async () => {

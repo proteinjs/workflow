@@ -26,10 +26,8 @@ export class KnexSchemaOperations implements SchemaOperations {
         this.logger.info(`[${table.name}] Creating column: ${column.name}`);
       }
   
-      if (table.primaryKey) {
-        tableBuilder.primary(table.primaryKey as string[]);
-        this.logger.info(`[${table.name}] Creating primary key: ${table.primaryKey}`);
-      }
+      tableBuilder.primary(['id']);
+      this.logger.info(`[${table.name}] Creating primary key: id`);
   
       if (table.indexes) {
         for (const index of table.indexes) {
@@ -90,16 +88,6 @@ export class KnexSchemaOperations implements SchemaOperations {
 	
 				tableBuilder.renameColumn(column.oldName, column.name);
 				this.logger.info(`[${table.name}] Renaming column: ${column.oldName} -> ${column.name}`);
-			}
-	
-			if (tableChanges.dropExistingPrimaryKey) {
-				tableBuilder.dropPrimary();
-				this.logger.info(`[${table.name}] Dropping primary key: ${tableChanges.existingPrimaryKey}`);
-			}
-	
-			if (tableChanges.createPrimaryKey) {
-				tableBuilder.primary(table.primaryKey as string[]);
-				this.logger.info(`[${table.name}] Creating primary key: ${table.primaryKey}`);
 			}
 	
 			for (const index of tableChanges.indexesToCreate) {

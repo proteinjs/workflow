@@ -58,9 +58,7 @@ export class TableManager {
 			tableChanges.columnsWithForeignKeysToDrop.length == 0 &&
 			tableChanges.columnsWithUniqueConstraintsToDrop.length == 0 &&
 			tableChanges.indexesToCreate.length == 0 &&
-			tableChanges.indexesToDrop.length == 0 &&
-			!tableChanges.dropExistingPrimaryKey && 
-			!tableChanges.createPrimaryKey
+			tableChanges.indexesToDrop.length == 0
 		)
 			return false;
 
@@ -69,7 +67,6 @@ export class TableManager {
 
 	private async getTableChanges(table: Table<any>) {
 		const { indexesToCreate, indexesToDrop } = await this.getIndexOperations(table);
-		const existingPrimaryKey = await this.schemaMetadata.getPrimaryKey(table);
 		const tableChanges: TableChanges = {
 			columnsToCreate: [],
 			columnsToRename: [],
@@ -84,20 +81,7 @@ export class TableManager {
 			columnsWithUniqueConstraintsToDrop: [],
 			indexesToCreate,
 			indexesToDrop,
-			createPrimaryKey: false,
-			dropExistingPrimaryKey: false,
-			existingPrimaryKey,
 		};
-
-		if (existingPrimaryKey.length > 0 && !table.primaryKey)
-			tableChanges.dropExistingPrimaryKey = true;
-	
-		// console.log(`(${table.name}) Primary key comparison, existing: ${JSON.stringify(existingPrimaryKey)}, current: ${JSON.stringify(table.primaryKey)}`)
-		if (table.primaryKey && JSON.stringify(existingPrimaryKey) != JSON.stringify(table.primaryKey)) {
-			tableChanges.dropExistingPrimaryKey = existingPrimaryKey.length > 0;
-			tableChanges.createPrimaryKey = true;
-			// console.log(`(${table.name}) Should create new primary key`)
-		}
 
 		const columnMetadata = await this.schemaMetadata.getColumnMetadata(table);
 		const uniqueColumns = await this.schemaMetadata.getUniqueColumns(table);

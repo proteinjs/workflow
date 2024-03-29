@@ -16,7 +16,6 @@ describe(
 		getDropTable(spannerDriver),
 		new SpannerColumnTypeFactory().getType,
 		{
-			alterPrimaryKey: true,
 			alterColumnName: true,
 			alterColumnTypes: true,
 			alterNullableConstraint: true,

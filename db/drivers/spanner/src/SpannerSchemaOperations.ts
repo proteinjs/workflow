@@ -33,7 +33,7 @@ export class SpannerSchemaOperations implements SchemaOperations {
         this.logger.info(`[${table.name}.${column.name}] Adding foreign key -> ${column.options.references.table}.id`);
       }
     }
-    const createTableSql = new StatementFactory().createTable(table.name, serializedColumns, table.primaryKey as string[], foreignKeys).sql;
+    const createTableSql = new StatementFactory().createTable(table.name, serializedColumns, 'id', foreignKeys).sql;
     await this.spannerDriver.runUpdateSchema(createTableSql);
 
     for (let index of indexes) {
@@ -96,12 +96,6 @@ export class SpannerSchemaOperations implements SchemaOperations {
     for (const columnPropertyName of tableChanges.columnsToRename) {
       const column = table.columns[columnPropertyName];
       const errorMessage = `[${table.name}.${column.oldName}] Unable to rename columns in Spanner. Attempted to perform rename: ${column.oldName} -> ${column.name}`;
-      this.logger.error(errorMessage);
-      throw new Error(errorMessage);
-    }
-
-    if (tableChanges.dropExistingPrimaryKey || tableChanges.createPrimaryKey) {
-      const errorMessage = `[${table.name}] Unable to change an existing primary key in Spanner. Attempted primary key change: ${tableChanges.existingPrimaryKey} -> ${tableChanges.createPrimaryKey}`;
       this.logger.error(errorMessage);
       throw new Error(errorMessage);
     }

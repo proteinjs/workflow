@@ -41,7 +41,4 @@ export interface TableChanges {
   columnsWithUniqueConstraintsToDrop: string[];
   indexesToCreate: Index[];
   indexesToDrop: Index[];
-  createPrimaryKey: boolean;
-  dropExistingPrimaryKey: boolean;
-  existingPrimaryKey: string[];
 }
