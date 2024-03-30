@@ -1,6 +1,6 @@
 import React from 'react';
 import { Page, Form, Fields, textField, FormButtons, clearButton, FormPage } from '@proteinjs/ui';
-import { login } from '../routes/login';
+import { routes } from '@proteinjs/user'
 
 export const loginPath = 'login';
 export const loginPage: Page = {
@@ -43,8 +43,8 @@ const buttons: FormButtons<LoginFields> = {
 			variant: 'contained',
 		},
 		onClick: async (fields: LoginFields, buttons: FormButtons<LoginFields>) => {
-			const response = await fetch(login.path, {
-                method: login.method,
+			const response = await fetch(routes.login.path, {
+                method: routes.login.method,
                 body: JSON.stringify({
                     email: fields.email.field.value,
                     password: fields.password.field.value

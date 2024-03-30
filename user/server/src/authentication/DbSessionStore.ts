@@ -1,6 +1,6 @@
 import { Store } from 'express-session';
 import { Db, QueryBuilderFactory } from '@proteinjs/db';
-import { tables } from '../tables/tables';
+import { tables } from '@proteinjs/user';
 import { destroySession } from './destroySession';
 
 export class DbSessionStore extends Store {

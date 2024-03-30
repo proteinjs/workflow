@@ -1,9 +1,10 @@
 import { Route } from '@proteinjs/server-api';
+import { routes } from '@proteinjs/user';
 import { authenticate } from '../authentication/authenticate';
 
 export const login: Route = {
-    path: '/user/login',
-    method: 'post',
+    path: routes.login.path,
+    method: routes.login.method,
     onRequest: async (request: any, response): Promise<void> => {
         const credentials: {email: string, password: string} = request.body;
         if (!credentials.email || !credentials.password) {

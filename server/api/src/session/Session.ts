@@ -1,5 +1,4 @@
 import { Loadable, SourceRepository } from '@brentbahry/reflection';
-import { getSessionDataCaches, SessionDataCache } from './SessionDataCache';
 
 export type SessionData = {
     sessionId: string|undefined,
@@ -30,7 +29,7 @@ export class Session {
         getSessionDataStorage().setData(data);
     }
 
-    static getData<T>(sessionDataCache: SessionDataCache<T>): T {
-        return getSessionDataStorage().getData().data[sessionDataCache.key];
+    static getData<T>(sessionDataCacheKey: string): T {
+        return getSessionDataStorage().getData().data[sessionDataCacheKey];
     }
 }

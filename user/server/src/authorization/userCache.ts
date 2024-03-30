@@ -1,22 +1,11 @@
 import moment from 'moment';
 import { SessionDataCache } from '@proteinjs/server-api';
 import { Db } from '@proteinjs/db';
-import { User } from '../tables/UserTable';
-import { tables } from '../tables/tables';
+import { User, tables, guestUser, USER_SESSION_CACHE_KEY } from '@proteinjs/user';
 import { DefaultAdminCredentials } from '../authentication/DefaultAdminCredentials';
 
-export const guestUser: User = {
-    name: 'Guest',
-    email: 'guest',
-    password: 'guest',
-    emailVerified: false,
-    roles: '',
-    created: moment(),
-    updated: moment(),
-    id: '',
-};
 export const userCache: SessionDataCache<User> = {
-    key: '@proteinjs/user/userCache',
+    key: USER_SESSION_CACHE_KEY,
     create: async (sessionId: string, userEmail: string): Promise<User> => {
         let user = guestUser;
         if (userEmail) {

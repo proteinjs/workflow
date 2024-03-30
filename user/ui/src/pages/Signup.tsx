@@ -1,6 +1,6 @@
 import React from 'react';
 import { Page, Form, Fields, textField, FormButtons, clearButton, FormPage } from '@proteinjs/ui';
-import { createUser } from '../routes/createUser';
+import { routes } from '@proteinjs/user'
 
 export const signupPage: Page = {
     name: 'Sign Up',
@@ -51,8 +51,8 @@ const buttons: FormButtons<SignupFields> = {
 			variant: 'contained',
 		},
 		onClick: async (fields: SignupFields, buttons: FormButtons<SignupFields>) => {
-			const response = await fetch(createUser.path, {
-                method: createUser.method,
+			const response = await fetch(routes.createUser.path, {
+                method: routes.createUser.method,
                 body: JSON.stringify({
                     name: fields.name.field.value,
                     email: fields.email.field.value,

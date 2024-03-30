@@ -9,7 +9,7 @@ export interface SourceRecord extends DbRecord {
   isLoadedFromSource?: boolean;
 }
 
-const sourceRecordColumns = {
+export const sourceRecordColumns = {
   isLoadedFromSource: new BooleanColumn('is_loaded_from_source'),
 }
 

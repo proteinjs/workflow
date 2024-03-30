@@ -15,5 +15,4 @@ export class WorkflowTable extends Table<Workflow> {
     description: new StringColumn('description'),
 		steps: new ReferenceArrayColumn('steps', new WorkflowStepTable().name, true),
 	});
-	public loadRecordsFromSource = true;
 };

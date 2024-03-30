@@ -2,8 +2,7 @@ import React from 'react';
 import { Page, PageContainer, PageContainerProps } from '@proteinjs/ui';
 import { Auth } from '../authorization/Auth';
 import { loginPath } from '../pages/Login';
-import { logout } from '../routes/logout';
-import { guestUser, userCache } from '../authorization/userCache';
+import { routes, USER_SESSION_CACHE_KEY, guestUser } from '@proteinjs/user';
 declare let proteinjs: any;
 
 export type AuthenticatedPageContainerProps = Omit<PageContainerProps, 'auth'>;
@@ -27,8 +26,8 @@ export function AuthenticatedPageContainer(props: AuthenticatedPageContainerProp
                 },
                 login: loginPath,
                 logout: async () => {
-                    const response = await fetch(logout.path, {
-                        method: logout.method,
+                    const response = await fetch(routes.logout.path, {
+                        method: routes.logout.method,
                         redirect: 'follow',
                         credentials: 'same-origin',
                         headers: {
@@ -38,7 +37,7 @@ export function AuthenticatedPageContainer(props: AuthenticatedPageContainerProp
                     if (response.status != 200)
                         throw new Error(`Failed to log out`);
 
-                    proteinjs['sessionData']['data'][userCache.key] = guestUser;
+                    proteinjs['sessionData']['data'][USER_SESSION_CACHE_KEY] = guestUser;
                     setIsLoggedIn(false);
                     return loginPath;
                 }

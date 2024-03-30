@@ -1,6 +1,6 @@
 import { Logger } from '@brentbahry/util';
-import { getSourceRecordLoaders } from './SourceRecord';
-import { getTables } from '../Table';
+import { getSourceRecordLoaders, sourceRecordColumns } from './SourceRecord';
+import { getTables, Table } from '../Table';
 import { getDb } from '../Db';
 
 export async function loadSourceRecords() {
@@ -26,9 +26,19 @@ async function deleteExistingSourceRecords() {
   const db = getDb();
   const tables = getTables();
   for (let table of tables) {
-    if (!table.loadRecordsFromSource)
+    if (!hasSourceRecords(table))
       continue;
 
     await db.delete(table, { isLoadedFromSource: true });
   }
+}
+
+function hasSourceRecords(table: Table<any>) {
+  for (let columnPropertyName in table.columns) {
+    const column = table.columns[columnPropertyName];
+    if (column.name == sourceRecordColumns.isLoadedFromSource.name)
+      return true;
+  }
+
+  return false;
 }

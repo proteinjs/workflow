@@ -1,6 +1,6 @@
 import sha256 from 'crypto-js/sha256';
 import { Db } from '@proteinjs/db';
-import { tables } from '../tables/tables';
+import { tables } from '@proteinjs/user';
 import { DefaultAdminCredentials } from './DefaultAdminCredentials';
 
 export function createAuthentication(defaultAdminCredentials?: { username: string, password: string }) {

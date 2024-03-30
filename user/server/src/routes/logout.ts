@@ -1,9 +1,10 @@
 import { Route } from '@proteinjs/server-api';
+import { routes } from '@proteinjs/user';
 import { destroySession } from '../authentication/destroySession';
 
 export const logout: Route = {
-    path: '/user/logout',
-    method: 'get',
+    path: routes.logout.path,
+    method: routes.logout.method,
     onRequest: async (request: any, response): Promise<void> => {
         // request.logout();
         // await request.session.destroy();

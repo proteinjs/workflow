@@ -15,5 +15,4 @@ export class WorkflowStepTable extends Table<WorkflowStep> {
     instructions: new ArrayColumn<string>('instructions'),
     prompts: new ArrayColumn<string>('prompts'),
 	});
-  public loadRecordsFromSource = true;
 };

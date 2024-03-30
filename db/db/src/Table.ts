@@ -2,6 +2,7 @@ import { Loadable, SourceRepository } from '@brentbahry/reflection';
 import { CustomSerializableObject } from '@proteinjs/serializer';
 import { Record } from './Record';
 import { TableSerializerId } from './serializers/TableSerializer';
+import { QueryBuilder } from '@proteinjs/db-query';
 
 export const getTables = () => SourceRepository.get().objects<Table<any>>('@proteinjs/db/Table');
 
@@ -43,8 +44,8 @@ export abstract class Table<T extends Record> implements Loadable, CustomSeriali
 	abstract name: string;
 	abstract columns: Columns<T>;
 	public indexes: { columns: (keyof T)[], name?: string }[] = [];
+	/** When records are deleted, delete records having references pointing to deleted records */
 	public cascadeDeleteReferences: () => { table: string, referenceColumn: string }[] = () => [];
-	public loadRecordsFromSource = false;
 }
 
 type RequiredProps<T> = {
@@ -84,6 +85,10 @@ export type ColumnOptions = {
 	 */
 	references?: { table: string },
 	nullable?: boolean,
+	/** Value stored on insert */
 	defaultValue?: () => Promise<any>,
+	/** Value stored on update */
 	updateValue?: () => Promise<any>,
+	/** Add conditions to query; called on every query of this table */
+	addToQuery?: (qb: QueryBuilder) => Promise<void>,
 }

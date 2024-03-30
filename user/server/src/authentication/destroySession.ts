@@ -1,5 +1,5 @@
 import { Db } from '@proteinjs/db';
-import { tables } from '../tables/tables';
+import { tables } from '@proteinjs/user';
 
 export async function destroySession(sessionId?: string) {
     if (!sessionId)

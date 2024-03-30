@@ -4,7 +4,7 @@ import { Column, Table, getColumnPropertyName, tableByName } from './Table';
 import { Record, RecordSerializer, SerializedRecord } from './Record';
 import { Logger } from '@brentbahry/util';
 import { loadSourceRecords } from './source/loadSourceRecords';
-import { ParameterizationConfig, Statement, StatementFactory } from '@proteinjs/db-query';
+import { ParameterizationConfig, QueryBuilder, Statement, StatementFactory } from '@proteinjs/db-query';
 import { QueryBuilderFactory } from './QueryBuilderFactory';
 import { StatementConfigFactory } from './StatementConfigFactory';
 import { TableManager } from './schema/TableManager';
@@ -143,6 +143,7 @@ export class Db implements DbService {
 
     async query<T extends Record>(table: Table<T>, query: Query<T>): Promise<T[]> {
         const qb = new QueryBuilderFactory().getQueryBuilder(table, query);
+        this.addColumnQueries(table, qb);
         const generateQuery = (config: DbDriverStatementConfig) => qb.toSql(this.statementConfigFactory.getStatementConfig(config));
         const serializedRecords = await this.dbDriver.runQuery(generateQuery);
         const recordSearializer = new RecordSerializer(table);
@@ -152,8 +153,17 @@ export class Db implements DbService {
     async getRowCount<T extends Record>(table: Table<T>, query?: Query<T>): Promise<number> {
         const qb = new QueryBuilderFactory().getQueryBuilder(table, query);
         qb.aggregate({ function: 'COUNT', resultProp: 'count' });
+        this.addColumnQueries(table, qb);
         const generateQuery = (config: DbDriverStatementConfig) => qb.toSql(this.statementConfigFactory.getStatementConfig(config));
         const result = await this.dbDriver.runQuery(generateQuery);
         return result[0]['count'];
+    }
+
+    private async addColumnQueries<T extends Record>(table: Table<T>, qb: QueryBuilder<T>) {
+        for (let columnPropertyName in table.columns) {
+            const column = (table.columns as any)[columnPropertyName] as Column<any, any>;
+            if (column.options?.addToQuery)
+                column.options.addToQuery(qb);
+        }
     }
 }
