@@ -18,6 +18,7 @@
         "@brentbahry/reflection": "file:../../reflection",
         "@proteinjs/db": "file:../../db/db",
         "@proteinjs/service": "file:../../service",
+        "@proteinjs/user": "file:../../user/user",
         "moment": "2.29.4"
     },
     "types": "./dist/generated/index.d.ts"
