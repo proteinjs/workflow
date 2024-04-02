@@ -16,7 +16,8 @@
         "watch": "tsc -w -p .",
         "build": "tsc",
         "test": "jest",
-        "build-dist": "tsc && webpack --mode production"
+        "build-dist": "tsc && webpack --mode production",
+        "watch-repo": "node dist/src/runWatchRepo.js"
     },
     "dependencies": {
         "@brentbahry/util": "file:../util/common",
