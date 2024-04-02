@@ -15,7 +15,7 @@ export class EmployeeTable extends Table<Employee> {
 		name: new StringColumn('name'),
     department: new StringColumn('department'),
 	});
-};
+}
 
 export const crudTests = (
   driver: DbDriver, 

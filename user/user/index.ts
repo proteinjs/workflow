@@ -4,3 +4,4 @@ export * from './src/tables/tables';
 export * from './src/routes';
 export * from './src/cacheKeys';
 export * from './src/guestUser';
+export * from './src/ScopedRecord';

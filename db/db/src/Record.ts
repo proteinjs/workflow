@@ -1,4 +1,4 @@
-import { DateTimeColumn, StringColumn, UuidColumn } from './Columns';
+import { DateTimeColumn, UuidColumn } from './Columns';
 import { Column, Table, Columns } from './Table';
 import { moment } from './opt/moment';
 
@@ -6,10 +6,6 @@ export interface Record {
 	id: string;
 	created: moment.Moment;
 	updated: moment.Moment;
-}
-
-export interface ScopedRecord {
-  scope: string;
 }
 
 const recordColumns: Columns<Record> = {
@@ -23,13 +19,6 @@ const recordColumns: Columns<Record> = {
   }),
 }
 
-const scopedRecordColumns = {
-  scope: new StringColumn('scope', { 
-    defaultValue: async () =>  'user id or id of one of the users groups',
-    addToQuery: async (qb) => { qb.condition({ field: 'scope', operator: 'IN', value: ['scopes user has access to'] }) },
-  }),
-}
-
 /**
  * Wrapper function to add default Record columns to your table's columns (should always use).
  * 
@@ -40,18 +29,6 @@ const scopedRecordColumns = {
  */
 export function withRecordColumns<T extends Record>(columns: Columns<Omit<T, keyof Record>>): Columns<Record> & Columns<Omit<T, keyof Record>> {
   return Object.assign(Object.assign({}, recordColumns), columns);
-}
-
-/**
- * Wrapper function to add default ScopedRecord columns to your table's columns.
- * 
- * Note: using this requires an explicit dependency on moment@2.29.4 in your package (since transient dependencies are brittle by typescript's standards)
- * 
- * @param columns your columns
- * @returns recordColumns & sourceRecordColumns & your columns
- */
-export function withScopedRecordColumns<T extends ScopedRecord>(columns: Columns<Omit<T, keyof ScopedRecord>>): Columns<ScopedRecord> & Columns<Omit<T, keyof ScopedRecord>> {
-  return Object.assign(Object.assign({}, scopedRecordColumns), withRecordColumns<Record>(columns) as any);
 }
 
 export type SerializedRecord = { [columnName: string]: any }

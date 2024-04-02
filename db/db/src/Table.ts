@@ -86,9 +86,9 @@ export type ColumnOptions = {
 	references?: { table: string },
 	nullable?: boolean,
 	/** Value stored on insert */
-	defaultValue?: () => Promise<any>,
+	defaultValue?: (insertObj: any) => Promise<any>,
 	/** Value stored on update */
-	updateValue?: () => Promise<any>,
+	updateValue?: (updateObj: any) => Promise<any>,
 	/** Add conditions to query; called on every query of this table */
 	addToQuery?: (qb: QueryBuilder) => Promise<void>,
 }

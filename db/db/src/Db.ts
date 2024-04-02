@@ -9,7 +9,7 @@ import { QueryBuilderFactory } from './QueryBuilderFactory';
 import { StatementConfigFactory } from './StatementConfigFactory';
 import { TableManager } from './schema/TableManager';
 
-export const getDb = () => typeof self === 'undefined' ? new Db() : getDbService() as Db;
+export const getDb = <R extends Record = Record>() => typeof self === 'undefined' ? new Db<R>() : getDbService() as Db<R>;
 
 export type DbDriverStatementConfig = ParameterizationConfig & { prefixTablesWithDb?: boolean }
 
@@ -23,7 +23,7 @@ export interface DbDriver extends Loadable {
     runDml(generateStatement: (config: DbDriverStatementConfig) => Statement): Promise<number>; // returns the number of affected rows
 }
 
-export class Db implements DbService {
+export class Db<R extends Record = Record> implements DbService<R> {
     private static globalDbDriver: DbDriver;
     private dbDriver: DbDriver;
     private logger = new Logger(this.constructor.name);
@@ -53,15 +53,15 @@ export class Db implements DbService {
         await loadSourceRecords();
     }
 
-    async tableExists<T extends Record>(table: Table<T>): Promise<boolean> {
+    async tableExists<T extends R>(table: Table<T>): Promise<boolean> {
         return await this.dbDriver.getTableManager().tableExists(table);
     }
 
-    async get<T extends Record>(table: Table<T>, query: Query<T>): Promise<T> {
+    async get<T extends R>(table: Table<T>, query: Query<T>): Promise<T> {
         return (await this.query(table, query))[0];
     }
 
-    async insert<T extends Record>(table: Table<T>, record: Omit<T, keyof Record>): Promise<T> {
+    async insert<T extends R>(table: Table<T>, record: Omit<T, keyof R>): Promise<T> {
         const recordCopy = Object.assign({}, record);
         await this.addDefaultFieldValues(table, recordCopy);
         const recordSearializer = new RecordSerializer(table);
@@ -71,15 +71,15 @@ export class Db implements DbService {
         return recordCopy as T;
     }
 
-    private async addDefaultFieldValues<T extends Record>(table: Table<T>, record: any) {
+    private async addDefaultFieldValues<T extends R>(table: Table<T>, record: any) {
         for (let columnPropertyName in table.columns) {
             const column = (table.columns as any)[columnPropertyName] as Column<any, any>;
             if (column.options?.defaultValue && typeof record[columnPropertyName] === 'undefined')
-                record[columnPropertyName] = await column.options.defaultValue();
+                record[columnPropertyName] = await column.options.defaultValue(record);
         }
     }
 
-    async update<T extends Record>(table: Table<T>, record: Partial<T>, query?: Query<T>): Promise<number> {
+    async update<T extends R>(table: Table<T>, record: Partial<T>, query?: Query<T>): Promise<number> {
         if (!query && !record.id)
             throw new Error(`Update must be called with either a QueryBuilder or a record with an id property`);
 
@@ -95,15 +95,15 @@ export class Db implements DbService {
         return await this.dbDriver.runDml(generateUpdate);
     }
 
-    private async addUpdateFieldValues<T extends Record>(table: Table<T>, record: any) {
+    private async addUpdateFieldValues<T extends R>(table: Table<T>, record: any) {
         for (let columnPropertyName in table.columns) {
             const column = (table.columns as any)[columnPropertyName] as Column<any, any>;
             if (column.options?.updateValue)
-                record[columnPropertyName] = await column.options.updateValue();
+                record[columnPropertyName] = await column.options.updateValue(record);
         }
     }
 
-    async delete<T extends Record>(table: Table<T>, query: Query<T>): Promise<number> {
+    async delete<T extends R>(table: Table<T>, query: Query<T>): Promise<number> {
         const recordsToDelete = await this.query(table, query);
         if (recordsToDelete.length == 0)
             return 0;
@@ -141,7 +141,7 @@ export class Db implements DbService {
         }
     }
 
-    async query<T extends Record>(table: Table<T>, query: Query<T>): Promise<T[]> {
+    async query<T extends R>(table: Table<T>, query: Query<T>): Promise<T[]> {
         const qb = new QueryBuilderFactory().getQueryBuilder(table, query);
         this.addColumnQueries(table, qb);
         const generateQuery = (config: DbDriverStatementConfig) => qb.toSql(this.statementConfigFactory.getStatementConfig(config));
@@ -150,7 +150,7 @@ export class Db implements DbService {
         return await Promise.all(serializedRecords.map(async (serializedRecord) => recordSearializer.deserialize(serializedRecord)));
     }
 
-    async getRowCount<T extends Record>(table: Table<T>, query?: Query<T>): Promise<number> {
+    async getRowCount<T extends R>(table: Table<T>, query?: Query<T>): Promise<number> {
         const qb = new QueryBuilderFactory().getQueryBuilder(table, query);
         qb.aggregate({ function: 'COUNT', resultProp: 'count' });
         this.addColumnQueries(table, qb);
@@ -159,7 +159,7 @@ export class Db implements DbService {
         return result[0]['count'];
     }
 
-    private async addColumnQueries<T extends Record>(table: Table<T>, qb: QueryBuilder<T>) {
+    private async addColumnQueries<T extends R>(table: Table<T>, qb: QueryBuilder<T>) {
         for (let columnPropertyName in table.columns) {
             const column = (table.columns as any)[columnPropertyName] as Column<any, any>;
             if (column.options?.addToQuery)
