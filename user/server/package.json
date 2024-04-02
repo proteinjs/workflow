@@ -18,6 +18,7 @@
     },
     "dependencies": {
         "@brentbahry/reflection": "file:../../reflection",
+        "@brentbahry/util": "file:../../util/common",
         "@proteinjs/db": "file:../../db/db",
         "@proteinjs/server-api": "file:../../server/api",
         "@proteinjs/ui": "file:../../ui",

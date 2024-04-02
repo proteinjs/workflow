@@ -2,11 +2,13 @@ import sha256 from 'crypto-js/sha256';
 import { Route } from '@proteinjs/server-api';
 import { Db } from '@proteinjs/db';
 import { User, tables, routes } from '@proteinjs/user';
+import { Logger } from '@brentbahry/util';
 
 export const createUser: Route = {
     path: routes.createUser.path,
     method: routes.createUser.method,
     onRequest: async (request, response): Promise<void> => {
+        const logger = new Logger('createUser');
         const user = request.body as User;
         const userRecord = await new Db().get(tables.User, { email: user.email });
         if (userRecord) {
@@ -23,7 +25,7 @@ export const createUser: Route = {
             emailVerified: false,
             roles: '',
         });
-        console.info(`Created user: ${user.email}`);
+        logger.info(`Created user: ${user.email}`);
         response.send({});
     }
 }
