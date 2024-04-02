@@ -91,4 +91,7 @@ export type ColumnOptions = {
 	updateValue?: (updateObj: any) => Promise<any>,
 	/** Add conditions to query; called on every query of this table */
 	addToQuery?: (qb: QueryBuilder) => Promise<void>,
+	ui?: {
+		hidden?: boolean,
+	},
 }

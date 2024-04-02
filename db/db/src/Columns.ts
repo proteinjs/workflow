@@ -104,6 +104,15 @@ export class UuidColumn extends StringColumn {
 	}
 }
 
+export class PasswordColumn extends StringColumn {
+	constructor(
+		name: string,
+		options?: ColumnOptions
+	) {
+		super(name, Object.assign({ ui: { hidden: true } }, options));
+	}
+}
+
 export class ObjectColumn<T> extends StringColumn<T> {
 	constructor(
 		name: string,

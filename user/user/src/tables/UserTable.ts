@@ -1,4 +1,4 @@
-import { BooleanColumn, StringColumn, Table, Record, withRecordColumns } from '@proteinjs/db';
+import { BooleanColumn, StringColumn, PasswordColumn, Table, Record, withRecordColumns } from '@proteinjs/db';
 
 export type User = Record & {
     name: string,
@@ -13,7 +13,7 @@ export class UserTable extends Table<User> {
     columns = withRecordColumns<User>({
         name: new StringColumn('name'),
         email: new StringColumn('email', {}, 250),
-        password: new StringColumn('password'),
+        password: new PasswordColumn('password'),
         emailVerified: new BooleanColumn('email_verified'),
         roles: new StringColumn('roles'),
     });

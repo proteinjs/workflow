@@ -33,7 +33,10 @@ export function RecordForm<T extends Record>({ table, record }: RecordFormProps<
 
     for (let columnPropertyName in table.columns) {
       const column = (table.columns as any)[columnPropertyName] as Column<T, any>;
-      if (columnPropertyName == 'id' || columnPropertyName == 'name' || columnPropertyName == 'created' || columnPropertyName == 'updated' || columnPropertyName == 'password')
+      if (columnPropertyName == 'name' || columnPropertyName == 'created' || columnPropertyName == 'updated')
+        continue;
+
+      if (column.options?.ui?.hidden)
         continue;
 
       if ((column instanceof StringColumn && column.maxLength === 'MAX') || column instanceof ReferenceArrayColumn)

@@ -60,10 +60,13 @@ export function RecordTable<T extends Record>(props: RecordTableProps<T>) {
       if (columnProperties.length >= 5)
         break;
 
-      if (columnProperty == 'name' || columnProperty == 'id' || columnProperty == 'created' || columnProperty == 'updated' || columnProperty == 'password')
+      if (columnProperty == 'name' || columnProperty == 'created' || columnProperty == 'updated')
         continue;
 
       const column: Column<T, any> = (props.table.columns as any)[columnProperty];
+      if (column.options?.ui?.hidden)
+        continue;
+
       if ((column instanceof StringColumn && column.maxLength === 'MAX') || column instanceof ReferenceArrayColumn)
         continue;
 

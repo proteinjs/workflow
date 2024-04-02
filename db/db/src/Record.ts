@@ -9,7 +9,7 @@ export interface Record {
 }
 
 const recordColumns: Columns<Record> = {
-  id: new UuidColumn('id'),
+  id: new UuidColumn('id', { ui: { hidden: true } }),
   created: new DateTimeColumn('created', { 
     defaultValue: async () => moment(),
   }),

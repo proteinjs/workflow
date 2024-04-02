@@ -19,6 +19,7 @@ const scopedRecordColumns = {
         value: [Session.getData<User>(USER_SESSION_CACHE_KEY).id]
       });
     },
+    ui: { hidden: true },
   }),
 }
 
