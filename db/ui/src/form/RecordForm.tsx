@@ -3,7 +3,7 @@ import S from 'string'
 import moment from 'moment'
 import { StringUtil } from '@brentbahry/util'
 import { Form, Fields, textField, FormButtons } from '@proteinjs/ui'
-import { Table, Record, Column, getDbService, DateTimeColumn, ReferenceArrayColumn, BooleanColumn } from '@proteinjs/db'
+import { Table, Record, Column, getDbService, DateTimeColumn, ReferenceArrayColumn, BooleanColumn, StringColumn } from '@proteinjs/db'
 import { recordTableLink } from '../pages/RecordTablePage'
 import { recordFormLink } from '../pages/RecordFormPage'
 
@@ -36,7 +36,7 @@ export function RecordForm<T extends Record>({ table, record }: RecordFormProps<
       if (columnPropertyName == 'id' || columnPropertyName == 'name' || columnPropertyName == 'created' || columnPropertyName == 'updated' || columnPropertyName == 'password')
         continue;
 
-      if (column.type == 'longtext' || column instanceof ReferenceArrayColumn)
+      if ((column instanceof StringColumn && column.maxLength === 'MAX') || column instanceof ReferenceArrayColumn)
         continue;
 
       columns[columnPropertyName] = column;

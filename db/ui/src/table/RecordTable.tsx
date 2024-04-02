@@ -2,7 +2,7 @@ import React from 'react'
 import { Delete, Add } from '@mui/icons-material'
 import S from 'string'
 import { TableButton, Table as TableComponent, TableLoader, TableProps } from '@proteinjs/ui'
-import { Column, QueryBuilderFactory, Record, ReferenceArrayColumn, Table, getDb } from '@proteinjs/db'
+import { Column, QueryBuilderFactory, Record, ReferenceArrayColumn, StringColumn, Table, getDb } from '@proteinjs/db'
 import { QueryTableLoader } from './QueryTableLoader'
 import { newRecordFormLink, recordFormLink } from '../pages/RecordFormPage'
 import { recordTableLink } from '../pages/RecordTablePage'
@@ -64,7 +64,7 @@ export function RecordTable<T extends Record>(props: RecordTableProps<T>) {
         continue;
 
       const column: Column<T, any> = (props.table.columns as any)[columnProperty];
-      if (column.type == 'longtext' || column instanceof ReferenceArrayColumn)
+      if ((column instanceof StringColumn && column.maxLength === 'MAX') || column instanceof ReferenceArrayColumn)
         continue;
 
       columnProperties.push(columnProperty as keyof T);
