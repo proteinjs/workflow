@@ -12,7 +12,11 @@ export * from './src/schema/SchemaOperations';
 export * from './src/schema/SchemaMetadata';
 export * from './src/schema/TableManager';
 
+export * from './src/tables/tables';
+export * from './src/tables/MigrationTable';
+
 export * from './src/services/DbService';
+export * from './src/services/MigrationRunnerService';
 
 export * from './test/TableManagerTests';
 export * from './test/CrudTests';

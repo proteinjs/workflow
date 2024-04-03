@@ -6,6 +6,7 @@ import { Form, Fields, textField, FormButtons } from '@proteinjs/ui'
 import { Table, Record, Column, getDbService, DateTimeColumn, ReferenceArrayColumn, BooleanColumn, StringColumn } from '@proteinjs/db'
 import { recordTableLink } from '../pages/RecordTablePage'
 import { recordFormLink } from '../pages/RecordFormPage'
+import { getRecordFormCustomization } from './RecordFormCustomization'
 
 export type RecordFormProps<T extends Record> = {
   table: Table<T>,
@@ -14,12 +15,13 @@ export type RecordFormProps<T extends Record> = {
 
 export function RecordForm<T extends Record>({ table, record }: RecordFormProps<T>) {
   const isNewRecord = typeof record === 'undefined';
+  const recordFormCustomization = getRecordFormCustomization(table.name);
   return (
     <Form
       name={S(table.name).humanize().s}
       createFields={createFields()}
       fieldLayout={fieldLayout()}
-      buttons={buttons()}
+      buttons={recordFormCustomization?.getFormButtons ? recordFormCustomization.getFormButtons(record, buttons()) : buttons()}
       onLoad={onLoad}
       onLoadProgressMessage={`Loading ${S(table.name).humanize().s}`}
     />

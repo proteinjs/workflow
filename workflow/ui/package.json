@@ -25,6 +25,7 @@
         "@mui/material": "5.14.11",
         "@proteinjs/db": "file:../../db/db",
         "@proteinjs/ui": "file:../../ui",
+        "@proteinjs/user": "file:../../user/user",
         "@proteinjs/workflow-common": "file:../common",
         "react": "18.2.0"
     },

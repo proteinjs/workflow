@@ -3,7 +3,7 @@ import { Loadable, SourceRepository } from '@brentbahry/reflection';
 import { Column, Table, getColumnPropertyName, tableByName } from './Table';
 import { Record, RecordSerializer, SerializedRecord } from './Record';
 import { Logger } from '@brentbahry/util';
-import { loadSourceRecords } from './source/loadSourceRecords';
+import { SourceRecordLoader } from './source/SourceRecordLoader';
 import { ParameterizationConfig, QueryBuilder, Statement, StatementFactory } from '@proteinjs/db-query';
 import { QueryBuilderFactory } from './QueryBuilderFactory';
 import { StatementConfigFactory } from './StatementConfigFactory';
@@ -50,7 +50,7 @@ export class Db<R extends Record = Record> implements DbService<R> {
     async init(): Promise<void> {
         await this.dbDriver.createDbIfNotExists();
         await this.dbDriver.getTableManager().loadTables();
-        await loadSourceRecords();
+        await new SourceRecordLoader().load();
     }
 
     async tableExists<T extends R>(table: Table<T>): Promise<boolean> {

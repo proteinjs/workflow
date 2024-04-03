@@ -8,6 +8,7 @@ import '@mui/icons-material';
 import '@mui/material';
 import '@proteinjs/db';
 import '@proteinjs/ui';
+import '@proteinjs/user';
 import '@proteinjs/workflow-common';
 import 'react';
 

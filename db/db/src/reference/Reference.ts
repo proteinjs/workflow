@@ -24,7 +24,7 @@ export class Reference<T extends Record> implements CustomSerializableObject {
     public _object?: T,
   ) {}
 
-  static fromObject<T extends Record>(table: string, object: T|Omit<T, 'created'|'updated'>) {
+  static fromObject<T extends Record>(table: string, object: T|(Partial<T> & { id: string })) {
     return new Reference<T>(table, object.id, object as T);
   }
 

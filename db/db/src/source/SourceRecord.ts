@@ -3,7 +3,7 @@ import { Columns, Table } from '../Table';
 import { Record as DbRecord, withRecordColumns } from '../Record';
 import { BooleanColumn } from '../Columns';
 
-export const getSourceRecordLoaders = () => SourceRepository.get().objects<SourceRecordLoader<any>>('@proteinjs/db/SourceRecordLoader');
+export const getSourceRecordLoaders = <T extends SourceRecord = SourceRecord>() => SourceRepository.get().objects<SourceRecordLoader<T>>('@proteinjs/db/SourceRecordLoader');
 
 export interface SourceRecord extends DbRecord {
   isLoadedFromSource?: boolean;

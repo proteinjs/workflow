@@ -19,7 +19,10 @@ export class ServiceExecutor {
     const deserializedArgs = Serializer.deserialize(requestBody);
     let _return: any;
     try {
-      _return = await method(...deserializedArgs);
+      if (this.service.serviceMetadata?.doNotAwait)
+        method(...deserializedArgs);
+      else
+        _return = await method(...deserializedArgs);
     } catch (error: any) {
       this.logger.error(`Failed with args:\n${JSON.stringify(requestBody, null, 2)}`);
       throw error;

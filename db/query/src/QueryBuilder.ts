@@ -6,7 +6,7 @@ export interface Select<T> {
 }
 
 export type LogicalOperator = 'AND'|'OR';
-export type Operator = '='|'<>'|'!='|'>'|'<'|'>='|'<='|'IN'|'LIKE'|'BETWEEN'|'IS NULL'|'IS NOT NULL'|'NOT';
+export type Operator = '='|'<>'|'!='|'>'|'<'|'>='|'<='|'IN'|'NOT IN'|'LIKE'|'NOT LIKE'|'BETWEEN'|'IS NULL'|'IS NOT NULL'|'NOT';
 export type AggregateFunction = 'COUNT'|'SUM'|'AVG'|'MIN'|'MAX';
 
 export interface LogicalGroup<T> {
@@ -162,7 +162,7 @@ export class QueryBuilder<T = any> {
     let resolvedCondition = condition;
     if (
       (Array.isArray(condition.value) && condition.value.length == 0) ||
-      (condition.operator === 'IN' && !condition.value)
+      ((condition.operator === 'IN' || condition.operator === 'NOT IN') && !condition.value)
     ) {
       resolvedCondition = Object.assign(resolvedCondition, { empty: true }) as InternalCondition<T>;
     }
@@ -233,7 +233,7 @@ export class QueryBuilder<T = any> {
           } else if (node.value instanceof QueryBuilder) {
             let valueStr = paramManager.parameterize(node.value, 'subquery');
             return `${resolvedFieldName} ${node.operator} ${valueStr}`;
-          } else if (node.operator === 'IN') {
+          } else if (node.operator === 'IN' || node.operator === 'NOT IN') {
             let valuesStr = Array.isArray(node.value) ? node.value.map((val: any) => paramManager.parameterize(val, typeof val)).join(', ') : paramManager.parameterize(node.value, typeof node.value);
             return `${resolvedFieldName} ${node.operator} (${valuesStr})`;
           } else if (node.operator === 'BETWEEN') {

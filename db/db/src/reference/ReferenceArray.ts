@@ -28,7 +28,7 @@ export class ReferenceArray<T extends Record> implements CustomSerializableObjec
     public _objects?: T[],
   ) {}
 
-  static fromObjects<T extends Record>(table: string, objects: (T|Omit<T, 'created'|'updated'>)[]) {
+  static fromObjects<T extends Record>(table: string, objects: (T|(Partial<T> & { id: string }))[]) {
     const ids = objects.map(object => object.id);
     return new ReferenceArray<T>(table, ids, objects as T[]);
   }

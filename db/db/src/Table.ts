@@ -46,15 +46,24 @@ export abstract class Table<T extends Record> implements Loadable, CustomSeriali
 	public indexes: { columns: (keyof T)[], name?: string }[] = [];
 	/** When records are deleted, delete records having references pointing to deleted records */
 	public cascadeDeleteReferences: () => { table: string, referenceColumn: string }[] = () => [];
+	/** 
+	 * Options for configuring SourceRecords
+	 * @param doNotDeleteSourceRecordsFromDb if true, the SourceRecordLoader will not delete source records from the db if they no longer exist on the file system
+	 */
+	public sourceRecordOptions: SourceRecordOptions = { doNotDeleteSourceRecordsFromDb: false };
+}
+
+type ExcludeFunctions<T> = {
+  [P in keyof T as T[P] extends Function ? never : P]: T[P]
 }
 
 type RequiredProps<T> = {
-	[P in keyof T]: T[P] extends undefined ? never : P
-}[keyof T]
+  [P in keyof ExcludeFunctions<T>]: ExcludeFunctions<T>[P] extends undefined ? never : P
+}[keyof ExcludeFunctions<T>]
 
 type OptionalProps<T> = {
-	[P in keyof T]: T[P] extends undefined ? P : never
-}[keyof T]
+  [P in keyof ExcludeFunctions<T>]: ExcludeFunctions<T>[P] extends undefined ? P : never
+}[keyof ExcludeFunctions<T>]
 
 export type Columns<T> = {
 	[P in RequiredProps<T>]: Column<T[P], any>
@@ -94,4 +103,8 @@ export type ColumnOptions = {
 	ui?: {
 		hidden?: boolean,
 	},
+}
+
+export type SourceRecordOptions = { 
+	doNotDeleteSourceRecordsFromDb: boolean 
 }

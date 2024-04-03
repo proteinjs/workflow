@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Workflow as WorkflowRecord, WorkflowExecution, WorkflowStep, tables } from '@proteinjs/workflow-common';
 import { Reference, getDb } from '@proteinjs/db';
+import { getScopedDb } from '@proteinjs/user';
 import { WorkflowComponentRepo } from './WorkflowComponent';
 import { WorkflowHeader } from './WorkflowHeader';
 import { PageComponentProps } from '@proteinjs/ui';
@@ -35,7 +36,7 @@ export const Workflow = ({ workflowId, workflowExecutionId, navigate, ...props }
   }, [workflowId, workflowExecutionId]);
 
   async function getOrCreateWorkflowExecution(workflowRecord: WorkflowRecord) {
-    const db = getDb();
+    const db = getScopedDb();
     if (workflowExecutionId)
       return await db.get(tables.WorkflowExecution, { id: workflowExecutionId });
 
