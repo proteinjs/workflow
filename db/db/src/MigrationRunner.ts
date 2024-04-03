@@ -1,14 +1,16 @@
-import { moment } from './opt/moment';
+import { Moment, moment } from './opt/moment';
 import { getDb } from './Db';
 import { Table } from './Table';
 import { SourceRecordRepo } from './source/SourceRecordRepo';
 import { MigrationRunnerService, getMigrationRunnerService } from './services/MigrationRunnerService';
 import { Migration, MigrationTable } from './tables/MigrationTable';
 import { Service } from '@proteinjs/service';
+import { Logger } from '@brentbahry/util';
 
 export const getMigrationRunner = () => typeof self === 'undefined' ? new MigrationRunner() : getMigrationRunnerService() as MigrationRunner;
 
 export class MigrationRunner implements MigrationRunnerService {
+  private logger = new Logger(this.constructor.name);
   public serviceMetadata: Service['serviceMetadata'] = {
     doNotAwait: true,
   };
@@ -23,6 +25,7 @@ export class MigrationRunner implements MigrationRunnerService {
     migration.status = 'running';
     migration.startTime = moment();
     await db.update(migrationTable, migration);
+    this.logger.info(`Running migration (${migration.id}) ${migration.description}`);
     try {
       await migration.run();
       migration.status = 'success';
@@ -34,5 +37,25 @@ export class MigrationRunner implements MigrationRunnerService {
       migration.endTime = moment();
     }
     await db.update(migrationTable, migration);
+    this.logger.info(`[${migration.status}] (${this.timeDifference(migration.startTime, migration.endTime)}) Finished running migration (${migration.id}) ${migration.description}`);
+  }
+
+  private timeDifference(start: Moment, end: Moment): string {
+    const duration = moment.duration(end.diff(start));
+    let parts: string[] = [];
+
+    const days = duration.days();
+    const hours = duration.hours();
+    const minutes = duration.minutes();
+    const seconds = duration.seconds();
+    const milliseconds = duration.milliseconds();
+
+    if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
+    if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
+    if (minutes > 0) parts.push(`${minutes} min${minutes > 1 ? 's' : ''}`);
+    if (seconds > 0) parts.push(`${seconds} sec${seconds > 1 ? 's' : ''}`);
+    if (days == 0 && hours == 0 && minutes == 0 && seconds == 0) parts.push(`${milliseconds} ms`);
+
+    return parts.join(' ');
   }
 }

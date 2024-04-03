@@ -1,7 +1,6 @@
 import { Fields, FormButtons } from '@proteinjs/ui'
 import { Migration, getMigrationRunnerService, tables } from '@proteinjs/db'
 import { RecordFormCustomization } from '../RecordFormCustomization'
-import { recordFormLink } from '../../pages/RecordFormPage'
 
 export class MigrationRecordFormCustomization extends RecordFormCustomization {
   public table = tables.Migration;
@@ -18,9 +17,6 @@ export class MigrationRecordFormCustomization extends RecordFormCustomization {
       style: {
         color: 'primary',
         variant: 'contained',
-      },
-      redirect: async (fields: Fields, buttons: FormButtons<Fields>) => {
-        return { path: recordFormLink(this.table.name, migration.id) };
       },
       onClick: async (fields: Fields, buttons: FormButtons<Fields>) => {
         await getMigrationRunnerService().runMigration(migration.id);
