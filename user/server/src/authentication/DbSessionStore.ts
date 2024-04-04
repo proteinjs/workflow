@@ -85,8 +85,7 @@ export class DbSessionStore extends Store {
         const qb = new QueryBuilderFactory().getQueryBuilder(tables.Session)
             .condition({ field: 'expires', operator: '<=', value: new Date() })
         ;
-        const expiredSessions = await new Db().getRowCount(tables.Session, qb);
-        await new Db().delete(tables.Session, qb);
-		console.info(`Swept ${expiredSessions} expired sessions`);
+        const deleteCount = await new Db().delete(tables.Session, qb);
+		console.info(`Swept ${deleteCount} expired sessions`);
 	}
 }
