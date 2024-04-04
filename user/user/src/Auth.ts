@@ -1,9 +1,11 @@
 import { Session } from '@proteinjs/server-api';
-import { USER_SESSION_CACHE_KEY, User, guestUser } from '@proteinjs/user';
+import { User } from './tables/UserTable';
+import { USER_SESSION_CACHE_KEY } from './cacheKeys';
+import { guestUser } from './guestUser';
 
 export class Auth {
     static isLoggedIn(): boolean {
-        const user = Session.getData<User>(USER_SESSION_CACHE_KEY);
+        const user = Auth.getUser();
         return user.email != guestUser.email;
     }
 
@@ -11,7 +13,7 @@ export class Auth {
      * @return true if user has role or user has role 'admin'
      */
     static hasRole(role: string): boolean {
-        const user = Session.getData<User>(USER_SESSION_CACHE_KEY);
+        const user = Auth.getUser();
         const roles = user.roles ? user.roles.split(',') : [];
         if (roles.includes('admin'))
             return true;
@@ -29,5 +31,13 @@ export class Auth {
         }
 
         return true;
+    }
+
+    static getUser(): User {
+        return Session.getDataByKey<User>(USER_SESSION_CACHE_KEY);
+    }
+
+    static setUser(user: User) {
+        Session.setDataByKey(USER_SESSION_CACHE_KEY, user);
     }
 }

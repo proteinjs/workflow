@@ -29,7 +29,11 @@ export class Session {
         getSessionDataStorage().setData(data);
     }
 
-    static getData<T>(sessionDataCacheKey: string): T {
+    static setDataByKey<T>(sessionDataCacheKey: string, data: T) {
+        getSessionDataStorage().getData().data[sessionDataCacheKey] = data;
+    }
+
+    static getDataByKey<T>(sessionDataCacheKey: string): T {
         return getSessionDataStorage().getData().data[sessionDataCacheKey];
     }
 }

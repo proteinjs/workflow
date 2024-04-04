@@ -4,8 +4,9 @@ declare let proteinjs: any;
 export class BrowserSessionDataStorage implements SessionDataStorage {
     environment = 'browser' as 'browser';
 
+    // set in global via SessionDataScriptTag
     setData(data: SessionData) {
-        // set in global via SessionDataScriptTag
+        proteinjs['sessionData'] = data;
     }
 
     getData(): SessionData {

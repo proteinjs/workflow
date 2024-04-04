@@ -1,7 +1,5 @@
 import { Columns, StringColumn, Record, withRecordColumns, getDb, Table, getColumnByName, getTables } from '@proteinjs/db';
-import { Session } from '@proteinjs/server-api';
-import { User } from './tables/UserTable';
-import { USER_SESSION_CACHE_KEY } from './cacheKeys';
+import { Auth } from './Auth';
 
 export interface ScopedRecord extends Record {
   scope: string;
@@ -11,12 +9,12 @@ export const getScopedDb = getDb<ScopedRecord>;
 
 const scopedRecordColumns = {
   scope: new StringColumn('scope', { 
-    defaultValue: async () =>  Session.getData<User>(USER_SESSION_CACHE_KEY).id,
+    defaultValue: async () =>  Auth.getUser().id,
     addToQuery: async (qb) => { 
       qb.condition({ 
         field: 'scope', 
         operator: 'IN', 
-        value: [Session.getData<User>(USER_SESSION_CACHE_KEY).id]
+        value: [Auth.getUser().id]
       });
     },
     ui: { hidden: true },

@@ -9,5 +9,5 @@ export const guestUser: User = {
     roles: '',
     created: moment(),
     updated: moment(),
-    id: '',
+    id: 'guest',
 };
