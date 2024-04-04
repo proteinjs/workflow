@@ -16,7 +16,7 @@ import { Logger } from '@brentbahry/util';
 const webpackConfig = require('../webpack.config');
 const staticContentPath = '/static/';
 
-export async function startServer(config: ServerConfig = {}) {
+export async function startServer(config: ServerConfig) {
     const routes = getRoutes();
     await runStartupEvents(config);
     const server = express();
@@ -91,7 +91,8 @@ function configureStaticContentRouter(server: express.Express, config: ServerCon
 function configureSession(server: express.Express, config: ServerConfig) {
     const sixtyDays = 1000 * 60 * 60 * 24 * 60;
     let sessionOptions: expressSession.SessionOptions = {
-        secret: '__something secret__',
+        secret: config.session.secret,
+        store: config.session.store,
         resave: false,
         saveUninitialized: false,
         cookie: {
