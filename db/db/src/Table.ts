@@ -4,7 +4,7 @@ import { Record } from './Record';
 import { TableSerializerId } from './serializers/TableSerializer';
 import { QueryBuilder } from '@proteinjs/db-query';
 
-export const getTables = () => SourceRepository.get().objects<Table<any>>('@proteinjs/db/Table');
+export const getTables = <T extends Record = any>() => SourceRepository.get().objects<Table<T>>('@proteinjs/db/Table');
 
 export const tableByName = (name: string) => {
 	const tables = getTables();
@@ -50,7 +50,12 @@ export abstract class Table<T extends Record> implements Loadable, CustomSeriali
 	 * Options for configuring SourceRecords
 	 * @param doNotDeleteSourceRecordsFromDb if true, the SourceRecordLoader will not delete source records from the db if they no longer exist on the file system
 	 */
-	public sourceRecordOptions: SourceRecordOptions = { doNotDeleteSourceRecordsFromDb: false };
+	public sourceRecordOptions: SourceRecordOptions = { 
+		doNotDeleteSourceRecordsFromDb: false,
+		ui: {
+			hideColumns: false,
+		}
+	};
 }
 
 type ExcludeFunctions<T> = {
@@ -106,5 +111,8 @@ export type ColumnOptions = {
 }
 
 export type SourceRecordOptions = { 
-	doNotDeleteSourceRecordsFromDb: boolean 
+	doNotDeleteSourceRecordsFromDb?: boolean,
+	ui?: {
+		hideColumns?: boolean,
+	},
 }

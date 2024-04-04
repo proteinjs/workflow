@@ -27,7 +27,7 @@ export class MigrationRunner implements MigrationRunnerService {
     await db.update(migrationTable, migration);
     this.logger.info(`Running migration (${migration.id}) ${migration.description}`);
     try {
-      await migration.run();
+      migration.output = await migration.run();
       migration.status = 'success';
     } catch (error: any) {
       migration.failureMessage = error.message;
@@ -36,11 +36,12 @@ export class MigrationRunner implements MigrationRunnerService {
     } finally {
       migration.endTime = moment();
     }
+    migration.duration = this.duration(migration.startTime, migration.endTime);
     await db.update(migrationTable, migration);
-    this.logger.info(`[${migration.status}] (${this.timeDifference(migration.startTime, migration.endTime)}) Finished running migration (${migration.id}) ${migration.description}`);
+    this.logger.info(`[${migration.status}] (${migration.duration}) Finished running migration (${migration.id}) ${migration.description}`);
   }
 
-  private timeDifference(start: Moment, end: Moment): string {
+  private duration(start: Moment, end: Moment): string {
     const duration = moment.duration(end.diff(start));
     let parts: string[] = [];
 

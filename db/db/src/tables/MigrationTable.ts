@@ -1,5 +1,5 @@
 import { Moment } from '../opt/moment';
-import { DateTimeColumn, StringColumn } from '../Columns';
+import { DateTimeColumn, ObjectColumn, StringColumn } from '../Columns';
 import { Table } from '../Table';
 import { SourceRecord, withSourceRecordColumns } from '../source/SourceRecord';
 
@@ -10,7 +10,9 @@ export interface Migration extends SourceRecord {
   failureStack?: string;
   startTime?: Moment;
   endTime?: Moment;
-  run: () => Promise<void>;
+  duration?: string;
+  output?: any;
+  run: () => Promise<any|void>;
 }
 
 export class MigrationTable extends Table<Migration> {
@@ -22,8 +24,13 @@ export class MigrationTable extends Table<Migration> {
     failureStack: new StringColumn('failure_stack', {}, 'MAX'),
     startTime: new DateTimeColumn('start_time'),
     endTime: new DateTimeColumn('end_time'),
+    duration: new StringColumn('duration'),
+    output: new ObjectColumn('output'),
 	});
   public sourceRecordOptions = {
     doNotDeleteSourceRecordsFromDb: true,
+    ui: {
+      hideColumns: true,
+    },
   };
 }

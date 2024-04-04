@@ -1,4 +1,4 @@
-import { Columns, StringColumn, Record, withRecordColumns, getDb } from '@proteinjs/db';
+import { Columns, StringColumn, Record, withRecordColumns, getDb, Table, getColumnByName, getTables } from '@proteinjs/db';
 import { Session } from '@proteinjs/server-api';
 import { User } from './tables/UserTable';
 import { USER_SESSION_CACHE_KEY } from './cacheKeys';
@@ -21,6 +21,15 @@ const scopedRecordColumns = {
     },
     ui: { hidden: true },
   }),
+}
+
+export function getScopedTables() {
+  return getTables<ScopedRecord>().filter(table => isScopedTable(table));
+}
+
+export function isScopedTable(table: Table<any>) {
+  const scopeColumn = getColumnByName(table, scopedRecordColumns.scope.name);
+  return !!scopeColumn;
 }
 
 /**
