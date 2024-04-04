@@ -10,8 +10,8 @@ export const userCache: SessionDataCache<User> = {
         let user = guestUser;
         if (userEmail) {
             const adminCredentials = DefaultAdminCredentials.getCredentials();
-            if (userEmail == adminCredentials.username) {
-                const adminUser: User = { name: 'Admin', email: adminCredentials.username, password: adminCredentials.password, emailVerified: true, roles: 'admin', created: moment(), updated: moment(), id: '' };
+            if (adminCredentials && userEmail == adminCredentials.username) {
+                const adminUser: User = { name: 'Admin', email: adminCredentials.username, password: adminCredentials.password, emailVerified: true, roles: 'admin', created: moment(), updated: moment(), id: 'admin' };
                 user = adminUser;
             } else {
                 user = await new Db().get(tables.User, { email: userEmail });
