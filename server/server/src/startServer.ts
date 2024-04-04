@@ -179,7 +179,7 @@ function afterRequest(server: express.Express, config: ServerConfig) {
 
 function start(server: express.Express, config: ServerConfig) {
     const logger = new Logger('start');
-    const port = config.port ? config.port : 8080;
+    const port = config.port ? config.port : 3000;
     server.listen(port, () => {
         if (process.env.DEVELOPMENT)
             logger.info(`Starting in development mode`);
