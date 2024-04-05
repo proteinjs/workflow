@@ -6,6 +6,9 @@ import { RecordForm } from '../form/RecordForm'
 export const recordFormPage: Page = {
   name: 'Record Form',
   path: 'record/form',
+  auth: {
+    allUsers: true,
+  },
   component: ({...props}) => (
     <FormPage>
       <DynamicRecordForm {...props} />

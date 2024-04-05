@@ -4,12 +4,16 @@ import { ServiceClient } from './ServiceClient';
 
 export interface Service extends Loadable {
   serviceMetadata?: {
-    /** If true, the user does not need to be logged in or have any roles to call this service. If blank, defaults to false. */
-    public?: boolean;
-    /** The user must be logged in and have these roles to call this service. If blank, defaults to requiring 'admin' role. */
-    roles?: string[];
+    auth?: {
+      /** If true, the user does not need to be logged in or have any roles to call this service. If blank, defaults to false. */
+      public?: boolean,
+      /** If true, the user does not need to have any roles to call this service, but must be logged in. If blank, defaults to false. */
+      allUsers?: boolean,
+      /** The user must be logged in and have these roles to call this service. If blank, defaults to requiring the 'admin' role. */
+      roles?: string[],
+    },
     /** Don't await the service's execution, return a response to the client immediately */
-    doNotAwait?: boolean;
+    doNotAwait?: boolean,
   };
   [prop: string]: SerializableFunction | NotFunction<any>;
 }

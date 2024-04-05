@@ -21,6 +21,7 @@
         "@brentbahry/reflection": "file:../../reflection",
         "@proteinjs/db": "file:../../db/db",
         "@proteinjs/server-api": "file:../../server/api",
+        "@proteinjs/service": "file:../../service",
         "moment": "2.29.4"
     },
     "devDependencies": {

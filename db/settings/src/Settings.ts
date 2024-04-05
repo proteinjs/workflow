@@ -7,6 +7,11 @@ export const getSettings = () => typeof self === 'undefined' ? new Settings() : 
 
 export class Settings implements SettingsService {
   private logger = new Logger(this.constructor.name);
+  public serviceMetadata = {
+    auth: {
+      allUsers: true,
+    },
+  };
 
   async get<T>(name: string, defaultValue?: T) {
     const db = getDb();

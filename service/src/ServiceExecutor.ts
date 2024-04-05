@@ -6,7 +6,7 @@ import { Serializer } from '@proteinjs/serializer';
 export class ServiceExecutor {
   private logger: Logger;
   constructor(
-    private service: Service,
+    public service: Service,
     private _interface: Interface,
     private method: Method,
   ) {

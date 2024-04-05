@@ -3,6 +3,7 @@ import { Service } from './Service';
 import { Interface, SourceRepository } from '@brentbahry/reflection';
 import { ServiceExecutor } from './ServiceExecutor';
 import { Logger } from '@brentbahry/util';
+import { getServiceAuth } from './ServiceAuth';
 
 export class ServiceRouter implements Route {
   private logger = new Logger(this.constructor.name);
@@ -34,6 +35,15 @@ export class ServiceRouter implements Route {
       const serviceExecutor = this.getServiceExecutorMap()[request.path];
       if (!serviceExecutor) {
         const error = `Unable to find service matching path: ${request.path}`;
+        this.logger.error(error);
+        response.send({ error });
+        return;
+      }
+
+      const service = serviceExecutor.service;
+      const serviceAuth = getServiceAuth();
+      if (serviceAuth && !serviceAuth.canRunService(service)) {
+        const error = `User not authorized to run service: ${request.path}`;
         this.logger.error(error);
         response.send({ error });
         return;

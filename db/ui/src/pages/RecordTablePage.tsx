@@ -6,6 +6,9 @@ import { RecordTable } from '../table/RecordTable'
 export const recordTablePage: Page = {
   name: 'Record Table',
   path: 'record/table',
+  auth: {
+    allUsers: true,
+  },
   component: ({...props}) => (
     <FormPage>
       <DynamicRecordTable {...props} />

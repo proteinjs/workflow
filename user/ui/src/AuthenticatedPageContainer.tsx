@@ -14,13 +14,16 @@ export function AuthenticatedPageContainer(props: AuthenticatedPageContainerProp
             auth={{
                 isLoggedIn,
                 canViewPage: (page: Page) => {
-                    if (page.public)
+                    if (page.auth?.public)
                         return true;
 
-                    if (!page.roles)
+                    if (page.auth?.allUsers)
+                        return Auth.isLoggedIn();
+
+                    if (!page.auth?.roles)
                         return Auth.hasRole('admin');
 
-                    return Auth.hasRoles(page.roles);
+                    return Auth.hasRoles(page.auth?.roles);
                 },
                 login: loginPath,
                 logout: async () => {

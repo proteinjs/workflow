@@ -28,6 +28,11 @@ export class Db<R extends Record = Record> implements DbService<R> {
     private dbDriver: DbDriver;
     private logger = new Logger(this.constructor.name);
     private statementConfigFactory: StatementConfigFactory;
+    public serviceMetadata = {
+        auth: {
+            allUsers: true,
+        },
+    };
 
     constructor(
         dbDriver?: DbDriver,

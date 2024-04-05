@@ -16,9 +16,13 @@ export interface Page extends Loadable {
     component: React.ComponentType<PageComponentProps>;
     /** Render component on its own without any additional, top-level container */
     noPageContainer?: boolean;
-    /** If true, page does not require user to be logged in or have any roles. If blank, defaults to false. */
-    public?: boolean;
-    /** User must be logged in and have these roles to access page. If blank, defaults to requiring 'admin' role. */
-    roles?: string[];
+    auth?: {
+        /** If true, the user does not need to be logged in or have any roles to access this page. If blank, defaults to false. */
+        public?: boolean;
+        /** If true, the user does not need to have any roles to access this page, but must be logged in. If blank, defaults to false. */
+        allUsers?: boolean,
+        /** The user must be logged in and have these roles to access this page. If blank, defaults to requiring the 'admin' role. */
+        roles?: string[];
+    };
     pageContainerSxProps?: SxProps;
 }

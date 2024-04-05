@@ -6,7 +6,9 @@ export const loginPath = 'login';
 export const loginPage: Page = {
     name: 'Login',
     path: loginPath,
-    public: true,
+    auth: {
+        public: true,
+    },
     component: () => (
         <FormPage>
             <Form<LoginFields, typeof buttons>

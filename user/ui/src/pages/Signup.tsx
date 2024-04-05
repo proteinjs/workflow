@@ -5,7 +5,9 @@ import { routes } from '@proteinjs/user'
 export const signupPage: Page = {
     name: 'Sign Up',
     path: 'signup',
-    public: true,
+    auth: {
+        public: true,
+    },
     component: () => (
         <FormPage>
             <Form<SignupFields, typeof buttons>
