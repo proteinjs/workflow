@@ -15,6 +15,7 @@ import { Logger } from '@brentbahry/util';
 
 const webpackConfig = require('../webpack.config');
 const staticContentPath = '/static/';
+const logger = new Logger('Server');
 
 export async function startServer(config: ServerConfig) {
     const routes = getRoutes();
@@ -67,7 +68,6 @@ function initializeHotReloading(server: express.Express, config: ServerConfig) {
 }
 
 function configureHttps(server: express.Express) {
-    const logger = new Logger('configureHttps');
     server.use((request: express.Request, response: express.Response, next: express.NextFunction) => {
         if (request.protocol == 'https' || response.headersSent || process.env.DEVELOPMENT) {
             next();
@@ -80,7 +80,6 @@ function configureHttps(server: express.Express) {
 }
 
 function configureStaticContentRouter(server: express.Express, config: ServerConfig) {
-    const logger = new Logger('configureStaticContentRouter');
     if (!config.staticContent?.staticContentDir)
         return;
 
@@ -119,7 +118,6 @@ function configureSession(server: express.Express, config: ServerConfig) {
 }
 
 function initializeAuthentication(authenticate: (username: string, password: string) => Promise<true | string>) {
-    const logger = new Logger('initializeAuthentication');
     passport.use(new passportLocal.Strategy(async function (username, password, done) {
         logger.info(`Authenticating`);
         const result = await authenticate(username, password);
@@ -139,7 +137,6 @@ function initializeAuthentication(authenticate: (username: string, password: str
 }
 
 function beforeRequest(server: express.Express, config: ServerConfig) {
-    const logger = new Logger('beforeRequest');
     let requestCounter: number = 0;
     if (config.request?.disableRequestLogging == false || typeof config.request?.disableRequestLogging === 'undefined') {
         server.use((request: express.Request, response: express.Response, next: express.NextFunction) => {
@@ -160,7 +157,6 @@ function beforeRequest(server: express.Express, config: ServerConfig) {
 }
 
 function afterRequest(server: express.Express, config: ServerConfig) {
-    const logger = new Logger('afterRequest');
     if (config.request?.afterRequest)
         server.use(config.request.afterRequest);
 
@@ -178,7 +174,6 @@ function afterRequest(server: express.Express, config: ServerConfig) {
 }
 
 function start(server: express.Express, config: ServerConfig) {
-    const logger = new Logger('start');
     const port = config.port ? config.port : 3000;
     server.listen(port, () => {
         if (process.env.DEVELOPMENT)

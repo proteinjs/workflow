@@ -4,8 +4,9 @@ import { ServerConfig, Route, getRequestListeners, Session, SessionData, getSess
 import { createReactApp } from './routes/reactApp';
 import { Logger } from '@brentbahry/util';
 
+const logger = new Logger('Server');
+
 export function loadRoutes(routes: Route[], server: express.Express, config: ServerConfig) {
-    const logger = new Logger('loadRoutes');
     let starRoute: Route|null = null;
     const wildcardRoutes: Route[] = [];
     for (const route of routes) {
@@ -51,7 +52,6 @@ function getPath(path: string) {
 
 function wrapRoute(route: (request: express.Request, response: express.Response) => Promise<void>, config: ServerConfig) {
     return async function (request: express.Request, response: express.Response, next: express.NextFunction) {
-        const logger = new Logger('wrapRoute');
         if (response.locals['responseHandled']) {
             next();
             return;
