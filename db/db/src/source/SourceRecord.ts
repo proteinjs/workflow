@@ -1,16 +1,39 @@
 import { Loadable, SourceRepository } from '@brentbahry/reflection';
-import { Columns, Table } from '../Table';
+import { Columns, Table, getTables } from '../Table';
 import { Record as DbRecord, withRecordColumns } from '../Record';
 import { BooleanColumn } from '../Columns';
 
 export const getSourceRecordLoaders = <T extends SourceRecord = SourceRecord>() => SourceRepository.get().objects<SourceRecordLoader<T>>('@proteinjs/db/SourceRecordLoader');
 
+export function getSourceRecordTables() {
+  const tables = getTables();
+  const sourceRecordTables: Table<any>[] = [];
+  for (let table of tables) {
+    if (isSourceRecordTable(table))
+      sourceRecordTables.push(table);
+  }
+
+  return sourceRecordTables;
+}
+
+export function isSourceRecordTable(table: Table<any>) {
+  for (let columnPropertyName in table.columns) {
+    const column = table.columns[columnPropertyName];
+    if (column.name == getSourceRecordColumns().isLoadedFromSource.name)
+      return true;
+  }
+
+  return false;
+}
+
 export interface SourceRecord extends DbRecord {
   isLoadedFromSource?: boolean;
 }
 
-export const sourceRecordColumns = {
-  isLoadedFromSource: new BooleanColumn('is_loaded_from_source'),
+const getSourceRecordColumns = (hideFromUi = true) => {
+  return {
+    isLoadedFromSource: new BooleanColumn('is_loaded_from_source', { ui: { hidden: hideFromUi } }),
+  };
 }
 
 /**
@@ -19,10 +42,11 @@ export const sourceRecordColumns = {
  * Note: using this requires an explicit dependency on moment@2.29.4 in your package (since transient dependencies are brittle by typescript's standards)
  * 
  * @param columns your columns
+ * @param hideFromUi if true, source record columns are hidden from RecordTable and RecordForm
  * @returns recordColumns & sourceRecordColumns & your columns
  */
-export function withSourceRecordColumns<T extends SourceRecord>(columns: Columns<Omit<T, keyof SourceRecord>>): Columns<SourceRecord> & Columns<Omit<T, keyof SourceRecord>> {
-  return Object.assign(Object.assign({}, sourceRecordColumns), withRecordColumns<DbRecord>(columns) as any);
+export function withSourceRecordColumns<T extends SourceRecord>(columns: Columns<Omit<T, keyof SourceRecord>>, hideFromUi?: boolean): Columns<SourceRecord> & Columns<Omit<T, keyof SourceRecord>> {
+  return Object.assign(Object.assign({}, getSourceRecordColumns(hideFromUi)), withRecordColumns<DbRecord>(columns) as any);
 }
 
 type InferRecordFromTable<T> = T extends Table<infer R> ? R : never;

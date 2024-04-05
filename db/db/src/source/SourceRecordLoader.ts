@@ -1,6 +1,6 @@
 import { Logger } from '@brentbahry/util';
 import { QueryBuilder } from '@proteinjs/db-query';
-import { getSourceRecordLoaders, SourceRecord, sourceRecordColumns } from './SourceRecord';
+import { getSourceRecordLoaders, SourceRecord, getSourceRecordTables } from './SourceRecord';
 import { getTables, Table } from '../Table';
 import { getDb } from '../Db';
 import { SourceRecordRepo } from './SourceRecordRepo';
@@ -48,7 +48,7 @@ export class SourceRecordLoader {
 
   private async getSourceRecordsMap() {
     const sourceRecordsMap: SourceRecordsMap = {};
-    const sourceRecordTables = this.getSourceRecordTables();
+    const sourceRecordTables = getSourceRecordTables();
     for (let sourceRecordTable of sourceRecordTables) {
       if (!sourceRecordsMap[sourceRecordTable.name])
         sourceRecordsMap[sourceRecordTable.name] = { table: sourceRecordTable, records: [], recordIds: []};
@@ -64,26 +64,5 @@ export class SourceRecordLoader {
     }
   
     return sourceRecordsMap;
-  }
-
-  private getSourceRecordTables() {
-    const tables = getTables();
-    const sourceRecordTables: Table<any>[] = [];
-    for (let table of tables) {
-      if (this.isSourceRecordTable(table))
-        sourceRecordTables.push(table);
-    }
-
-    return sourceRecordTables;
-  }
-
-  private isSourceRecordTable(table: Table<any>) {
-    for (let columnPropertyName in table.columns) {
-      const column = table.columns[columnPropertyName];
-      if (column.name == sourceRecordColumns.isLoadedFromSource.name)
-        return true;
-    }
-  
-    return false;
   }
 }

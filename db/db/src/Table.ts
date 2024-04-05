@@ -52,9 +52,6 @@ export abstract class Table<T extends Record> implements Loadable, CustomSeriali
 	 */
 	public sourceRecordOptions: SourceRecordOptions = { 
 		doNotDeleteSourceRecordsFromDb: false,
-		ui: {
-			hideColumns: false,
-		}
 	};
 }
 
