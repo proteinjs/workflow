@@ -1,5 +1,5 @@
 import { SerializableFunction, NotFunction } from '@proteinjs/serializer';
-import { Loadable, SourceRepository } from '@brentbahry/reflection';
+import { Loadable, SourceRepository, Method } from '@brentbahry/reflection';
 import { ServiceClient } from './ServiceClient';
 
 export interface Service extends Loadable {
@@ -11,6 +11,13 @@ export interface Service extends Loadable {
       allUsers?: boolean,
       /** The user must be logged in and have these roles to call this service. If blank, defaults to requiring the 'admin' role. */
       roles?: string[],
+      /** 
+       * Custom auth function. If provided, all other auth properties are ignored.
+       * @param method the service method to be executed
+       * @param deserializedArgs the args[] that will be passed into the method
+       * @return true if the user can access the service method
+       */
+      canAccess?: (method: Method, deserializedArgs: any) => boolean,
     },
     /** Don't await the service's execution, return a response to the client immediately */
     doNotAwait?: boolean,

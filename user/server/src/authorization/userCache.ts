@@ -1,6 +1,6 @@
 import moment from 'moment';
 import { SessionDataCache } from '@proteinjs/server-api';
-import { Db } from '@proteinjs/db';
+import { getSystemDb } from '@proteinjs/db';
 import { User, tables, guestUser, USER_SESSION_CACHE_KEY } from '@proteinjs/user';
 import { DefaultAdminCredentials } from '../authentication/DefaultAdminCredentials';
 
@@ -14,7 +14,7 @@ export const userCache: SessionDataCache<User> = {
                 const adminUser: User = { name: 'Admin', email: adminCredentials.username, password: adminCredentials.password, emailVerified: true, roles: 'admin', created: moment(), updated: moment(), id: 'admin' };
                 user = adminUser;
             } else {
-                user = await new Db().get(tables.User, { email: userEmail });
+                user = await getSystemDb().get(tables.User, { email: userEmail });
             }
         }
 

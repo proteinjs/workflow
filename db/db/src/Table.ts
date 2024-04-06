@@ -3,6 +3,7 @@ import { CustomSerializableObject } from '@proteinjs/serializer';
 import { Record } from './Record';
 import { TableSerializerId } from './serializers/TableSerializer';
 import { QueryBuilder } from '@proteinjs/db-query';
+import { Identity, TableOperationsAuth } from './TableAuth';
 
 export const getTables = <T extends Record = any>() => SourceRepository.get().objects<Table<T>>('@proteinjs/db/Table');
 
@@ -52,6 +53,14 @@ export abstract class Table<T extends Record> implements Loadable, CustomSeriali
 	 */
 	public sourceRecordOptions: SourceRecordOptions = { 
 		doNotDeleteSourceRecordsFromDb: false,
+	};
+	public auth?: {
+		db?: TableOperationsAuth,
+		service?: TableOperationsAuth,
+		ui?: {
+			recordTable?: Identity,
+			recordForm?: Identity,
+		},
 	};
 }
 

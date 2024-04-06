@@ -9,6 +9,14 @@ export interface WorkflowStep extends SourceRecord {
 
 export class WorkflowStepTable extends Table<WorkflowStep> {
 	public name = 'workflow_step';
+  public auth: Table<WorkflowStep>['auth'] = {
+    db: {
+      query: 'authenticated',
+    },
+    service: {
+      query: 'authenticated',
+    },
+  };
 	public columns = withSourceRecordColumns<WorkflowStep>({
     name: new StringColumn('name'),
     description: new StringColumn('description'),

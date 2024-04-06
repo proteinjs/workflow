@@ -25,15 +25,23 @@ export interface SessionDataStorage extends Loadable {
 }
 
 export class Session {
+    static getData() {
+        return getSessionDataStorage().getData();
+    }
+
     static setData(data: SessionData) {
         getSessionDataStorage().setData(data);
     }
 
-    static setDataByKey<T>(sessionDataCacheKey: string, data: T) {
-        getSessionDataStorage().getData().data[sessionDataCacheKey] = data;
+    static getDataByKey<T>(sessionDataCacheKey: string): T|undefined {
+        const sessionData = Session.getData();
+        if (!sessionData)
+            return undefined;
+
+        return sessionData.data[sessionDataCacheKey];
     }
 
-    static getDataByKey<T>(sessionDataCacheKey: string): T {
-        return getSessionDataStorage().getData().data[sessionDataCacheKey];
+    static setDataByKey<T>(sessionDataCacheKey: string, data: T) {
+        Session.getData().data[sessionDataCacheKey] = data;
     }
 }

@@ -1,13 +1,13 @@
 import React from 'react';
 import { Page, PageContainer, PageContainerProps } from '@proteinjs/ui';
-import { routes, guestUser, Auth } from '@proteinjs/user';
+import { routes, guestUser, UserAuth, UserRepo } from '@proteinjs/user';
 import { loginPath } from './pages/Login';
 
 export type AuthenticatedPageContainerProps = Omit<PageContainerProps, 'auth'>;
 
 export function AuthenticatedPageContainer(props: AuthenticatedPageContainerProps) {
     const { ...other } = props;
-    const [isLoggedIn, setIsLoggedIn] = React.useState(Auth.isLoggedIn());
+    const [isLoggedIn, setIsLoggedIn] = React.useState(UserAuth.isLoggedIn());
 
     return (
         <PageContainer
@@ -18,12 +18,12 @@ export function AuthenticatedPageContainer(props: AuthenticatedPageContainerProp
                         return true;
 
                     if (page.auth?.allUsers)
-                        return Auth.isLoggedIn();
+                        return UserAuth.isLoggedIn();
 
                     if (!page.auth?.roles)
-                        return Auth.hasRole('admin');
+                        return UserAuth.hasRole('admin');
 
-                    return Auth.hasRoles(page.auth?.roles);
+                    return UserAuth.hasRoles(page.auth?.roles);
                 },
                 login: loginPath,
                 logout: async () => {
@@ -38,7 +38,7 @@ export function AuthenticatedPageContainer(props: AuthenticatedPageContainerProp
                     if (response.status != 200)
                         throw new Error(`Failed to log out`);
 
-                    Auth.setUser(guestUser);
+                    new UserRepo().setUser(guestUser);
                     setIsLoggedIn(false);
                     return loginPath;
                 }

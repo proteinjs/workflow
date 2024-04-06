@@ -1,8 +1,8 @@
 import { Logger } from '@brentbahry/util';
 import { QueryBuilder } from '@proteinjs/db-query';
 import { getSourceRecordLoaders, SourceRecord, getSourceRecordTables } from './SourceRecord';
-import { getTables, Table } from '../Table';
-import { getDb } from '../Db';
+import { Table } from '../Table';
+import { getSystemDb } from '../Db';
 import { SourceRecordRepo } from './SourceRecordRepo';
 
 type SourceRecordsMap = {[tableName: string]: { table: Table<any>, records: Omit<SourceRecord, 'created'|'updated'>[], recordIds: string[] }}
@@ -12,7 +12,7 @@ export class SourceRecordLoader {
 
   async load() {
     const sourceRecordsMap = await this.getSourceRecordsMap();
-    const db = getDb();
+    const db = getSystemDb();
     for (let tableName in sourceRecordsMap) {
       let insertCount = 0;
       let updateCount = 0;

@@ -1,5 +1,5 @@
 import { Store } from 'express-session';
-import { Db, QueryBuilderFactory } from '@proteinjs/db';
+import { getSystemDb, QueryBuilderFactory } from '@proteinjs/db';
 import { tables } from '@proteinjs/user';
 import { destroySession } from './destroySession';
 
@@ -13,7 +13,7 @@ export class DbSessionStore extends Store {
 
 	get = (sessionId: string, cb: (error: any, session?: Express.SessionData|null) => void) => {
 		(async () => {
-            const result = await new Db().get(tables.Session, { sessionId });
+            const result = await getSystemDb().get(tables.Session, { sessionId });
             if (!result) {
                 cb(null);
                 return;
@@ -53,15 +53,15 @@ export class DbSessionStore extends Store {
             return;
         }
 
-        const sessionRecord = await new Db().get(tables.Session, { sessionId });
+        const sessionRecord = await getSystemDb().get(tables.Session, { sessionId });
         if (sessionRecord) {
             sessionRecord.session = JSON.stringify(session);
             sessionRecord.expires = (<Date>session.cookie.expires);
             sessionRecord.userEmail = session.passport?.user;
-            await new Db().update(tables.Session, sessionRecord, { sessionId });
+            await getSystemDb().update(tables.Session, sessionRecord, { sessionId });
         } else {
             try {
-                await new Db().insert(tables.Session, {
+                await getSystemDb().insert(tables.Session, {
                     sessionId,
                     session: JSON.stringify(session),
                     expires: (<Date>session.cookie.expires),
@@ -78,14 +78,14 @@ export class DbSessionStore extends Store {
     }
 
     private async sweep(): Promise<void> {
-        if (!await new Db().tableExists(tables.Session))
+        if (!await getSystemDb().tableExists(tables.Session))
             return;
 
         console.info(`Sweeping expired sessions`);
         const qb = new QueryBuilderFactory().getQueryBuilder(tables.Session)
             .condition({ field: 'expires', operator: '<=', value: new Date() })
         ;
-        const deleteCount = await new Db().delete(tables.Session, qb);
+        const deleteCount = await getSystemDb().delete(tables.Session, qb);
 		console.info(`Swept ${deleteCount} expired sessions`);
 	}
 }

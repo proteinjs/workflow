@@ -1,7 +1,6 @@
-import moment from 'moment';
-import { User } from './tables/UserTable';
+import moment from 'moment'
 
-export const guestUser: User = {
+export const guestUser = {
     name: 'Guest',
     email: 'guest',
     password: 'guest',

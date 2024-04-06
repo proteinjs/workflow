@@ -1,4 +1,5 @@
 import { DbService, Query, getDbService } from './services/DbService';
+import { Service } from '@proteinjs/service';
 import { Loadable, SourceRepository } from '@brentbahry/reflection';
 import { Column, Table, getColumnPropertyName, tableByName } from './Table';
 import { Record, RecordSerializer, SerializedRecord } from './Record';
@@ -8,8 +9,11 @@ import { ParameterizationConfig, QueryBuilder, Statement, StatementFactory } fro
 import { QueryBuilderFactory } from './QueryBuilderFactory';
 import { StatementConfigFactory } from './StatementConfigFactory';
 import { TableManager } from './schema/TableManager';
+import { TableAuth } from './TableAuth';
+import { TableServiceAuth } from './TableServiceAuth';
 
 export const getDb = <R extends Record = Record>() => typeof self === 'undefined' ? new Db<R>() : getDbService() as Db<R>;
+export const getSystemDb = <R extends Record = Record>() => new Db<R>(undefined, undefined, true);
 
 export type DbDriverStatementConfig = ParameterizationConfig & { prefixTablesWithDb?: boolean }
 
@@ -28,15 +32,17 @@ export class Db<R extends Record = Record> implements DbService<R> {
     private dbDriver: DbDriver;
     private logger = new Logger(this.constructor.name);
     private statementConfigFactory: StatementConfigFactory;
-    public serviceMetadata = {
+    private auth = new TableAuth();
+    public serviceMetadata: Service['serviceMetadata'] = {
         auth: {
-            allUsers: true,
+            canAccess: (method, deserializedArgs) => new TableServiceAuth().canAccess(method, deserializedArgs),
         },
     };
 
     constructor(
         dbDriver?: DbDriver,
-        getTable?: (tableName: string) => Table<any>
+        getTable?: (tableName: string) => Table<any>,
+        private ignoreAuth?: boolean
     ) {
         this.dbDriver = dbDriver ? dbDriver : this.getGlobalDbDriver();
         this.statementConfigFactory = new StatementConfigFactory(this.dbDriver.getDbName(), getTable);
@@ -67,6 +73,9 @@ export class Db<R extends Record = Record> implements DbService<R> {
     }
 
     async insert<T extends R>(table: Table<T>, record: Omit<T, keyof R>): Promise<T> {
+        if (!this.ignoreAuth)
+            this.auth.canInsert(table);
+
         const recordCopy = Object.assign({}, record);
         await this.addDefaultFieldValues(table, recordCopy);
         const recordSearializer = new RecordSerializer(table);
@@ -85,6 +94,9 @@ export class Db<R extends Record = Record> implements DbService<R> {
     }
 
     async update<T extends R>(table: Table<T>, record: Partial<T>, query?: Query<T>): Promise<number> {
+        if (!this.ignoreAuth)
+            this.auth.canUpdate(table);
+
         if (!query && !record.id)
             throw new Error(`Update must be called with either a QueryBuilder or a record with an id property`);
 
@@ -109,6 +121,9 @@ export class Db<R extends Record = Record> implements DbService<R> {
     }
 
     async delete<T extends R>(table: Table<T>, query: Query<T>): Promise<number> {
+        if (!this.ignoreAuth)
+            this.auth.canDelete(table);
+        
         const recordsToDelete = await this.query(table, query);
         if (recordsToDelete.length == 0)
             return 0;
@@ -147,6 +162,9 @@ export class Db<R extends Record = Record> implements DbService<R> {
     }
 
     async query<T extends R>(table: Table<T>, query: Query<T>): Promise<T[]> {
+        if (!this.ignoreAuth)
+            this.auth.canQuery(table);
+
         const qb = new QueryBuilderFactory().getQueryBuilder(table, query);
         this.addColumnQueries(table, qb);
         const generateQuery = (config: DbDriverStatementConfig) => qb.toSql(this.statementConfigFactory.getStatementConfig(config));
@@ -156,6 +174,9 @@ export class Db<R extends Record = Record> implements DbService<R> {
     }
 
     async getRowCount<T extends R>(table: Table<T>, query?: Query<T>): Promise<number> {
+        if (!this.ignoreAuth)
+            this.auth.canQuery(table);
+
         const qb = new QueryBuilderFactory().getQueryBuilder(table, query);
         qb.aggregate({ function: 'COUNT', resultProp: 'count' });
         this.addColumnQueries(table, qb);

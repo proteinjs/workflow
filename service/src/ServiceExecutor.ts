@@ -2,9 +2,11 @@ import { Interface, Method } from '@brentbahry/reflection';
 import { Service } from './Service';
 import { Logger } from '@brentbahry/util';
 import { Serializer } from '@proteinjs/serializer';
+import { ServiceAuth } from './ServiceAuth';
 
 export class ServiceExecutor {
   private logger: Logger;
+  public deserializedArgs: any;
   constructor(
     public service: Service,
     private _interface: Interface,
@@ -17,6 +19,11 @@ export class ServiceExecutor {
     this.logger.info(`Executing with args:\n${JSON.stringify(requestBody, null, 2)}`);
     const method = this.service[this.method.name].bind(this.service);
     const deserializedArgs = Serializer.deserialize(requestBody);
+    if (!ServiceAuth.canRunService(this.service, this.method, deserializedArgs)) {
+      const error = `User not authorized to run service: ${this._interface.name}.${this.method.name}`;
+      throw new Error(error);
+    }
+
     let _return: any;
     try {
       if (this.service.serviceMetadata?.doNotAwait)

@@ -1,5 +1,5 @@
 import { Columns, StringColumn, Record, withRecordColumns, getDb, Table, getColumnByName, getTables } from '@proteinjs/db';
-import { Auth } from './Auth';
+import { UserRepo } from './UserRepo';
 
 export interface ScopedRecord extends Record {
   scope: string;
@@ -9,12 +9,12 @@ export const getScopedDb = getDb<ScopedRecord>;
 
 const scopedRecordColumns = {
   scope: new StringColumn('scope', { 
-    defaultValue: async () =>  Auth.getUser().id,
+    defaultValue: async () =>  new UserRepo().getUser().id,
     addToQuery: async (qb) => { 
       qb.condition({ 
         field: 'scope', 
         operator: 'IN', 
-        value: [Auth.getUser().id]
+        value: [new UserRepo().getUser().id]
       });
     },
     ui: { hidden: true },

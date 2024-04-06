@@ -1,8 +1,21 @@
-import { Loadable, SourceRepository } from '@brentbahry/reflection'
+import { Method } from '@brentbahry/reflection'
+import { UserAuth } from '@proteinjs/user-auth'
 import { Service } from './Service'
 
-export const getServiceAuth = () => SourceRepository.get().object<ServiceAuth|undefined>('@proteinjs/service/ServiceAuth');
+export class ServiceAuth {
+	static canRunService(service: Service, method: Method, deserializedArgs: any): boolean {
+		if (service.serviceMetadata?.auth?.canAccess)
+			return service.serviceMetadata.auth.canAccess(method, deserializedArgs);
 
-export abstract class ServiceAuth implements Loadable {
-	abstract canRunService(service: Service): boolean;
+		if (service.serviceMetadata?.auth?.public)
+      return true;
+
+    if (service.serviceMetadata?.auth?.allUsers)
+      return UserAuth.isLoggedIn();
+
+    if (!service.serviceMetadata?.auth?.roles)
+      return UserAuth.hasRole('admin');
+
+    return UserAuth.hasRoles(service.serviceMetadata.auth?.roles);
+	}
 }

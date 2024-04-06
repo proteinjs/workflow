@@ -11,6 +11,14 @@ export interface WorkflowExecution extends ScopedRecord {
 
 export class WorkflowExecutionTable extends Table<WorkflowExecution> {
 	public name = 'workflow_execution';
+	public auth: Table<WorkflowExecution>['auth'] = {
+    db: {
+      all: 'authenticated',
+    },
+    service: {
+      all: 'authenticated',
+    },
+  };
 	public columns = withScopedRecordColumns<WorkflowExecution>({
 		workflow: new ReferenceColumn<Workflow>('workflow', new WorkflowTable().name, false),
     currentStep: new ReferenceColumn<WorkflowStep>('current_step', new WorkflowStepTable().name, false),
