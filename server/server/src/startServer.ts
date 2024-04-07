@@ -16,7 +16,7 @@ import { Logger } from '@brentbahry/util';
 const webpackConfig = require('../webpack.config');
 const staticContentPath = '/static/';
 const logger = new Logger('Server');
-ahshdh
+
 export async function startServer(config: ServerConfig) {
     const routes = getRoutes();
     await runStartupEvents(config);
