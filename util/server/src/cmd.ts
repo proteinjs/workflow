@@ -20,7 +20,7 @@ export async function cmd(command: string, args?: readonly string[], options: Ch
   let p = ChildProcess.spawn(command, args ? args : [], Object.assign({
     cwd: process.cwd()
   }, options));
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     p.stdout?.on('data', (x: any) => {
       if (logOptions?.omitLogs?.stdout?.omit || (logOptions?.omitLogs?.stdout?.shouldOmit && logOptions.omitLogs.stdout.shouldOmit()))
         return;
@@ -55,7 +55,10 @@ export async function cmd(command: string, args?: readonly string[], options: Ch
       process.stderr.write(prefixLog(filteredLog, logOptions?.logPrefix));
     });
     p.on('exit', (code) => {
-      resolve(code);
+      if (code === 0)
+        resolve(code);
+      else
+        reject(code);
     });
   });
 }
