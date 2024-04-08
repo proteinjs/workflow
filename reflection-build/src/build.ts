@@ -1,5 +1,5 @@
 import * as path from 'path';
-const tsconfig = require('./tsconfig.json');
+const tsconfig = require('./tsconfigTemplate.json');
 import { promisifiedFs } from '@brentbahry/util-server';
 import { writeGeneratedIndex } from './codegen/writeGeneratedIndex';
 
