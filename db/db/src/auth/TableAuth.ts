@@ -1,5 +1,5 @@
 import { UserAuth } from '@proteinjs/user-auth'
-import { Table } from './Table'
+import { Table } from '../Table'
 
 /**
  * @public all users, including guests (do not need to be logged in), do not need any roles

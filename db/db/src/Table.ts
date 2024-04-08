@@ -3,7 +3,7 @@ import { CustomSerializableObject } from '@proteinjs/serializer';
 import { Record } from './Record';
 import { TableSerializerId } from './serializers/TableSerializer';
 import { QueryBuilder } from '@proteinjs/db-query';
-import { Identity, TableOperationsAuth } from './TableAuth';
+import { Identity, TableOperationsAuth } from './auth/TableAuth';
 
 export const getTables = <T extends Record = any>() => SourceRepository.get().objects<Table<T>>('@proteinjs/db/Table');
 

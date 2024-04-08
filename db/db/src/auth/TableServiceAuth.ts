@@ -1,14 +1,14 @@
 import { Logger } from '@brentbahry/util';
 import { Method } from '@brentbahry/reflection';
-import { Table } from './Table';
+import { Table } from '../Table';
 import { TableAuth } from './TableAuth';
 
 export class TableServiceAuth {
   private logger = new Logger(this.constructor.name);
 
-  canAccess(method: Method, deserializedArgs: any): boolean {
+  canAccess(method: Method, args: any[]): boolean {
     try {
-      const table: Table<any>|undefined = deserializedArgs[0];
+      const table: Table<any>|undefined = args[0];
       if (!(table instanceof Table))
         throw new Error(`[DbServiceAuth] Expected first arg to be a table`);
       

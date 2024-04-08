@@ -14,10 +14,10 @@ export interface Service extends Loadable {
       /** 
        * Custom auth function. If provided, all other auth properties are ignored.
        * @param method the service method to be executed
-       * @param deserializedArgs the args[] that will be passed into the method
+       * @param args the args[] that will be passed into the method
        * @return true if the user can access the service method
        */
-      canAccess?: (method: Method, deserializedArgs: any) => boolean,
+      canAccess?: (method: Method, args: any[]) => boolean,
     },
     /** Don't await the service's execution, return a response to the client immediately */
     doNotAwait?: boolean,

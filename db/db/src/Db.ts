@@ -9,8 +9,8 @@ import { ParameterizationConfig, QueryBuilder, Statement, StatementFactory } fro
 import { QueryBuilderFactory } from './QueryBuilderFactory';
 import { StatementConfigFactory } from './StatementConfigFactory';
 import { TableManager } from './schema/TableManager';
-import { TableAuth } from './TableAuth';
-import { TableServiceAuth } from './TableServiceAuth';
+import { TableAuth } from './auth/TableAuth';
+import { TableServiceAuth } from './auth/TableServiceAuth';
 
 export const getDb = <R extends Record = Record>() => typeof self === 'undefined' ? new Db<R>() : getDbService() as Db<R>;
 export const getSystemDb = <R extends Record = Record>() => new Db<R>(undefined, undefined, true);
@@ -35,7 +35,7 @@ export class Db<R extends Record = Record> implements DbService<R> {
     private auth = new TableAuth();
     public serviceMetadata: Service['serviceMetadata'] = {
         auth: {
-            canAccess: (method, deserializedArgs) => new TableServiceAuth().canAccess(method, deserializedArgs),
+            canAccess: (method, args) => new TableServiceAuth().canAccess(method, args),
         },
     };
 
