@@ -1,4 +1,4 @@
-import { OpenAi } from "../../src/OpenAi";
+import { OpenAi } from "../../src/OpenAiT";
 
 const helloWorldCode = "console.log('hello world');";
 const helloWorldWithTicksCode = "console.log('hello ```world');";

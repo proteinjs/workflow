@@ -1,5 +1,5 @@
 import { ChatCompletionMessageParam } from 'openai/resources/chat';
-import { DEFAULT_MODEL, OpenAi } from './OpenAi';
+import { DEFAULT_MODEL, OpenAi } from './OpenAiT';
 import { MessageHistory } from './history/MessageHistory';
 import { Function } from './Function';
 import { Logger, LogLevel } from '@brentbahry/util';
