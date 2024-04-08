@@ -55,6 +55,7 @@ export async function cmd(command: string, args?: readonly string[], options: Ch
       process.stderr.write(prefixLog(filteredLog, logOptions?.logPrefix));
     });
     p.on('exit', (code) => {
+      console.log(`child process '${command} ${args ? args.join(' ') : ''}' exiting with code: ${code}`)
       if (code === 0)
         resolve(code);
       else
