@@ -5,7 +5,7 @@ import { Service } from './Service'
 export class ServiceAuth {
 	static canRunService(service: Service, method: Method, deserializedArgs: any): boolean {
 		if (service.serviceMetadata?.auth?.canAccess)
-			return service.serviceMetadata.auth.canAccess(method, deserializedArgs);
+			return service.serviceMetadata.auth.canAccess(method.name, deserializedArgs);
 
 		if (service.serviceMetadata?.auth?.public)
       return true;

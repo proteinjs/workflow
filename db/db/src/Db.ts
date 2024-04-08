@@ -35,7 +35,7 @@ export class Db<R extends Record = Record> implements DbService<R> {
     private auth = new TableAuth();
     public serviceMetadata: Service['serviceMetadata'] = {
         auth: {
-            canAccess: (method, args) => new TableServiceAuth().canAccess(method, args),
+            canAccess: (methodName, args) => new TableServiceAuth().canAccess(methodName, args),
         },
     };
 
