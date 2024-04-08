@@ -22,8 +22,11 @@ export const buildRepo = async () => {
     const packageDir = path.dirname(localPackage.filePath);
     await cmd('npm', ['install'], { cwd: packageDir });
     logger.info(`Installed ${packageName}`);
-    await cmd('npm', ['run', 'build'], { cwd: packageDir });
-    logger.info(`Built ${packageName}`);
+
+    if (packageName != 'typescript-parser') {
+      await cmd('npm', ['run', 'build'], { cwd: packageDir });
+      logger.info(`Built ${packageName}`);
+    }
   }
 
   logger.info(`> Built proteinjs workspace (${repoPath})`);

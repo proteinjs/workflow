@@ -33,7 +33,7 @@
         "gulp-shell": "0.8.0",
         "jsesc": "^3.0.1",
         "typescript": "5.2.2",
-        "typescript-parser": "../node-typescript-parser"
+        "typescript-parser": "file:../node-typescript-parser"
     },
     "devDependencies": {
         "@brentbahry/reflection-build-test-a": "file:test/examples/source-repository/a",
