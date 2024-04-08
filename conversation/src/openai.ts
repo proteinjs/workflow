@@ -1,4 +1,4 @@
-import { OpenAI } from 'openai';
+import { OpenAI as OpenAIApi } from 'openai';
 import { ChatCompletionMessage, ChatCompletionMessageParam, ChatCompletion } from 'openai/resources/chat';
 import { LogLevel, Logger } from '@brentbahry/util';
 import { MessageModerator } from './history/MessageModerator';
@@ -49,7 +49,7 @@ export class OpenAi {
 
   private static async executeRequest(messageParamsWithHistory: MessageHistory, logLevel: LogLevel, functions?: Function[], model?: string): Promise<ChatCompletion> {
     const logger = new Logger('OpenAi.executeRequest', logLevel);
-    const openai = new OpenAI();
+    const openaiApi = new OpenAIApi();
     let response: ChatCompletion;
     try {
       const latestMessage = messageParamsWithHistory.getMessages()[messageParamsWithHistory.getMessages().length - 1];
@@ -60,7 +60,7 @@ export class OpenAi {
       else
         logger.info(`Sending request`);
       logger.debug(`Sending messages: ${JSON.stringify(messageParamsWithHistory.getMessages(), null, 2)}`, true);
-      response = await openai.chat.completions.create({
+      response = await openaiApi.chat.completions.create({
         model: model ? model : DEFAULT_MODEL,
         temperature: 0,
         messages: messageParamsWithHistory.getMessages(),
