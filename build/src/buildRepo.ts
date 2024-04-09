@@ -7,7 +7,7 @@ export const buildRepo = async () => {
   const logger = new Logger('buildRepo');
   const repoPath = path.resolve(__dirname, '..'); // __dirname: build
   logger.info(`> Building proteinjs workspace (${repoPath})`);
-  const packageMap = await PackageUtil.getLocalPackageMap(repoPath, ['**/reflection-build/test/**']);
+  const packageMap = await PackageUtil.getLocalPackageMap(repoPath);
   logger.debug(`packageMap:\n${JSON.stringify(packageMap, null, 2)}`, true);
   const packageGraph = await PackageUtil.getPackageDependencyGraph(Object.values(packageMap).map(localPackage => localPackage.packageJson));
   const sortedPackageNames: string[] = graphlib.alg.topsort(packageGraph).reverse();
