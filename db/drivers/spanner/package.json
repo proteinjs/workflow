@@ -15,7 +15,7 @@
     "scripts": {
         "build": "reflection-build && tsc",
         "watch": "reflection-watch",
-        "test": "jest"
+        "test": "jest --runInBand"
     },
     "dependencies": {
         "@brentbahry/reflection": "file:../../../reflection",
