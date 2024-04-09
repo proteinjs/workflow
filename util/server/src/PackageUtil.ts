@@ -209,4 +209,8 @@ export class PackageUtil {
       graph.setEdge(sourcePackageName, dependencyPackageName);
     }
   }
+
+  static async hasTests(packageDir: string): Promise<boolean> {
+    return (await Fs.getFilePathsMatchingGlob(packageDir, 'test/**/*.test.ts')).length > 0;
+  }
 }

@@ -28,6 +28,6 @@ import { Fs } from '@brentbahry/util-server';
 // }, 60000);
 
 test(`Create repo`, async () => {
-  console.log(JSON.stringify((await RepoFactory.createRepo(`${process.cwd()}`)).params, null, 4));
+  // console.log(JSON.stringify((await RepoFactory.createRepo(`${process.cwd()}`)).params, null, 4));
   // console.log(JSON.stringify(await Fs.getFilesInDirectory(`${process.cwd()}`, ['node_modules', 'dist']), null, 4));
 }, 60000)

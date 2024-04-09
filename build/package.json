@@ -13,11 +13,12 @@
     "author": "Brent Bahry",
     "license": "ISC",
     "scripts": {
-        "watch": "tsc -w -p .",
         "build": "tsc",
+        "watch": "tsc -w -p .",
         "test": "jest",
         "build-dist": "tsc && webpack --mode production",
-        "watch-repo": "node dist/src/runWatchRepo.js"
+        "watch-repo": "node dist/src/runWatchRepo.js",
+        "test-repo": "node dist/src/runTestRepo.js"
     },
     "dependencies": {
         "@brentbahry/util": "file:../util/common",

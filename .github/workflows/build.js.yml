@@ -1,4 +1,4 @@
-name: Build
+name: Build and Test
 
 on:
   push:
@@ -9,13 +9,78 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20.x'
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.3.1'
 
-    - name: Run build.sh
-      run: ./build.sh
+      - name: Run build.sh
+        run: ./build.sh
+
+      - name: Upload Repository State
+        uses: actions/upload-artifact@v3
+        with:
+          name: repo-state
+          path: |
+            ./**/*
+          if-no-files-found: error
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.5
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: test
+        ports:
+          - 3306:3306
+      spanner-emulator:
+        image: gcr.io/cloud-spanner-emulator/emulator
+        ports:
+          - 9010:9010
+          - 9020:9020
+    steps:
+      - name: Download Repository State
+        uses: actions/download-artifact@v3
+        with:
+          name: repo-state
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.3.1'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
+
+      - name: Configure gcloud for Spanner Emulator
+        run: |
+          gcloud config configurations create emulator || gcloud config configurations activate emulator
+          gcloud config set auth/disable_credentials true
+          gcloud config set project proteinjs-test
+          gcloud config set api_endpoint_overrides/spanner http://localhost:9020/
+
+      - name: Create Spanner Instance
+        run: |
+          gcloud spanner instances create proteinjs-test --config=emulator-config --description="Protein JS Test Instance" --nodes=1
+
+      - name: Create Spanner Database
+        run: |
+          gcloud spanner databases create test --instance=proteinjs-test
+
+      - name: Run Tests
+        env:
+          SPANNER_EMULATOR_HOST: localhost:9020
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_USER: root
+          MYSQL_PASSWORD: ""
+          MYSQL_DATABASE: test
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: ./test.sh
