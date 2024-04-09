@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build
 
 on:
   push:
@@ -7,29 +7,6 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20.3.1'
-
-      - name: Run build.sh
-        run: ./build.sh
-
-      - name: Upload Repository State
-        uses: actions/upload-artifact@v3
-        with:
-          name: repo-state
-          path: |
-            ./**/*
-          if-no-files-found: error
-
-  test:
-    needs: build
     runs-on: ubuntu-latest
     services:
       mariadb:
@@ -45,16 +22,17 @@ jobs:
           - 9010:9010
           - 9020:9020
     steps:
-      - name: Download Repository State
-        uses: actions/download-artifact@v3
-        with:
-          name: repo-state
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20.3.1'
 
+      - name: Run build.sh
+        run: ./build.sh
+      
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
         with:
