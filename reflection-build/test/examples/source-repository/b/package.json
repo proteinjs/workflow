@@ -13,11 +13,11 @@
     "author": "Brent Bahry",
     "license": "ISC",
     "scripts": {
-        "build": "tsc && node ./dist/src/runBuild.js && tsc"
+        "tsc": "tsc",
+        "build": "cd ../../../.. && npm i && cd - && tsc -p tsconfig.parent.json && node ./dist/runBuild.js && tsc"
     },
     "devDependencies": {
-        "@types/node": "14.0.27",
-        "typescript": "3.9.7"
+        "@types/node": "20.12.6"
     },
     "main": "./dist/generated/index.js",
     "types": "./dist/generated/index.d.ts"

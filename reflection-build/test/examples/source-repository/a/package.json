@@ -13,14 +13,13 @@
     "author": "Brent Bahry",
     "license": "ISC",
     "scripts": {
-        "build": "tsc && node ./dist/src/runBuild.js && tsc"
+        "build": "tsc -p tsconfig.parent.json && node ./dist/runBuild.js && tsc"
     },
     "dependencies": {
         "@brentbahry/reflection-build-test-b": "file:../b"
     },
     "devDependencies": {
-        "@types/node": "14.0.27",
-        "typescript": "3.9.7"
+        "@types/node": "20.12.6"
     },
     "main": "./dist/generated/index.js",
     "types": "./dist/generated/index.d.ts"

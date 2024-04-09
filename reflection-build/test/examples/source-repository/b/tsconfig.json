@@ -14,8 +14,7 @@
         "baseUrl": "./",
         "paths": { 
             "*": [
-                "../../../../types/*",
-                "*"
+                "./node_modules/*"
             ]
         }, 
         "typeRoots": [
@@ -27,8 +26,6 @@
     },
     "include": [
         "./index.ts",
-        "./generated/index.ts",
-        "../../../../src/runBuild.ts",
-        "../../../../src/tsconfigTemplate.json"
+        "./generated/index.ts"
     ]
 }
