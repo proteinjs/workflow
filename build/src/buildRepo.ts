@@ -21,11 +21,11 @@ export const buildRepo = async () => {
 
     const packageDir = path.dirname(localPackage.filePath);
     await cmd('npm', ['install'], { cwd: packageDir });
-    logger.info(`Installed ${packageName}`);
+    logger.info(`Installed ${packageName} (${packageDir})`);
 
-    if (packageName != 'typescript-parser') {
+    if (localPackage.packageJson.scripts?.build && packageName != 'typescript-parser') {
       await cmd('npm', ['run', 'build'], { cwd: packageDir });
-      logger.info(`Built ${packageName}`);
+      logger.info(`Built ${packageName} (${packageDir})`);
     }
   }
 
