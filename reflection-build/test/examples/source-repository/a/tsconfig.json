@@ -11,6 +11,13 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
+        "baseUrl": "./",
+        "paths": { 
+            "*": [
+                "../../../../types/*",
+                "*"
+            ]
+        }, 
         "typeRoots": [
             "./node_modules/@types"
         ],
@@ -20,6 +27,8 @@
     },
     "include": [
         "./index.ts",
-        "./generated/index.ts"
+        "./generated/index.ts",
+        "../../../../src/runBuild.ts",
+        "../../../../src/tsconfigTemplate.json"
     ]
 }

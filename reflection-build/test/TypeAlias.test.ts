@@ -1,4 +1,4 @@
-import './examples/source-repository/a/generated/index';
+import '@brentbahry/reflection-build-test-a';
 import { SourceRepository } from '@brentbahry/reflection';
 
 beforeAll(async () => {
