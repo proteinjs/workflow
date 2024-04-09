@@ -13,10 +13,10 @@
     "author": "Brent Bahry",
     "license": "ISC",
     "scripts": {
-        "build": "node ../../../../dist/src/runBuild.js && tsc"
+        "build": "reflection-build && tsc"
     },
-    "dependencies": {},
     "devDependencies": {
+        "@brentbahry/reflection-build": "file:../../../..",
         "@types/node": "14.0.27",
         "typescript": "3.9.7"
     },
