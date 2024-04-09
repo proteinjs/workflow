@@ -17,7 +17,11 @@
         "build": "cd ../../../.. && npm i && cd - && tsc -p tsconfig.parent.json && node ./dist/runBuild.js && tsc"
     },
     "devDependencies": {
-        "@types/node": "20.12.6"
+        "@brentbahry/reflection": "file:../../../../../reflection",
+        "@brentbahry/util": "file:../../../../../util/common",
+        "@brentbahry/util-server": "file:../../../../../util/server",
+        "@types/node": "20.12.6",
+        "typescript-parser": "file:../../../../../node-typescript-parser"
     },
     "main": "./dist/generated/index.js",
     "types": "./dist/generated/index.d.ts"
