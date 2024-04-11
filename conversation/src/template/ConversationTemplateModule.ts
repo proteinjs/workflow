@@ -1,4 +1,4 @@
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 import { ConversationTemplate } from './ConversationTemplate';
 import { createPackageConversationTemplate } from './createPackage/CreatePackageConversationTemplate';
 import { ConversationModule, ConversationModuleFactory } from '../ConversationModule';

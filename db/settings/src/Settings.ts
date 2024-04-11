@@ -1,5 +1,5 @@
 import { getDb } from '@proteinjs/db';
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 import { SettingsService, getSettingsService } from './services/SettingsService';
 import { tables } from './tables/tables';
 

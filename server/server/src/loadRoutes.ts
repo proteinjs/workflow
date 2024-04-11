@@ -2,7 +2,7 @@ import express from 'express';
 import passport from 'passport';
 import { ServerConfig, Route, getRequestListeners, Session, SessionData, getSessionDataCaches } from '@proteinjs/server-api';
 import { createReactApp } from './routes/reactApp';
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 
 const logger = new Logger('Server');
 

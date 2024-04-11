@@ -1,5 +1,5 @@
 import { Serializer } from '@proteinjs/serializer';
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 
 export class ServiceClient {
   private logger = new Logger(this.constructor.name, 'info', 2000);

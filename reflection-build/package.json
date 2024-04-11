@@ -1,5 +1,5 @@
 {
-    "name": "@brentbahry/reflection-build",
+    "name": "@proteinjs/reflection-build",
     "version": "1.0.0",
     "description": "Build system for reflection",
     "main": "dist/index.js",
@@ -10,12 +10,12 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/brentbahry/reflection-build.git"
+        "url": "git+https://github.com/proteinjs/reflection.git"
     },
     "bugs": {
-        "url": "https://github.com/brentbahry/reflection-build/issues"
+        "url": "https://github.com/proteinjs/reflection/issues"
     },
-    "homepage": "https://github.com/brentbahry/reflection-build#readme",
+    "homepage": "https://github.com/proteinjs/reflection#readme",
     "author": "Brent Bahry",
     "license": "ISC",
     "scripts": {
@@ -24,9 +24,9 @@
         "test": "jest"
     },
     "dependencies": {
-        "@brentbahry/reflection": "file:../reflection",
-        "@brentbahry/util": "file:../util/common",
-        "@brentbahry/util-server": "file:../util/server",
+        "@proteinjs/reflection": "file:../reflection",
+        "@proteinjs/util": "file:../util/common",
+        "@proteinjs/util-node": "file:../util/node",
         "@dagrejs/graphlib": "2.1.4",
         "globby": "11.0.1",
         "gulp": "4.0.2",
@@ -36,7 +36,7 @@
         "typescript-parser": "file:../node-typescript-parser"
     },
     "devDependencies": {
-        "@brentbahry/reflection-build-test-a": "file:test/examples/source-repository/a",
+        "@proteinjs/reflection-build-test-a": "file:test/examples/source-repository/a",
         "@types/globby": "9.1.0",
         "@types/graphlib": "2.1.6",
         "@types/gulp": "4.0.16",

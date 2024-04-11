@@ -1,5 +1,5 @@
 {
-    "name": "@brentbahry/reflection-build-test-a",
+    "name": "@proteinjs/reflection-build-test-a",
     "version": "1.0.0",
     "description": "Test package a",
     "repository": {
@@ -16,12 +16,12 @@
         "build": "tsc -p tsconfig.parent.json && node ./dist/runBuild.js && tsc"
     },
     "dependencies": {
-        "@brentbahry/reflection-build-test-b": "file:../b"
+        "@proteinjs/reflection-build-test-b": "file:../b"
     },
     "devDependencies": {
-        "@brentbahry/reflection": "file:../../../../../reflection",
-        "@brentbahry/util": "file:../../../../../util/common",
-        "@brentbahry/util-server": "file:../../../../../util/server",
+        "@proteinjs/reflection": "file:../../../../../reflection",
+        "@proteinjs/util": "file:../../../../../util/common",
+        "@proteinjs/util-node": "file:../../../../../util/node",
         "@types/node": "20.12.6",
         "typescript-parser": "file:../../../../../node-typescript-parser"
     },

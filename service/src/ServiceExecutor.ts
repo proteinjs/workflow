@@ -1,6 +1,6 @@
-import { Interface, Method } from '@brentbahry/reflection';
+import { Interface, Method } from '@proteinjs/reflection';
 import { Service } from './Service';
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 import { Serializer } from '@proteinjs/serializer';
 import { ServiceAuth } from './ServiceAuth';
 

@@ -21,8 +21,8 @@
         "test-repo": "node dist/src/runTestRepo.js"
     },
     "dependencies": {
-        "@brentbahry/util": "file:../util/common",
-        "@brentbahry/util-server": "file:../util/server",
+        "@proteinjs/util": "file:../util/common",
+        "@proteinjs/util-node": "file:../util/node",
         "@dagrejs/graphlib": "2.1.4"
     },
     "devDependencies": {

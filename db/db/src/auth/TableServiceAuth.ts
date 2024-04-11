@@ -1,4 +1,4 @@
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 import { Table } from '../Table';
 import { TableAuth } from './TableAuth';
 

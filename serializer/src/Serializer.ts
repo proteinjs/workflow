@@ -1,4 +1,4 @@
-import { Loadable, SourceRepository } from '@brentbahry/reflection';
+import { Loadable, SourceRepository } from '@proteinjs/reflection';
 
 export type Serializable = string | boolean | number | Serializable[] | SerializableObject | CustomSerializableObject
 export type SerializableFunction = (...args: Serializable[]) => Promise<Serializable> | Promise<void>

@@ -1,4 +1,4 @@
-import { Loadable, SourceRepository } from '@brentbahry/reflection';
+import { Loadable, SourceRepository } from '@proteinjs/reflection';
 import { CustomSerializableObject } from '@proteinjs/serializer';
 import { Record } from './Record';
 import { TableSerializerId } from './serializers/TableSerializer';

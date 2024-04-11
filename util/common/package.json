@@ -1,17 +1,17 @@
 {
-    "name": "@brentbahry/util",
+    "name": "@proteinjs/util",
     "version": "1.0.0",
-    "description": "Util libs",
+    "description": "Runtime-agnostic util libs",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/brentbahry/util.git"
+        "url": "git+https://github.com/proteinjs/util.git"
     },
     "bugs": {
-        "url": "https://github.com/brentbahry/util/issues"
+        "url": "https://github.com/proteinjs/util/issues"
     },
-    "homepage": "https://github.com/brentbahry/util#readme",
+    "homepage": "https://github.com/proteinjs/util#readme",
     "author": "Brent Bahry",
     "license": "ISC",
     "scripts": {
@@ -20,11 +20,11 @@
     },
     "dependencies": {
         "@dagrejs/graphlib": "2.1.4",
-        "jsesc": "^3.0.1"
+        "jsesc": "3.0.1"
     },
     "devDependencies": {
         "@types/graphlib": "2.1.6",
-        "@types/jsesc": "^2.5.1",
+        "@types/jsesc": "2.5.1",
         "@types/node": "14.0.13",
         "typescript": "5.2.2"
     }

@@ -1,5 +1,5 @@
-import { Logger } from '@brentbahry/util';
-import { Fs, PackageUtil, Package } from '@brentbahry/util-server';
+import { Logger } from '@proteinjs/util';
+import { Fs, PackageUtil, Package } from '@proteinjs/util-node';
 import { SourceFile } from './Code';
 
 export type TemplateArgs = {

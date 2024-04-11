@@ -1,17 +1,17 @@
 {
-    "name": "@brentbahry/util-server",
+    "name": "@proteinjs/util-node",
     "version": "1.0.0",
-    "description": "Util server libs",
+    "description": "Util libs for node",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/brentbahry/util.git"
+        "url": "git+https://github.com/proteinjs/util.git"
     },
     "bugs": {
-        "url": "https://github.com/brentbahry/util/issues"
+        "url": "https://github.com/proteinjs/util/issues"
     },
-    "homepage": "https://github.com/brentbahry/util#readme",
+    "homepage": "https://github.com/proteinjs/util#readme",
     "author": "Brent Bahry",
     "license": "ISC",
     "scripts": {
@@ -28,7 +28,7 @@
         "ts-jest": "^29.1.1"
     },
     "dependencies": {
-        "@brentbahry/util": "file:../common",
+        "@proteinjs/util": "file:../common",
         "@dagrejs/graphlib": "2.1.4",
         "fs-extra": "11.1.1",
         "globby": "11.0.1"

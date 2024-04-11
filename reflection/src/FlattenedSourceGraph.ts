@@ -16,7 +16,7 @@ export function flattenSourceGraph(sourceGraph: Graph, sourceLinks: { [qualified
 		classes: {},
 		interfaces: {}
 	};
-	sourceGraph.setNode(LOADABLE_QUALIFIED_NAME, new InterfaceDeclaration('@brentbahry/reflection', 'Loadable', [], [], [], []));
+	sourceGraph.setNode(LOADABLE_QUALIFIED_NAME, new InterfaceDeclaration('@proteinjs/reflection', 'Loadable', [], [], [], []));
 	flattenParents(sourceGraph, sourceLinks, flattenedSourceGraph);
 	flattenChildren(sourceGraph, sourceLinks, flattenedSourceGraph);
 	addTypeParameters(flattenedSourceGraph, sourceGraph);

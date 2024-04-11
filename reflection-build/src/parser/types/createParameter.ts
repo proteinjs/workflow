@@ -1,5 +1,5 @@
 import { ParameterDeclaration } from 'typescript-parser';
-import { Parameter } from '@brentbahry/reflection';
+import { Parameter } from '@proteinjs/reflection';
 import { PackageNameFinder } from './PackageNameFinder';
 import { typeAliasDeclarationFromName } from './createTypeAliasDeclaration';
 

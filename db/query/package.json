@@ -18,7 +18,7 @@
         "test": "jest"
     },
     "dependencies": {
-        "@brentbahry/util": "file:../../util/common",
+        "@proteinjs/util": "file:../../util/common",
         "@proteinjs/serializer": "file:../../serializer"
     },
     "devDependencies": {

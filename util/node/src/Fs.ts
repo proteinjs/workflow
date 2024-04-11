@@ -1,7 +1,7 @@
 import path from 'path';
 import fsExtra from 'fs-extra';
 import fs from 'fs/promises';
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 import globby from 'globby';
 
 export type File = {

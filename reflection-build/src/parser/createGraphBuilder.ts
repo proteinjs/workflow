@@ -1,6 +1,6 @@
 import * as graphlib from '@dagrejs/graphlib';
 import { VariableDeclaration as ParserVariableDeclaration, TypeAliasDeclaration as ParserTypeAliasDeclaration, ClassDeclaration as ParserClassDeclaration, InterfaceDeclaration as ParserInterfaceDeclaration, File } from 'typescript-parser';
-import { TypeAliasDeclaration, SourceRelationship, SourceType } from '@brentbahry/reflection';
+import { TypeAliasDeclaration, SourceRelationship, SourceType } from '@proteinjs/reflection';
 import { createVariableDeclaration } from './types/createVariableDeclaration';
 import { PackageNameFinder } from './types/PackageNameFinder';
 import { createTypeAliasDeclaration } from './types/createTypeAliasDeclaration';

@@ -1,4 +1,4 @@
-import { Method } from '@brentbahry/reflection'
+import { Method } from '@proteinjs/reflection'
 import { UserAuth } from '@proteinjs/user-auth'
 import { Service } from './Service'
 

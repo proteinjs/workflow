@@ -1,4 +1,4 @@
-import { VariableDeclaration, TypeAliasDeclaration } from '@brentbahry/reflection';
+import { VariableDeclaration, TypeAliasDeclaration } from '@proteinjs/reflection';
 import { VariableDeclaration as ParserVariableDeclaration } from 'typescript-parser';
 import { PackageNameFinder } from './PackageNameFinder';
 import { typeAliasDeclarationsFromParserTypeAliases } from './createTypeAliasDeclaration';

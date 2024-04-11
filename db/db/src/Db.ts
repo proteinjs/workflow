@@ -1,9 +1,9 @@
 import { DbService, Query, getDbService } from './services/DbService';
 import { Service } from '@proteinjs/service';
-import { Loadable, SourceRepository } from '@brentbahry/reflection';
+import { Loadable, SourceRepository } from '@proteinjs/reflection';
 import { Column, Table, getColumnPropertyName, tableByName } from './Table';
 import { Record, RecordSerializer, SerializedRecord } from './Record';
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 import { SourceRecordLoader } from './source/SourceRecordLoader';
 import { ParameterizationConfig, QueryBuilder, Statement, StatementFactory } from '@proteinjs/db-query';
 import { QueryBuilderFactory } from './QueryBuilderFactory';

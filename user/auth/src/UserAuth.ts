@@ -1,4 +1,4 @@
-import { Loadable, SourceRepository } from '@brentbahry/reflection'
+import { Loadable, SourceRepository } from '@proteinjs/reflection'
 import { guestUser } from './guestUser'
 
 export interface AuthenticatedUser {

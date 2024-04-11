@@ -1,10 +1,10 @@
 import * as path from 'path';
-import { promisifiedFs } from '@brentbahry/util-server';
-import { graphSerializer } from '@brentbahry/util';
+import { promisifiedFs } from '@proteinjs/util-node';
+import { graphSerializer } from '@proteinjs/util';
 import { Graph } from '@dagrejs/graphlib';
 import jsesc from 'jsesc';
 import { createSourceGraph } from '../parser/createSourceGraph';
-import { VariableDeclaration, PackageScope, ClassDeclaration, LOADABLE_QUALIFIED_NAME } from '@brentbahry/reflection';
+import { VariableDeclaration, PackageScope, ClassDeclaration, LOADABLE_QUALIFIED_NAME } from '@proteinjs/reflection';
 
 export async function writeGeneratedIndex(packageDir: string, packageGeneratedDir: string, generatedIndexPath: string) {
 	let packageIndexPath = path.join(packageDir, 'index.ts');
@@ -152,7 +152,7 @@ function generateSourceLinks(sourceGraph: Graph, packageJson: any, generatedInde
 
 function mergeSourceGraph(): string {
 	let code = `\n\n/** Load Source Graph and Links */\n\n`;
-	code += `import { SourceRepository } from '@brentbahry/reflection';\n`;
+	code += `import { SourceRepository } from '@proteinjs/reflection';\n`;
 	code += `SourceRepository.merge(sourceGraph, sourceLinks);`;
 	return code;
 }

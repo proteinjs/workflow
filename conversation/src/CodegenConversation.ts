@@ -5,7 +5,7 @@ import { ConversationTemplateModuleFactory } from './template/ConversationTempla
 import { ConversationFsModuleFactory } from './fs/conversation_fs/ConversationFsModule';
 import { PackageModuleFactory } from './fs/package/PackageModule';
 import { ConversationModule, ConversationModuleFactory } from './ConversationModule';
-import { Reset, textColorMap } from '@brentbahry/util';
+import { Reset, textColorMap } from '@proteinjs/util';
 import { GitModuleFactory } from './fs/git/GitModule';
 import { TiktokenModel } from 'tiktoken';
 import { searchLibrariesFunctionName, searchPackagesFunctionName } from './fs/package/PackageFunctions';

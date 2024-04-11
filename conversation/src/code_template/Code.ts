@@ -1,4 +1,4 @@
-import { PackageUtil } from '@brentbahry/util-server';
+import { PackageUtil } from '@proteinjs/util-node';
 import { Conversation } from '../Conversation';
 import { Repo } from './Repo';
 

@@ -1,5 +1,5 @@
 import { CustomSerializer } from '@proteinjs/serializer';
-import { Graph } from '@brentbahry/util';
+import { Graph } from '@proteinjs/util';
 import { QueryBuilder } from '@proteinjs/db-query';
 
 type SerializedQueryBuilder = {

@@ -1,2 +1,2 @@
 export interface Loadable {}
-export const LOADABLE_QUALIFIED_NAME = '@brentbahry/reflection/Loadable';
+export const LOADABLE_QUALIFIED_NAME = '@proteinjs/reflection/Loadable';

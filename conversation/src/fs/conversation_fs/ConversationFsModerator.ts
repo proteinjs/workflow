@@ -1,5 +1,5 @@
-import { LogLevel, Logger } from '@brentbahry/util';
-import { FileContentMap } from '@brentbahry/util-server';
+import { LogLevel, Logger } from '@proteinjs/util';
+import { FileContentMap } from '@proteinjs/util-node';
 import { ChatCompletionMessageParam } from 'openai/resources/chat';
 import { MessageModerator } from '../../history/MessageModerator';
 

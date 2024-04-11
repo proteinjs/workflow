@@ -1,6 +1,6 @@
 import React from 'react';
 import { SxProps } from '@mui/material';
-import { Loadable, SourceRepository } from '@brentbahry/reflection';
+import { Loadable, SourceRepository } from '@proteinjs/reflection';
 import { NavigateFunction } from 'react-router-dom';
 
 export const getPages = () => SourceRepository.get().objects<Page>('@proteinjs/ui/Page');

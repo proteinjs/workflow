@@ -18,8 +18,8 @@
         "dev": "DEVELOPMENT=true node dist/generated/index.js"
     },
     "dependencies": {
-        "@brentbahry/reflection": "file:../../reflection",
-        "@brentbahry/util": "file:../../util/common",
+        "@proteinjs/reflection": "file:../../reflection",
+        "@proteinjs/util": "file:../../util/common",
         "@proteinjs/db": "file:../../db/db",
         "@proteinjs/server-api": "file:../api",
         "body-parser": "1.19.0",
@@ -36,7 +36,7 @@
         "webpack-hot-middleware": "2.26.0"
     },
     "devDependencies": {
-        "@brentbahry/reflection-build": "file:../../reflection-build",
+        "@proteinjs/reflection-build": "file:../../reflection-build",
         "@emotion/react": "11.11.1",
         "@emotion/styled": "11.11.0",
         "@mui/icons-material": "5.14.11",

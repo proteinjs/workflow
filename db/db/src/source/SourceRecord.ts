@@ -1,4 +1,4 @@
-import { Loadable, SourceRepository } from '@brentbahry/reflection';
+import { Loadable, SourceRepository } from '@proteinjs/reflection';
 import { Columns, Table, getTables } from '../Table';
 import { Record as DbRecord, withRecordColumns } from '../Record';
 import { BooleanColumn } from '../Columns';

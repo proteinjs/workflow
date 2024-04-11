@@ -1,4 +1,4 @@
-import { Package, PackageUtil } from '@brentbahry/util-server';
+import { Package, PackageUtil } from '@proteinjs/util-node';
 import { Function } from '../../Function';
 import { PackageModule } from './PackageModule';
 

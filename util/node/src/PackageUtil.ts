@@ -1,5 +1,5 @@
 import ts from 'typescript';
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 const graphlib = require('@dagrejs/graphlib');
 import { cmd } from './cmd';
 import { Fs } from './Fs';

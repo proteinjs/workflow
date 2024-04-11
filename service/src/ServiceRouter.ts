@@ -1,8 +1,8 @@
 import { Route } from '@proteinjs/server-api';
 import { Service } from './Service';
-import { Interface, SourceRepository } from '@brentbahry/reflection';
+import { Interface, SourceRepository } from '@proteinjs/reflection';
 import { ServiceExecutor } from './ServiceExecutor';
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 
 export class ServiceRouter implements Route {
   private logger = new Logger(this.constructor.name);

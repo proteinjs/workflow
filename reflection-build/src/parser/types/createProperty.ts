@@ -1,5 +1,5 @@
 import { PropertyDeclaration, DeclarationVisibility } from 'typescript-parser';
-import { Property } from '@brentbahry/reflection';
+import { Property } from '@proteinjs/reflection';
 import { PackageNameFinder } from './PackageNameFinder';
 import { typeAliasDeclarationFromName } from './createTypeAliasDeclaration';
 

@@ -1,7 +1,7 @@
 import React from 'react'
 import S from 'string'
 import moment from 'moment'
-import { StringUtil } from '@brentbahry/util'
+import { StringUtil } from '@proteinjs/util'
 import { Form, Fields, textField, FormButtons } from '@proteinjs/ui'
 import { Table, Record, Column, getDbService, DateTimeColumn, ReferenceArrayColumn, BooleanColumn, StringColumn } from '@proteinjs/db'
 import { recordTableLink } from '../pages/RecordTablePage'

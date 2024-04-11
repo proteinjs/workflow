@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { File as ParsedFile, NamedImport } from 'typescript-parser';
-import { promisifiedFs } from '@brentbahry/util-server';
+import { promisifiedFs } from '@proteinjs/util-node';
 
 export class PackageNameFinder {
 	private readonly symbolToLibraryMap: { [symbol: string]: string };

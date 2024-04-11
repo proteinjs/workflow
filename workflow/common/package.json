@@ -8,14 +8,14 @@
         "watch": "reflection-watch"
     },
     "devDependencies": {
-        "@brentbahry/reflection-build": "file:../../reflection-build",
+        "@proteinjs/reflection-build": "file:../../reflection-build",
         "@types/jest": "29.5.5",
         "jest": "29.7.0",
         "ts-jest": "29.1.1",
         "typescript": "5.2.2"
     },
     "dependencies": {
-        "@brentbahry/reflection": "file:../../reflection",
+        "@proteinjs/reflection": "file:../../reflection",
         "@proteinjs/db": "file:../../db/db",
         "@proteinjs/service": "file:../../service",
         "@proteinjs/user": "file:../../user/user",

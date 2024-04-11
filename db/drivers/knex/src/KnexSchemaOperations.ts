@@ -1,5 +1,5 @@
 import * as knex from 'knex';
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 import { Column, Table, SchemaOperations, TableChanges } from '@proteinjs/db';
 import { KnexDriver } from './KnexDriver';
 import { getColumnFactory } from './getColumnFactory';

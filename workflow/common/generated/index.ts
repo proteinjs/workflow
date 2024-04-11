@@ -1,6 +1,6 @@
 /** Load Dependency Source Graphs */
 
-import '@brentbahry/reflection';
+import '@proteinjs/reflection';
 import '@proteinjs/db';
 import '@proteinjs/service';
 import '@proteinjs/user';
@@ -27,7 +27,7 @@ const sourceLinks = {
 
 /** Load Source Graph and Links */
 
-import { SourceRepository } from '@brentbahry/reflection';
+import { SourceRepository } from '@proteinjs/reflection';
 SourceRepository.merge(sourceGraph, sourceLinks);
 
 

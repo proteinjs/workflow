@@ -1,4 +1,4 @@
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 import { QueryBuilder } from '@proteinjs/db-query';
 import { getSourceRecordLoaders, SourceRecord, getSourceRecordTables } from './SourceRecord';
 import { Table } from '../Table';

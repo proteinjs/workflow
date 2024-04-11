@@ -1,4 +1,4 @@
-import { Loadable, SourceRepository } from '@brentbahry/reflection';
+import { Loadable, SourceRepository } from '@proteinjs/reflection';
 
 export type SessionData = {
     sessionId: string|undefined,

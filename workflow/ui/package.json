@@ -17,8 +17,8 @@
         "watch": "reflection-watch"
     },
     "dependencies": {
-        "@brentbahry/reflection": "file:../../reflection",
-        "@brentbahry/util": "file:../../util/common",
+        "@proteinjs/reflection": "file:../../reflection",
+        "@proteinjs/util": "file:../../util/common",
         "@emotion/react": "11.11.1",
         "@emotion/styled": "11.11.0",
         "@mui/icons-material": "5.14.11",
@@ -30,7 +30,7 @@
         "react": "18.2.0"
     },
     "devDependencies": {
-        "@brentbahry/reflection-build": "file:../../reflection-build",
+        "@proteinjs/reflection-build": "file:../../reflection-build",
         "@types/react": "18.2.23",
         "typescript": "5.2.2"
     },

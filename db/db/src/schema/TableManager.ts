@@ -1,4 +1,4 @@
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 import { Column, Table, getTables, tableByName } from '../Table';
 import { SchemaOperations, TableChanges } from './SchemaOperations';
 import { SchemaMetadata } from './SchemaMetadata';

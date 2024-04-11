@@ -1,7 +1,7 @@
 import * as path from 'path'
 const graphlib = require('@dagrejs/graphlib')
-import { PackageUtil, cmd, Fs } from '@brentbahry/util-server'
-import { Logger } from '@brentbahry/util'
+import { PackageUtil, cmd, Fs } from '@proteinjs/util-node'
+import { Logger } from '@proteinjs/util'
 
 export const testRepo = async () => {
   const logger = new Logger('testRepo');

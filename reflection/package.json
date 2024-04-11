@@ -1,17 +1,17 @@
 {
-    "name": "@brentbahry/reflection",
+    "name": "@proteinjs/reflection",
     "version": "1.0.0",
     "description": "Source introspection and loader",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/brentbahry/reflection.git"
+        "url": "git+https://github.com/proteinjs/reflection.git"
     },
     "bugs": {
-        "url": "https://github.com/brentbahry/reflection/issues"
+        "url": "https://github.com/proteinjs/reflection/issues"
     },
-    "homepage": "https://github.com/brentbahry/reflection#readme",
+    "homepage": "https://github.com/proteinjs/reflection#readme",
     "author": "Brent Bahry",
     "license": "ISC",
     "scripts": {
@@ -19,7 +19,7 @@
         "watch": "tsc -w -p ."
     },
     "dependencies": {
-        "@brentbahry/util": "file:../util/common",
+        "@proteinjs/util": "file:../util/common",
         "@dagrejs/graphlib": "2.1.4"
     },
     "devDependencies": {

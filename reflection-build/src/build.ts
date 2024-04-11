@@ -1,6 +1,6 @@
 import * as path from 'path';
 const tsconfig = require('./tsconfigTemplate.json');
-import { promisifiedFs } from '@brentbahry/util-server';
+import { promisifiedFs } from '@proteinjs/util-node';
 import { writeGeneratedIndex } from './codegen/writeGeneratedIndex';
 
 export async function build() {

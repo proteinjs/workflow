@@ -1,4 +1,4 @@
-import { LoadableForeignType, NotLoadableForeignType, LoadableForeignInterface, NotLoadableForeignInterface, LoadableForeignAbstractClass, NotLoadableForeignAbstractClass } from '@brentbahry/reflection-build-test-b';
+import { LoadableForeignType, NotLoadableForeignType, LoadableForeignInterface, NotLoadableForeignInterface, LoadableForeignAbstractClass, NotLoadableForeignAbstractClass } from '@proteinjs/reflection-build-test-b';
 
 // variable <- type alias
 

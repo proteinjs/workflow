@@ -1,5 +1,5 @@
 import { ThirdPartyLibCustomSerializer } from '@proteinjs/serializer';
-import { graphSerializer, Graph } from '@brentbahry/util';
+import { graphSerializer, Graph } from '@proteinjs/util';
 
 type SerializedGraph = {
   value: string,

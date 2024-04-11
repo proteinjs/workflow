@@ -1,4 +1,4 @@
-import { Loadable, SourceRepository } from '@brentbahry/reflection';
+import { Loadable, SourceRepository } from '@proteinjs/reflection';
 
 export const getKnexConfig = () => {
   const config = SourceRepository.get().object<KnexConfig>('@proteinjs/db-driver-knex/KnexConfig');

@@ -1,4 +1,4 @@
-import { Loadable, SourceRepository } from '@brentbahry/reflection';
+import { Loadable, SourceRepository } from '@proteinjs/reflection';
 
 export const getSpannerConfig = () => SourceRepository.get().object<SpannerConfig>('@proteinjs/db-driver-spanner/SpannerConfig');
 

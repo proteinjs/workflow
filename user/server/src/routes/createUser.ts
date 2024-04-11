@@ -2,7 +2,7 @@ import sha256 from 'crypto-js/sha256';
 import { Route } from '@proteinjs/server-api';
 import { getSystemDb } from '@proteinjs/db';
 import { User, tables, routes } from '@proteinjs/user';
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 
 export const createUser: Route = {
     path: routes.createUser.path,

@@ -1,4 +1,4 @@
-import { Loadable } from '@brentbahry/reflection';
+import { Loadable } from '@proteinjs/reflection';
 
 export type LoadableForeignType = Loadable & { z: number };
 

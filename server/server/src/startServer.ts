@@ -11,7 +11,7 @@ import webpackHotMiddleware from 'webpack-hot-middleware';
 import { Db } from '@proteinjs/db';
 import { ServerConfig, getRoutes } from '@proteinjs/server-api';
 import { loadRoutes, loadDefaultStarRoute } from './loadRoutes';
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 
 const webpackConfig = require('../webpack.config');
 const staticContentPath = '/static/';

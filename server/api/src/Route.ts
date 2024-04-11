@@ -1,5 +1,5 @@
 import express from 'express';
-import { Loadable, SourceRepository } from '@brentbahry/reflection';
+import { Loadable, SourceRepository } from '@proteinjs/reflection';
 
 export interface Route extends Loadable {
     path: string,

@@ -1,7 +1,7 @@
 import knex from 'knex';
 import { DbDriver, DbDriverStatementConfig, SerializedRecord, TableManager } from '@proteinjs/db';
 import { KnexConfig, getKnexConfig } from './KnexConfig';
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 import { Statement } from '@proteinjs/db-query';
 import { KnexSchemaOperations } from './KnexSchemaOperations';
 import { KnexColumnTypeFactory } from './KnexColumnTypeFactory';

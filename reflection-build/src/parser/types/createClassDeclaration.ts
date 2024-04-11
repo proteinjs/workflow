@@ -1,5 +1,5 @@
 import { ClassDeclaration as ParserClassDeclaration, DeclarationVisibility } from 'typescript-parser';
-import { ClassDeclaration, Property, Method, Visibility, InterfaceDeclaration } from '@brentbahry/reflection';
+import { ClassDeclaration, Property, Method, Visibility, InterfaceDeclaration } from '@proteinjs/reflection';
 import { PackageNameFinder } from './PackageNameFinder';
 import { createProperty } from './createProperty';
 import { createMethod } from './createMethod';

@@ -5,7 +5,7 @@ import { SourceRecordRepo } from './source/SourceRecordRepo';
 import { MigrationRunnerService, getMigrationRunnerService } from './services/MigrationRunnerService';
 import { Migration, MigrationTable } from './tables/MigrationTable';
 import { Service } from '@proteinjs/service';
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 
 export const getMigrationRunner = () => typeof self === 'undefined' ? new MigrationRunner() : getMigrationRunnerService() as MigrationRunner;
 

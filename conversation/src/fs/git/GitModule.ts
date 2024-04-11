@@ -1,4 +1,4 @@
-import { gitFunctions } from '@brentbahry/util-server';
+import { gitFunctions } from '@proteinjs/util-node';
 import { ConversationModule, ConversationModuleFactory } from '../../ConversationModule';
 import { Function } from '../../Function';
 

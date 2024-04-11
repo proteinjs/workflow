@@ -1,4 +1,4 @@
-import { Logger, Graph } from '@brentbahry/util';
+import { Logger, Graph } from '@proteinjs/util';
 import { Statement, StatementConfig, StatementParamManager } from './StatementFactory';
 
 export interface Select<T> {

@@ -1,7 +1,7 @@
 import { Database, Instance, Spanner } from '@google-cloud/spanner';
 import { DbDriver, DbDriverStatementConfig, TableManager } from '@proteinjs/db';
 import { SpannerConfig, getSpannerConfig } from './SpannerConfig';
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 import { Statement } from '@proteinjs/db-query';
 import { SpannerSchemaOperations } from './SpannerSchemaOperations';
 import { SpannerColumnTypeFactory } from './SpannerColumnTypeFactory';

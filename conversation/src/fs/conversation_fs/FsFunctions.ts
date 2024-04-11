@@ -1,4 +1,4 @@
-import { File, Fs } from '@brentbahry/util-server';
+import { File, Fs } from '@proteinjs/util-node';
 import { Function } from '../../Function';
 import { ConversationFsModule } from './ConversationFsModule';
 

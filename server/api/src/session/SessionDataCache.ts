@@ -1,4 +1,4 @@
-import { Loadable, SourceRepository } from '@brentbahry/reflection';
+import { Loadable, SourceRepository } from '@proteinjs/reflection';
 
 export const getSessionDataCaches = () => SourceRepository.get().objects<SessionDataCache<any>>('@proteinjs/server-api/SessionDataCache');
 

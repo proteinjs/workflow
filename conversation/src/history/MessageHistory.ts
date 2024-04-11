@@ -1,5 +1,5 @@
 import { ChatCompletionMessageParam } from 'openai/resources/chat';
-import { Logger } from '@brentbahry/util';
+import { Logger } from '@proteinjs/util';
 
 export interface MessageHistoryParams {
   enforceMessageLimit?: boolean;

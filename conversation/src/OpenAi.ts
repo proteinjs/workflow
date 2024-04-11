@@ -1,6 +1,6 @@
 import { OpenAI as OpenAIApi } from 'openai';
 import { ChatCompletionMessage, ChatCompletionMessageParam, ChatCompletion } from 'openai/resources/chat';
-import { LogLevel, Logger } from '@brentbahry/util';
+import { LogLevel, Logger } from '@proteinjs/util';
 import { MessageModerator } from './history/MessageModerator';
 import { Function } from './Function';
 import { MessageHistory } from './history/MessageHistory';

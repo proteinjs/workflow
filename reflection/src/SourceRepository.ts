@@ -1,5 +1,5 @@
 import { Graph } from '@dagrejs/graphlib';
-import { graphSerializer } from '@brentbahry/util';
+import { graphSerializer } from '@proteinjs/util';
 import { SourceType } from './sourceGraphTypes';
 import { VariableDeclaration, TypeAliasDeclaration, ClassDeclaration, InterfaceDeclaration, Class, Variable, TypeAlias, Interface } from './types';
 import { FlattenedSourceGraph, flattenSourceGraph } from './FlattenedSourceGraph';

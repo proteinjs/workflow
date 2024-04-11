@@ -1,4 +1,4 @@
-import { Loadable, SourceRepository } from '@brentbahry/reflection'
+import { Loadable, SourceRepository } from '@proteinjs/reflection'
 import { FormButtons } from '@proteinjs/ui'
 import { Table } from '@proteinjs/db'
 

@@ -1,5 +1,5 @@
 import React, { ReactElement } from 'react'
-import { Loadable, SourceRepository } from '@brentbahry/reflection'
+import { Loadable, SourceRepository } from '@proteinjs/reflection'
 import { Workflow, WorkflowExecution, WorkflowStep } from '@proteinjs/workflow-common';
 import { PageComponentProps } from '@proteinjs/ui';
 

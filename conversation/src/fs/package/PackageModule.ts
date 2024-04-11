@@ -1,4 +1,4 @@
-import { Fs } from '@brentbahry/util-server';
+import { Fs } from '@proteinjs/util-node';
 import { ConversationModule, ConversationModuleFactory } from '../../ConversationModule';
 import { Function } from '../../Function';
 import { packageFunctions, searchLibrariesFunction, searchLibrariesFunctionName, searchPackagesFunction, searchPackagesFunctionName } from './PackageFunctions';

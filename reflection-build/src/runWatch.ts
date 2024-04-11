@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import * as path from 'path';
-import { cmd } from '@brentbahry/util-server';
+import { cmd } from '@proteinjs/util-node';
 
 // Determine the paths to gulp and the src/watch.ts
 const gulpPath = path.resolve(__dirname, '../../node_modules/.bin/gulp');

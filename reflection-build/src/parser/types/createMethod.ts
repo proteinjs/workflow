@@ -1,5 +1,5 @@
 import { DeclarationVisibility, MethodDeclaration } from 'typescript-parser';
-import { Parameter, Method } from '@brentbahry/reflection';
+import { Parameter, Method } from '@proteinjs/reflection';
 import { PackageNameFinder } from './PackageNameFinder';
 import { typeAliasDeclarationFromName } from './createTypeAliasDeclaration';
 import { createParameter } from './createParameter';

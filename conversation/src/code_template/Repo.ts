@@ -1,5 +1,5 @@
-import { Logger } from '@brentbahry/util';
-import { FileDescriptor, Fs, PackageUtil } from '@brentbahry/util-server';
+import { Logger } from '@proteinjs/util';
+import { FileDescriptor, Fs, PackageUtil } from '@proteinjs/util-node';
 import fs from 'fs/promises';
 import path from 'path';
 

@@ -1,5 +1,5 @@
-import { Logger } from '@brentbahry/util';
-import { Fs } from '@brentbahry/util-server';
+import { Logger } from '@proteinjs/util';
+import { Fs } from '@proteinjs/util-node';
 import { ConversationModule, ConversationModuleFactory } from '../../ConversationModule';
 import { Function } from '../../Function';
 import path from 'path';

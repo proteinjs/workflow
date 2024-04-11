@@ -1,5 +1,5 @@
 import { SerializableFunction, NotFunction } from '@proteinjs/serializer';
-import { Loadable, SourceRepository, Method } from '@brentbahry/reflection';
+import { Loadable, SourceRepository, Method } from '@proteinjs/reflection';
 import { ServiceClient } from './ServiceClient';
 
 export interface Service extends Loadable {
