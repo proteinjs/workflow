@@ -1,1 +1,1 @@
-export { Graph } from '@dagrejs/graphlib';
+export { Graph, GraphAlgorithms } from '@dagrejs/graphlib';
