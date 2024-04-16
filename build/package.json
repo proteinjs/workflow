@@ -1,32 +1,28 @@
 {
     "name": "@proteinjs/build",
-    "version": "1.0.0",
-    "description": "Workspace build tools",
-    "main": "./dist/generated/index.js",
-    "types": "./dist/generated/index.d.ts",
-    "bin": {
-        "build-workspace": "dist/src/runBuildWorkspace.js",
-        "test-workspace": "dist/src/runTestWorkspace.js",
-        "watch-workspace": "dist/src/runWatchWorkspace.js"
-    },
+    "version": "0.0.1",
+    "description": "Monorepo build",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/proteinjs/build.git"
+        "url": "git+https://github.com/brentbahry/build.git"
     },
     "bugs": {
-        "url": "https://github.com/proteinjs/build/issues"
+        "url": "https://github.com/brentbahry/build/issues"
     },
-    "homepage": "https://github.com/proteinjs/build#readme",
+    "homepage": "https://github.com/brentbahry/build#readme",
     "author": "Brent Bahry",
-    "license": "MIT",
+    "license": "ISC",
     "scripts": {
         "build": "tsc",
         "watch": "tsc -w -p .",
-        "build-dist": "tsc && webpack --mode production"
+        "build-dist": "tsc && webpack --mode production",
+        "watch-workspace": "node dist/src/runWatchWorkspace.js",
+        "test-workspace": "node dist/src/runTestWorkspace.js",
+        "link-workspace": "node dist/src/runLinkWorkspace.js"
     },
     "dependencies": {
-        "@proteinjs/util": "1.0.18",
-        "@proteinjs/util-node": "1.0.18"
+        "@proteinjs/util": "file:../util/common",
+        "@proteinjs/util-node": "file:../util/node"
     },
     "devDependencies": {
         "@babel/core": "7.23.7",
@@ -39,5 +35,7 @@
         "typescript": "5.2.2",
         "webpack": "5.90.0",
         "webpack-cli": "5.1.4"
-    }
+    },
+    "main": "./dist/generated/index.js",
+    "types": "./dist/generated/index.d.ts"
 }

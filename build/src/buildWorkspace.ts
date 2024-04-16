@@ -4,7 +4,7 @@ import { Logger } from '@proteinjs/util'
 
 export async function buildWorkspace(workspaceMetadata?: WorkspaceMetadata) {
   const logger = new Logger('buildWorkspace');
-  const workspacePath = process.cwd();
+  const workspacePath = path.resolve(__dirname, '..'); // __dirname: build
   logger.info(`> Building workspace (${workspacePath})`);
   const { packageMap, sortedPackageNames } = workspaceMetadata ? workspaceMetadata : await PackageUtil.getWorkspaceMetadata(workspacePath);
   const filteredPackageNames = sortedPackageNames.filter(packageName => !!packageMap[packageName].packageJson.scripts?.build);
