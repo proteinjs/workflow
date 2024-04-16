@@ -1,4 +1,4 @@
-import { Graph, GraphJson } from '@dagrejs/graphlib';
+import { Graph, json as GraphJson } from '@dagrejs/graphlib';
 import { jsonCycle } from '../jsonCycle';
 import jsesc from 'jsesc';
 
