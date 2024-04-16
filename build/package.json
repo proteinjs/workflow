@@ -22,8 +22,7 @@
     },
     "dependencies": {
         "@proteinjs/util": "file:../util/common",
-        "@proteinjs/util-node": "file:../util/node",
-        "@dagrejs/graphlib": "2.1.4"
+        "@proteinjs/util-node": "file:../util/node"
     },
     "devDependencies": {
         "@babel/core": "7.23.7",

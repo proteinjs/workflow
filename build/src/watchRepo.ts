@@ -1,19 +1,16 @@
 import * as path from 'path'
-const graphlib = require('@dagrejs/graphlib')
-import { PackageUtil, cmd } from '@proteinjs/util-node'
+import { PackageUtil, RepoMetadata, cmd } from '@proteinjs/util-node'
 import { Logger } from '@proteinjs/util'
 
-export const watchRepo = async () => {
+export const watchRepo = async (repoMetadata?: RepoMetadata) => {
   const logger = new Logger('watchRepo');
   const repoPath = path.resolve(__dirname, '../../..'); // __dirname: build/dist
-  const localPackageMap = await PackageUtil.getLocalPackageMap(repoPath, ['**/reflection-build/test/**']);
-  const packageDependencyGraph = await PackageUtil.getPackageDependencyGraph(Object.values(localPackageMap).map(localPackage => localPackage.packageJson));
-  const sortedLocalPackageNames = (graphlib.alg.topsort(packageDependencyGraph).reverse() as string[]).filter(packageName => !!localPackageMap[packageName]);
+  const { packageMap, sortedPackageNames } = repoMetadata ? repoMetadata : await PackageUtil.getRepoMetadata(repoPath);
 
-  logger.info(`> Watching ${sortedLocalPackageNames.length} packages in the proteinjs workspace (${repoPath})`);
+  logger.info(`> Watching ${sortedPackageNames.length} packages in the proteinjs workspace (${repoPath})`);
   const loggingStartDelay = 0;
-  for (let packageName of sortedLocalPackageNames) {
-    const localPackage = localPackageMap[packageName];
+  for (let packageName of sortedPackageNames) {
+    const localPackage = packageMap[packageName];
     if (!localPackage.packageJson.scripts?.watch)
       continue;
 

@@ -1,16 +1,13 @@
 import * as path from 'path'
-const graphlib = require('@dagrejs/graphlib')
-import { PackageUtil, cmd } from '@proteinjs/util-node'
+import { PackageUtil, RepoMetadata, cmd } from '@proteinjs/util-node'
 import { Logger } from '@proteinjs/util'
 
-export const buildRepo = async () => {
+export const buildRepo = async (repoMetadata?: RepoMetadata) => {
   const logger = new Logger('buildRepo');
   const repoPath = path.resolve(__dirname, '..'); // __dirname: build
   logger.info(`> Building proteinjs workspace (${repoPath})`);
-  const packageMap = await PackageUtil.getLocalPackageMap(repoPath);
+  const { packageMap, sortedPackageNames } = repoMetadata ? repoMetadata : await PackageUtil.getRepoMetadata(repoPath);
   logger.debug(`packageMap:\n${JSON.stringify(packageMap, null, 2)}`, true);
-  const packageGraph = await PackageUtil.getPackageDependencyGraph(Object.values(packageMap).map(localPackage => localPackage.packageJson));
-  const sortedPackageNames: string[] = graphlib.alg.topsort(packageGraph).reverse();
   logger.debug(`sortedPackageNames:\n${JSON.stringify(sortedPackageNames, null, 2)}`, true);
 
   logger.info(`> Installing and building packages`);
