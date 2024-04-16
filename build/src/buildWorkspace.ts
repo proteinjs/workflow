@@ -2,25 +2,24 @@ import * as path from 'path'
 import { PackageUtil, WorkspaceMetadata, cmd } from '@proteinjs/util-node'
 import { Logger } from '@proteinjs/util'
 
-export const buildWorkspace = async (workspaceMetadata?: WorkspaceMetadata) => {
+export async function buildWorkspace(workspaceMetadata?: WorkspaceMetadata) {
   const logger = new Logger('buildWorkspace');
   const workspacePath = path.resolve(__dirname, '..'); // __dirname: build
   logger.info(`> Building workspace (${workspacePath})`);
   const { packageMap, sortedPackageNames } = workspaceMetadata ? workspaceMetadata : await PackageUtil.getWorkspaceMetadata(workspacePath);
+  const filteredPackageNames = sortedPackageNames.filter(packageName => !!packageMap[packageName].packageJson.scripts?.build);
   logger.debug(`packageMap:\n${JSON.stringify(packageMap, null, 2)}`, true);
-  logger.debug(`sortedPackageNames:\n${JSON.stringify(sortedPackageNames, null, 2)}`, true);
+  logger.debug(`filteredPackageNames:\n${JSON.stringify(filteredPackageNames, null, 2)}`, true);
 
   logger.info(`> Installing and building packages`);
-  for (let packageName of sortedPackageNames) {
+  for (let packageName of filteredPackageNames) {
     const localPackage = packageMap[packageName];
-    if (!localPackage)
-      continue;
-
     const packageDir = path.dirname(localPackage.filePath);
     await cmd('npm', ['install'], { cwd: packageDir });
+    await PackageUtil.symlinkDependencies(localPackage, packageMap, logger);
     logger.info(`Installed ${packageName} (${packageDir})`);
 
-    if (localPackage.packageJson.scripts?.build && packageName != 'typescript-parser') {
+    if (packageName != 'typescript-parser') {
       await cmd('npm', ['run', 'build'], { cwd: packageDir });
       logger.info(`Built ${packageName} (${packageDir})`);
     }

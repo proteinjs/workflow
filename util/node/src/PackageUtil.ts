@@ -1,4 +1,5 @@
 import ts from 'typescript';
+import * as path from 'path';
 import { Logger, Graph, GraphAlgorithms } from '@proteinjs/util';
 import { cmd } from './cmd';
 import { Fs } from './Fs';
@@ -11,6 +12,7 @@ export type Package = {
 }
 
 export type LocalPackage = {
+  name: string,
   filePath: string, 
   packageJson: any
 };
@@ -172,7 +174,7 @@ export class PackageUtil {
     for (let filePath of filePaths) {
       const packageJson = JSON.parse(await Fs.readFile(filePath));
       const name = packageJson['name'];
-      packageMap[name] = { filePath, packageJson };
+      packageMap[name] = { name, filePath, packageJson };
     }
 
     return packageMap;
@@ -246,5 +248,39 @@ export class PackageUtil {
       packageGraph,
       sortedPackageNames
     };
+  }
+
+  /**
+   * Symlink the dependencies of `localPackage` to other local packages in the workspace.
+   * @param localPackage package to symlink the dependencies of
+   * @param localPackageMap `LocalPackageMap` of the workspace
+   * @param logger optionally provide a logger to capture this method's logging
+   */
+  static async symlinkDependencies(localPackage: LocalPackage, localPackageMap: LocalPackageMap, logger?: Logger) {
+    const packageDir = path.dirname(localPackage.filePath);
+    const nodeModulesPath = path.resolve(packageDir, 'node_modules');
+    if (!await Fs.exists(nodeModulesPath))
+      await Fs.createFolder(nodeModulesPath);
+  
+    const linkDependencies = async (dependencies: Record<string, string> | undefined,) => {
+      if (!dependencies)
+        return;
+    
+      for (let dependencyPackageName in dependencies) {
+        const dependencyPath = localPackageMap[dependencyPackageName]?.filePath ? path.dirname(localPackageMap[dependencyPackageName].filePath) : null;
+        if (!dependencyPath)
+          continue;
+    
+        const symlinkPath = path.join(nodeModulesPath, dependencyPackageName);
+        if (await Fs.exists(symlinkPath))
+          await Fs.deleteFolder(symlinkPath);
+    
+        await cmd('ln', ['-s', dependencyPath, symlinkPath], { cwd: packageDir });
+        logger?.debug(`Symlinked dependency (${dependencyPackageName}) ${dependencyPath} -> ${symlinkPath}`);
+      }
+    };
+  
+    await linkDependencies(localPackage.packageJson.dependencies);
+    await linkDependencies(localPackage.packageJson.devDependencies);
   }
 }
