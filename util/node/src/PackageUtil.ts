@@ -276,7 +276,7 @@ export class PackageUtil {
           await Fs.deleteFolder(symlinkPath);
     
         await cmd('ln', ['-s', dependencyPath, symlinkPath], { cwd: packageDir });
-        logger?.debug(`Symlinked dependency (${dependencyPackageName}) ${dependencyPath} -> ${symlinkPath}`);
+        logger?.debug(`Symlinked dependency (${dependencyPackageName}) ${symlinkPath} -> ${dependencyPath}`);
       }
     };
   

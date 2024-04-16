@@ -3,7 +3,7 @@ import { PackageUtil, WorkspaceMetadata, cmd } from '@proteinjs/util-node'
 import { Logger } from '@proteinjs/util'
 
 export async function buildWorkspace(workspaceMetadata?: WorkspaceMetadata) {
-  const logger = new Logger('buildWorkspace');
+  const logger = new Logger('buildWorkspace', 'debug');
   const workspacePath = path.resolve(__dirname, '..'); // __dirname: build
   logger.info(`> Building workspace (${workspacePath})`);
   const { packageMap, sortedPackageNames } = workspaceMetadata ? workspaceMetadata : await PackageUtil.getWorkspaceMetadata(workspacePath);
