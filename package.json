@@ -1,0 +1,13 @@
+{
+  "name": "build",
+  "private": true,
+  "scripts": {
+    "build-workspace": "build-workspace",
+    "test-workspace": "test-workspace",
+    "watch-workspace": "watch-workspace"
+  },
+  "devDependencies": {
+    "@proteinjs/build": "file:./build",
+    "lerna": "8.1.2"
+  }
+}

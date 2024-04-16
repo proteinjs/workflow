@@ -4,16 +4,14 @@ import { Logger } from '@proteinjs/util'
 
 export const watchWorkspace = async (workspaceMetadata?: WorkspaceMetadata) => {
   const logger = new Logger('watchWorkspace');
-  const workspacePath = path.resolve(__dirname, '../../..'); // __dirname: build/dist
+  const workspacePath = process.cwd();
   const { packageMap, sortedPackageNames } = workspaceMetadata ? workspaceMetadata : await PackageUtil.getWorkspaceMetadata(workspacePath);
+  const filteredPackageNames = sortedPackageNames.filter(packageName => !!packageMap[packageName].packageJson.scripts?.watch);
 
-  logger.info(`> Watching ${sortedPackageNames.length} packages in workspace (${workspacePath})`);
+  logger.info(`> Watching ${filteredPackageNames.length} packages in workspace (${workspacePath})`);
   const loggingStartDelay = 0;
-  for (let packageName of sortedPackageNames) {
+  for (let packageName of filteredPackageNames) {
     const localPackage = packageMap[packageName];
-    if (!localPackage.packageJson.scripts?.watch)
-      continue;
-
     const packageDir = path.dirname(localPackage.filePath);
     const loggingEnabledState = { loggingEnabled: false };
     setTimeout(() => loggingEnabledState.loggingEnabled = true, loggingStartDelay);
