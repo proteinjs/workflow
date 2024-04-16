@@ -15,10 +15,10 @@
     "scripts": {
         "build": "tsc",
         "watch": "tsc -w -p .",
-        "test": "jest",
         "build-dist": "tsc && webpack --mode production",
-        "watch-repo": "node dist/src/runWatchRepo.js",
-        "test-repo": "node dist/src/runTestRepo.js"
+        "watch-workspace": "node dist/src/runWatchWorkspace.js",
+        "test-workspace": "node dist/src/runTestWorkspace.js",
+        "link-workspace": "node dist/src/runLinkWorkspace.js"
     },
     "dependencies": {
         "@proteinjs/util": "file:../util/common",

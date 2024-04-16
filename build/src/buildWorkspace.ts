@@ -1,12 +1,12 @@
 import * as path from 'path'
-import { PackageUtil, RepoMetadata, cmd } from '@proteinjs/util-node'
+import { PackageUtil, WorkspaceMetadata, cmd } from '@proteinjs/util-node'
 import { Logger } from '@proteinjs/util'
 
-export const buildRepo = async (repoMetadata?: RepoMetadata) => {
-  const logger = new Logger('buildRepo');
-  const repoPath = path.resolve(__dirname, '..'); // __dirname: build
-  logger.info(`> Building proteinjs workspace (${repoPath})`);
-  const { packageMap, sortedPackageNames } = repoMetadata ? repoMetadata : await PackageUtil.getRepoMetadata(repoPath);
+export const buildWorkspace = async (workspaceMetadata?: WorkspaceMetadata) => {
+  const logger = new Logger('buildWorkspace');
+  const workspacePath = path.resolve(__dirname, '..'); // __dirname: build
+  logger.info(`> Building workspace (${workspacePath})`);
+  const { packageMap, sortedPackageNames } = workspaceMetadata ? workspaceMetadata : await PackageUtil.getWorkspaceMetadata(workspacePath);
   logger.debug(`packageMap:\n${JSON.stringify(packageMap, null, 2)}`, true);
   logger.debug(`sortedPackageNames:\n${JSON.stringify(sortedPackageNames, null, 2)}`, true);
 
@@ -26,5 +26,5 @@ export const buildRepo = async (repoMetadata?: RepoMetadata) => {
     }
   }
 
-  logger.info(`> Built proteinjs workspace (${repoPath})`);
+  logger.info(`> Built workspace (${workspacePath})`);
 }

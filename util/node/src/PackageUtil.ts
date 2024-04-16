@@ -19,7 +19,7 @@ export type LocalPackageMap = {
   [packageName: string]: LocalPackage
 };
 
-export type RepoMetadata = {
+export type WorkspaceMetadata = {
   packageMap: LocalPackageMap,
   packageGraph: any, // @dagrejs/graphlib.Graph
   sortedPackageNames: string[], // local package names, in dependency order (ie. if a depends on b, [b, a] will be returned)
@@ -233,12 +233,12 @@ export class PackageUtil {
   }
 
   /**
-   * Get metadata about a repo, such as dependency relationships and fs paths.
-   * @param repoPath path to the directory containing the repo
-   * @returns RepoMetadata
+   * Get metadata about a workspace, such as package dependency relationships and fs paths.
+   * @param workspacePath path to the directory containing the repo
+   * @returns `WorkspaceMetadata`
    */
-  static async getRepoMetadata(repoPath: string): Promise<RepoMetadata> {
-    const packageMap = await PackageUtil.getLocalPackageMap(repoPath);
+  static async getWorkspaceMetadata(workspacePath: string): Promise<WorkspaceMetadata> {
+    const packageMap = await PackageUtil.getLocalPackageMap(workspacePath);
     const packageGraph = await PackageUtil.getPackageDependencyGraph(packageMap);
     const sortedPackageNames = PackageUtil.getDependencyOrder(packageGraph).filter(packageName => !!packageMap[packageName]);
     return {

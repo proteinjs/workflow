@@ -1,4 +1,4 @@
 #!/bin/bash
 
 cd build
-node build-repo.js
+node build-workspace.js

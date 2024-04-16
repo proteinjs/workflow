@@ -1,9 +1,9 @@
 module.exports = {
   target: 'node',  // Ensures that webpack emulates Node.js environment
-  entry: './dist/src/runBuildRepo.js',  // Entry point of your application
+  entry: './dist/src/runBuildWorkspace.js',  // Entry point of your application
   output: {
     path: __dirname,  // Output directory
-    filename: 'build-repo.js'  // Output file
+    filename: 'build-workspace.js'  // Output file
   },
   module: {
     rules: [

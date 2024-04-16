@@ -1,13 +1,13 @@
 import * as path from 'path'
-import { PackageUtil, RepoMetadata, cmd } from '@proteinjs/util-node'
+import { PackageUtil, WorkspaceMetadata, cmd } from '@proteinjs/util-node'
 import { Logger } from '@proteinjs/util'
 
-export const watchRepo = async (repoMetadata?: RepoMetadata) => {
-  const logger = new Logger('watchRepo');
-  const repoPath = path.resolve(__dirname, '../../..'); // __dirname: build/dist
-  const { packageMap, sortedPackageNames } = repoMetadata ? repoMetadata : await PackageUtil.getRepoMetadata(repoPath);
+export const watchWorkspace = async (workspaceMetadata?: WorkspaceMetadata) => {
+  const logger = new Logger('watchWorkspace');
+  const workspacePath = path.resolve(__dirname, '../../..'); // __dirname: build/dist
+  const { packageMap, sortedPackageNames } = workspaceMetadata ? workspaceMetadata : await PackageUtil.getWorkspaceMetadata(workspacePath);
 
-  logger.info(`> Watching ${sortedPackageNames.length} packages in the proteinjs workspace (${repoPath})`);
+  logger.info(`> Watching ${sortedPackageNames.length} packages in workspace (${workspacePath})`);
   const loggingStartDelay = 0;
   for (let packageName of sortedPackageNames) {
     const localPackage = packageMap[packageName];
