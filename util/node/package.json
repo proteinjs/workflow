@@ -28,7 +28,7 @@
         "ts-jest": "^29.1.1"
     },
     "dependencies": {
-        "@proteinjs/util": "file:../common",
+        "@proteinjs/util": "1.0.17",
         "@dagrejs/graphlib": "2.1.4",
         "fs-extra": "11.1.1",
         "globby": "11.0.1"

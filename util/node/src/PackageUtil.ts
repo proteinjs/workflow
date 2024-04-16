@@ -198,20 +198,20 @@ export class PackageUtil {
       if (!graph.hasNode(packageName))
         graph.setNode(packageName);
 
-      PackageUtil.addDependencies(packageName, localPackage.packageJson['dependencies'], graph);
-      PackageUtil.addDependencies(packageName, localPackage.packageJson['devDependencies'], graph);
+      PackageUtil.addDependencies(packageName, localPackage.packageJson['dependencies'], graph, packageMap);
+      PackageUtil.addDependencies(packageName, localPackage.packageJson['devDependencies'], graph, packageMap);
     }
 
     return graph;
   }
 
-  private static addDependencies(sourcePackageName: string, dependencies: any, graph: any) {
+  private static addDependencies(sourcePackageName: string, dependencies: any, graph: any, packageMap: LocalPackageMap) {
     if (!dependencies)
       return;
 
     for (let dependencyPackageName of Object.keys(dependencies)) {
       const dependencyPackageVersion = dependencies[dependencyPackageName] as string;
-      if (!(dependencyPackageVersion.startsWith('file:') || dependencyPackageVersion.startsWith('.')))
+      if (!(dependencyPackageVersion.startsWith('file:') || dependencyPackageVersion.startsWith('.') || !!packageMap[dependencyPackageName]))
         continue;
 
       if (!graph.hasNode(dependencyPackageName))
