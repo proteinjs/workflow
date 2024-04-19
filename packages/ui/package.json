@@ -1,8 +1,10 @@
 {
     "name": "@proteinjs/workflow-ui",
-    "private": true,
     "version": "0.0.1",
     "description": "Workflow UI libs",
+    "publishConfig": {
+        "access": "public"
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/proteinjs/workflow.git"
@@ -28,7 +30,7 @@
         "@proteinjs/db": "1.0.3",
         "@proteinjs/ui": "1.0.1",
         "@proteinjs/user": "1.0.1",
-        "@proteinjs/workflow-common": "file:../common",
+        "@proteinjs/workflow-common": "0.0.2",
         "react": "18.2.0"
     },
     "devDependencies": {
