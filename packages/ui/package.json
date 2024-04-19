@@ -1,0 +1,41 @@
+{
+    "name": "@proteinjs/workflow-ui",
+    "private": true,
+    "version": "0.0.1",
+    "description": "Workflow UI libs",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/proteinjs/workflow.git"
+    },
+    "bugs": {
+        "url": "https://github.com/proteinjs/workflow/issues"
+    },
+    "homepage": "https://github.com/proteinjs/workflow#readme",
+    "author": "Brent Bahry",
+    "license": "MIT",
+    "scripts": {
+        "clean": "rm -rf dist/ generated/ node_modules/ package-lock.json",
+        "build": "reflection-build && tsc",
+        "watch": "reflection-watch"
+    },
+    "dependencies": {
+        "@proteinjs/reflection": "1.0.2",
+        "@proteinjs/util": "1.0.18",
+        "@emotion/react": "11.11.1",
+        "@emotion/styled": "11.11.0",
+        "@mui/icons-material": "5.14.11",
+        "@mui/material": "5.14.11",
+        "@proteinjs/db": "1.0.3",
+        "@proteinjs/ui": "1.0.1",
+        "@proteinjs/user": "1.0.1",
+        "@proteinjs/workflow-common": "file:../common",
+        "react": "18.2.0"
+    },
+    "devDependencies": {
+        "@proteinjs/reflection-build": "1.0.5",
+        "@types/react": "18.2.23",
+        "typescript": "5.2.2"
+    },
+    "main": "./dist/generated/index.js",
+    "types": "./dist/generated/index.d.ts"
+}
