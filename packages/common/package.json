@@ -1,12 +1,14 @@
 {
     "name": "@proteinjs/workflow-common",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "main": "./dist/generated/index.js",
     "types": "./dist/generated/index.d.ts",
     "publishConfig": {
         "access": "public"
     },
-    "files": ["dist/"],
+    "files": [
+        "dist/"
+    ],
     "repository": {
         "type": "git",
         "url": "git+https://github.com/proteinjs/workflow.git"
