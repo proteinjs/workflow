@@ -1,6 +1,6 @@
 {
     "name": "@proteinjs/workflow-ui",
-    "version": "0.0.12",
+    "version": "0.0.13",
     "description": "Workflow UI libs",
     "publishConfig": {
         "access": "public"
@@ -27,7 +27,7 @@
         "@mui/material": "5.14.11",
         "@proteinjs/db": "1.0.10",
         "@proteinjs/reflection": "1.0.7",
-        "@proteinjs/ui": "1.0.5",
+        "@proteinjs/ui": "1.0.6",
         "@proteinjs/user": "1.0.8",
         "@proteinjs/util": "1.1.0",
         "@proteinjs/workflow-common": "^0.0.12",
