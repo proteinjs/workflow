@@ -9,6 +9,7 @@
   },
   "devDependencies": {
     "@proteinjs/build": "^1.2.0",
-    "lerna": "8.1.2"
+    "lerna": "8.1.2",
+    "prettier": "3.2.5"
   }
 }
