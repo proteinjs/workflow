@@ -4,14 +4,14 @@ import { WorkflowStep, WorkflowStepTable } from './WorkflowStepTable';
 import { Workflow, WorkflowTable } from './WorkflowTable';
 
 export interface WorkflowExecution extends ScopedRecord {
-	workflow: Reference<Workflow>;
+  workflow: Reference<Workflow>;
   currentStep: Reference<WorkflowStep>;
-  status: 'pending'|'active'|'success'|'failure';
+  status: 'pending' | 'active' | 'success' | 'failure';
 }
 
 export class WorkflowExecutionTable extends Table<WorkflowExecution> {
-	public name = 'workflow_execution';
-	public auth: Table<WorkflowExecution>['auth'] = {
+  public name = 'workflow_execution';
+  public auth: Table<WorkflowExecution>['auth'] = {
     db: {
       all: 'authenticated',
     },
@@ -19,9 +19,9 @@ export class WorkflowExecutionTable extends Table<WorkflowExecution> {
       all: 'authenticated',
     },
   };
-	public columns = withScopedRecordColumns<WorkflowExecution>({
-		workflow: new ReferenceColumn<Workflow>('workflow', new WorkflowTable().name, false),
+  public columns = withScopedRecordColumns<WorkflowExecution>({
+    workflow: new ReferenceColumn<Workflow>('workflow', new WorkflowTable().name, false),
     currentStep: new ReferenceColumn<WorkflowStep>('current_step', new WorkflowStepTable().name, false),
     status: new StringColumn('status', { defaultValue: async () => 'pending' }),
-	});
-};
+  });
+}

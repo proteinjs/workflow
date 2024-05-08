@@ -7,4 +7,4 @@ export const tables = {
   Workflow: new WorkflowTable() as Table<Workflow>,
   WorkflowStep: new WorkflowStepTable() as Table<WorkflowStep>,
   WorkflowExecution: new WorkflowExecutionTable() as Table<WorkflowExecution>,
-}
+};
