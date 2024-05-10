@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.18](https://github.com/proteinjs/workflow/compare/@proteinjs/workflow-ui@0.0.17...@proteinjs/workflow-ui@0.0.18) (2024-05-10)
+
+
+### Bug Fixes
+
+* add .md to lint ignore files ([76893db](https://github.com/proteinjs/workflow/commit/76893dbdf3dd85ab588c8d835580844a019d857f))
+
+
+
+
+
 ## [0.0.17](https://github.com/proteinjs/workflow/compare/@proteinjs/workflow-ui@0.0.16...@proteinjs/workflow-ui@0.0.17) (2024-05-10)
 
 
