@@ -8,9 +8,9 @@ import { PageComponentProps } from '@proteinjs/ui';
 import { workflowLink } from './pages/WorkflowPage';
 
 export type WorkflowProps = PageComponentProps & {
-  workflowId: string,
-  workflowExecutionId?: string,
-}
+  workflowId: string;
+  workflowExecutionId?: string;
+};
 
 export const Workflow = ({ workflowId, workflowExecutionId, navigate, ...props }: WorkflowProps) => {
   const [workflowExecution, setWorkflowExecution] = React.useState<WorkflowExecution>();
@@ -37,8 +37,9 @@ export const Workflow = ({ workflowId, workflowExecutionId, navigate, ...props }
 
   async function getOrCreateWorkflowExecution(workflowRecord: WorkflowRecord) {
     const db = getScopedDb();
-    if (workflowExecutionId)
+    if (workflowExecutionId) {
       return await db.get(tables.WorkflowExecution, { id: workflowExecutionId });
+    }
 
     const newWorkflowExecution = await db.insert(tables.WorkflowExecution, {
       workflow: Reference.fromObject(tables.Workflow.name, workflowRecord),
@@ -50,8 +51,9 @@ export const Workflow = ({ workflowId, workflowExecutionId, navigate, ...props }
   }
 
   async function updateCurrentStep(step: WorkflowStep) {
-    if (!workflowExecution)
+    if (!workflowExecution) {
       return;
+    }
 
     workflowExecution.currentStep = Reference.fromObject(tables.WorkflowStep.name, step);
     await getDb().update(tables.WorkflowExecution, workflowExecution);
@@ -67,9 +69,10 @@ export const Workflow = ({ workflowId, workflowExecutionId, navigate, ...props }
     setWorkflowExecution(workflowExecution);
   }
 
-  if (!WorkflowComponent || !workflow || !workflowExecution || !steps || !currentStep)
+  if (!WorkflowComponent || !workflow || !workflowExecution || !steps || !currentStep) {
     return null;
-  
+  }
+
   return (
     <WorkflowComponent
       workflowHeader={
@@ -94,4 +97,4 @@ export const Workflow = ({ workflowId, workflowExecutionId, navigate, ...props }
       {...props}
     />
   );
-}
+};

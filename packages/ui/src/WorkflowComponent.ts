@@ -1,5 +1,5 @@
-import React, { ReactElement } from 'react'
-import { Loadable, SourceRepository } from '@proteinjs/reflection'
+import React, { ReactElement } from 'react';
+import { Loadable, SourceRepository } from '@proteinjs/reflection';
 import { Workflow, WorkflowExecution, WorkflowStep } from '@proteinjs/workflow-common';
 import { PageComponentProps } from '@proteinjs/ui';
 
@@ -20,16 +20,15 @@ export interface WorkflowComponent extends Loadable {
 
 export class WorkflowComponentRepo {
   private static INSTANCE: WorkflowComponentRepo;
-  private constructor(
-    private workflowComponentsMap: {[workflowId: string]: WorkflowComponent['component']}
-  ) {}
+  private constructor(private workflowComponentsMap: { [workflowId: string]: WorkflowComponent['component'] }) {}
 
   private static getInstance() {
     if (!WorkflowComponentRepo.INSTANCE) {
       const components = SourceRepository.get().objects<WorkflowComponent>('@proteinjs/workflow-ui/WorkflowComponent');
-      const componentsMap: {[workflowId: string]: WorkflowComponent['component']} = {};
-      for (let component of components)
+      const componentsMap: { [workflowId: string]: WorkflowComponent['component'] } = {};
+      for (const component of components) {
         componentsMap[component.workflowId] = component.component;
+      }
 
       WorkflowComponentRepo.INSTANCE = new WorkflowComponentRepo(componentsMap);
     }

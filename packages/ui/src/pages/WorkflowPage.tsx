@@ -1,17 +1,17 @@
-import React from 'react'
-import { Page } from '@proteinjs/ui'
+import React from 'react';
+import { Page } from '@proteinjs/ui';
 import { Workflow } from '../Workflow';
 
 export const workflowPage: Page = {
   name: 'Workflow',
   path: 'workflow',
-  pageContainerSxProps: (theme) => ({ 
-    height: '100vh', 
-    overflow: 'hidden', 
-    display: 'flex', 
+  pageContainerSxProps: (theme) => ({
+    height: '100vh',
+    overflow: 'hidden',
+    display: 'flex',
     flexDirection: 'column',
   }),
-  component: ({...props}) => {
+  component: ({ ...props }) => {
     return (
       <Workflow
         workflowId={props.urlParams['id']}
@@ -19,13 +19,14 @@ export const workflowPage: Page = {
         {...props}
       />
     );
-  }
-}
+  },
+};
 
 export const workflowLink = (workflowId: string, workflowExuectionId?: string) => {
   let path = `/${workflowPage.path}?id=${workflowId}`;
-  if (workflowExuectionId)
+  if (workflowExuectionId) {
     path += `&workflow_execution_id=${workflowExuectionId}`;
+  }
 
   return path;
-}
+};
