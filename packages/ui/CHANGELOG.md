@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.20](https://github.com/proteinjs/workflow/compare/@proteinjs/workflow-ui@0.0.19...@proteinjs/workflow-ui@0.0.20) (2024-05-12)
+
+**Note:** Version bump only for package @proteinjs/workflow-ui
+
+
+
+
+
 ## [0.0.18](https://github.com/proteinjs/workflow/compare/@proteinjs/workflow-ui@0.0.17...@proteinjs/workflow-ui@0.0.18) (2024-05-10)
 
 

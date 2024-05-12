@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.19](https://github.com/proteinjs/workflow/compare/@proteinjs/workflow-common@0.0.18...@proteinjs/workflow-common@0.0.19) (2024-05-12)
+
+
+### Bug Fixes
+
+* forcing a publish of common for testing ([2fb54f4](https://github.com/proteinjs/workflow/commit/2fb54f4e6af4cad4c42298b529aa12f52f848f94))
+
+
+
+
+
 ## [0.0.17](https://github.com/proteinjs/workflow/compare/@proteinjs/workflow-common@0.0.16...@proteinjs/workflow-common@0.0.17) (2024-05-10)
 
 
