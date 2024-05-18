@@ -1,6 +1,6 @@
 {
   "name": "@proteinjs/workflow-ui",
-  "version": "0.0.23",
+  "version": "0.0.24",
   "description": "Workflow UI libs",
   "publishConfig": {
     "access": "public"
@@ -25,12 +25,12 @@
     "@emotion/styled": "11.11.0",
     "@mui/icons-material": "5.14.11",
     "@mui/material": "5.14.11",
-    "@proteinjs/db": "1.0.21",
+    "@proteinjs/db": "1.0.22",
     "@proteinjs/reflection": "1.1.5",
     "@proteinjs/ui": "2.0.6",
-    "@proteinjs/user": "1.0.18",
+    "@proteinjs/user": "1.0.19",
     "@proteinjs/util": "1.1.2",
-    "@proteinjs/workflow-common": "^0.0.22",
+    "@proteinjs/workflow-common": "^0.0.23",
     "react": "18.2.0"
   },
   "devDependencies": {
