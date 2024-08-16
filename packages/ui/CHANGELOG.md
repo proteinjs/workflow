@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.48](https://github.com/proteinjs/workflow/compare/@proteinjs/workflow-ui@0.0.47...@proteinjs/workflow-ui@0.0.48) (2024-08-16)
+
+
+### Bug Fixes
+
+* removed unnecessary dependency on @proteinjs/util ([283ca58](https://github.com/proteinjs/workflow/commit/283ca58c2b2a59db09d209e8016f55fc27da0516))
+
+
+
+
+
 ## [0.0.29](https://github.com/proteinjs/workflow/compare/@proteinjs/workflow-ui@0.0.28...@proteinjs/workflow-ui@0.0.29) (2024-06-19)
 
 
