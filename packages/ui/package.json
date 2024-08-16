@@ -29,7 +29,6 @@
     "@proteinjs/reflection": "1.1.8",
     "@proteinjs/ui": "3.0.0",
     "@proteinjs/user": "1.1.3",
-    "@proteinjs/util": "1.4.0",
     "@proteinjs/workflow-common": "^0.0.45",
     "react": "18.2.0"
   },
