@@ -1,6 +1,6 @@
 {
   "name": "@proteinjs/workflow-common",
-  "version": "0.0.50",
+  "version": "0.0.51",
   "main": "./dist/generated/index.js",
   "types": "./dist/generated/index.d.ts",
   "publishConfig": {
@@ -22,10 +22,10 @@
     "watch": "reflection-watch"
   },
   "dependencies": {
-    "@proteinjs/db": "1.5.11",
+    "@proteinjs/db": "1.5.12",
     "@proteinjs/reflection": "1.1.9",
-    "@proteinjs/service": "1.0.32",
-    "@proteinjs/user": "1.1.8",
+    "@proteinjs/service": "1.1.0",
+    "@proteinjs/user": "1.1.9",
     "moment": "2.29.4"
   },
   "devDependencies": {
