@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Workflow as WorkflowRecord, WorkflowExecution, WorkflowStep, tables } from '@proteinjs/workflow-common';
 import { Reference, getDb } from '@proteinjs/db';
 import { getScopedDb } from '@proteinjs/user';
@@ -12,7 +13,8 @@ export type WorkflowProps = PageComponentProps & {
   workflowExecutionId?: string;
 };
 
-export const Workflow = ({ workflowId, workflowExecutionId, navigate, ...props }: WorkflowProps) => {
+export const Workflow = ({ workflowId, workflowExecutionId, ...props }: WorkflowProps) => {
+  const navigate = useNavigate();
   const [workflowExecution, setWorkflowExecution] = React.useState<WorkflowExecution>();
   const [workflow, setWorkflow] = React.useState<WorkflowRecord>();
   const [steps, setSteps] = React.useState<WorkflowStep[]>();
@@ -83,7 +85,6 @@ export const Workflow = ({ workflowId, workflowExecutionId, navigate, ...props }
           currentStep={currentStep}
           updateCurrentStep={updateCurrentStep}
           setWorkflowExecutionAndCurrentStep={setWorkflowExecutionAndCurrentStep}
-          navigate={navigate}
           {...props}
         />
       }
@@ -93,7 +94,6 @@ export const Workflow = ({ workflowId, workflowExecutionId, navigate, ...props }
       currentStep={currentStep}
       updateCurrentStep={updateCurrentStep}
       setWorkflowExecutionAndCurrentStep={setWorkflowExecutionAndCurrentStep}
-      navigate={navigate}
       {...props}
     />
   );
