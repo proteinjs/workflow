@@ -1,6 +1,6 @@
 {
   "name": "@proteinjs/workflow-common",
-  "version": "0.0.88",
+  "version": "0.0.89",
   "main": "./dist/generated/index.js",
   "types": "./dist/generated/index.d.ts",
   "publishConfig": {
@@ -22,14 +22,14 @@
     "watch": "reflection-watch"
   },
   "dependencies": {
-    "@proteinjs/db": "^1.21.3",
+    "@proteinjs/db": "^1.21.6",
     "@proteinjs/reflection": "^1.1.11",
-    "@proteinjs/service": "^1.2.11",
-    "@proteinjs/user": "^1.5.2",
+    "@proteinjs/service": "^1.2.12",
+    "@proteinjs/user": "^1.5.4",
     "moment": "2.29.4"
   },
   "devDependencies": {
-    "@proteinjs/reflection-build": "^1.4.3",
+    "@proteinjs/reflection-build": "^1.4.4",
     "@types/jest": "29.5.5",
     "@typescript-eslint/eslint-plugin": "7.8.0",
     "@typescript-eslint/parser": "7.8.0",
